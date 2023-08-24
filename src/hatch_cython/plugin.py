@@ -173,7 +173,6 @@ class CythonBuildHook(BuildHookInterface):
     def initialize(self, version: str, build_data: dict):
         if self.target_name != "wheel":
             return
-        sys.path.append(self.root)
         compile_args = self.config.get("compile-args")
         if compile_args is not None:
             if not isinstance(compile_args, list):
@@ -191,7 +190,10 @@ class CythonBuildHook(BuildHookInterface):
             if not isinstance(llevel, (int)):
                 msg = "language-level must be an int, got %s" % type(llevel)
                 raise ValueError(msg)
-        self.app.display_info("pre-build artifacts: ", glob("./*/**"))
+
+        self.app.display_waiting("pre-build artifacts")
+        self.app.display_waiting(glob("./*/**"))
+
         with self.get_build_dirs() as (config, temp):
             shared_temp_build_dir = os.path.join(config, "build")
             temp_build_dir = os.path.join(temp, "tmp")
@@ -228,7 +230,9 @@ class CythonBuildHook(BuildHookInterface):
             if process.returncode:
                 raise Exception(process.stdout.decode("utf-8"))
 
-        self.app.display_info("post-build artifacts: ", glob("./*/**"))
+            self.app.display_success("post build artifacts")
+            self.app.display_success(glob(f"{temp}/build/**/*.*"))
+
         build_data["infer_tag"] = True
         build_data["pure_python"] = False
         build_data["artifacts"].extend(self.artifact_patterns)
