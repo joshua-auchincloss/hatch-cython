@@ -79,9 +79,12 @@ class CythonBuildHook(BuildHookInterface):
     def is_windows(self):
         return os.name.lower() == "nt"
 
-    def normalize(self, pattern: str):
+    def normalize_path(self, pattern: str):
         if self.is_windows:
             return pattern.replace("/", "\\")
+        return pattern.replace("\\", "/")
+
+    def normalize_glob(self, pattern: str):
         return pattern.replace("\\", "/")
 
     @property
@@ -96,8 +99,11 @@ class CythonBuildHook(BuildHookInterface):
 
     @property
     def normalized_included_files(self):
+        """
+        Produces files in posix format
+        """
         if self._norm_included_files is None:
-            self._norm_included_files = [self.normalize(f) for f in self.included_files]
+            self._norm_included_files = [self.normalize_glob(f) for f in self.included_files]
         return self._norm_included_files
 
     @property
@@ -112,15 +118,18 @@ class CythonBuildHook(BuildHookInterface):
 
     @property
     def normalized_artifact_globs(self):
+        """
+        Produces files in platform native format (e.g. a/b vs a\\b)
+        """
         if self._norm_artifact_patterns is None:
-            self._norm_artifact_patterns = [self.normalize(f) for f in self.artifact_globs]
+            self._norm_artifact_patterns = [self.normalize_path(f) for f in self.artifact_globs]
         return self._norm_artifact_patterns
 
     @property
     def artifact_patterns(self):
         if self._artifact_patterns is None:
             self._artifact_patterns = [
-                self.normalize(f"/{artifact_glob}") for artifact_glob in self.normalized_artifact_globs
+                f"/{artifact_glob}" for artifact_glob in self.normalized_artifact_globs
             ]
         return self._artifact_patterns
 
@@ -160,9 +169,8 @@ class CythonBuildHook(BuildHookInterface):
 
             setup_file = os.path.join(temp, "setup.py")
             with open(setup_file, "w") as f:
-                # raise ValueError(self.normalized_included_files)
                 setup = setup_py(
-                    *self.included_files,
+                    *self.normalized_included_files,
                     compile_args=compile_args,
                     directives={
                         "binding": binding,
