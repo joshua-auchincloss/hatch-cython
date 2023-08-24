@@ -61,6 +61,7 @@ class CythonBuildHook(BuildHookInterface):
         ".c",
         ".cpp",
         ".so",
+        ".dll"
     ]
 
     _included: list[str]
