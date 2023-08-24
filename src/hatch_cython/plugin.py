@@ -161,7 +161,7 @@ class CythonBuildHook(BuildHookInterface):
             setup_file = os.path.join(temp, "setup.py")
             with open(setup_file, "w") as f:
                 setup = setup_py(
-                    *self.normalized_included_files,
+                    *self.included_files,
                     compile_args=compile_args,
                     directives={
                         "binding": binding,
