@@ -22,7 +22,7 @@ defaults:
     shell: bash
 
 jobs:
-  test:
+  Validate:
     name: Python ${{ matrix.python-version }} on ${{ startsWith(matrix.os, 'macos-') && 'macOS' || startsWith(matrix.os, 'windows-') && 'Windows' || 'Linux' }}
     runs-on: ${{ matrix.os }}
     strategy:
@@ -51,12 +51,12 @@ jobs:
            pip install . &&
            pytest
 
-  deploy:
-    needs: test
+  Build:
+    needs: Validate
     runs-on: ubuntu-latest
     environment:
       name: pypi
-      url: https://pypi.org/p/tableclasses
+      url: https://pypi.org/p/hatch-cython
     permissions:
       id-token: write
     steps:
