@@ -104,7 +104,7 @@ class CythonBuildHook(BuildHookInterface):
     def artifact_globs(self):
         if self._artifact_globs is None:
             artifact_globs = []
-            for included_file in self.included_files:
+            for included_file in self.normalized_included_files:
                 root, _ = os.path.splitext(included_file)
                 artifact_globs.append(f"{root}.*{self.compiled_extension}")
             self._artifact_globs = artifact_globs
@@ -119,7 +119,9 @@ class CythonBuildHook(BuildHookInterface):
     @property
     def artifact_patterns(self):
         if self._artifact_patterns is None:
-            self._artifact_patterns = [self.normalize(f"/{artifact_glob}") for artifact_glob in self.normalized_artifact_globs]
+            self._artifact_patterns = [
+                self.normalize(f"/{artifact_glob}") for artifact_glob in self.normalized_artifact_globs
+            ]
         return self._artifact_patterns
 
     @contextmanager
@@ -159,7 +161,7 @@ class CythonBuildHook(BuildHookInterface):
             setup_file = os.path.join(temp, "setup.py")
             with open(setup_file, "w") as f:
                 setup = setup_py(
-                    *self.included_files,
+                    *self.normalized_included_files,
                     compile_args=compile_args,
                     directives={
                         "binding": binding,

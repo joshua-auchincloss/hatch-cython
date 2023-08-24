@@ -1,19 +1,47 @@
-# hatch_cython
+# hatch-cython
 
 [![PyPI - Version](https://img.shields.io/pypi/v/hatch-cython.svg)](https://pypi.org/project/hatch-cython)
 [![PyPI - Python Version](https://img.shields.io/pypi/pyversions/hatch-cython.svg)](https://pypi.org/project/hatch-cython)
 
------
+---
 
 **Table of Contents**
 
 - [Installation](#installation)
 - [License](#license)
 
-## Installation
+## Usage
 
-```console
-pip install hatch-cython
+The build hook name is `cython`.
+
+- _pyproject.toml_
+
+```toml
+[tool.hatch.build.targets.wheel.hooks.cython]
+dependencies = ["hatch-cython"]
+
+[tool.hatch.build.targets.wheel.hooks.cython.options]
+<!-- optional, defaults below -->
+language-level = 3
+binding = true
+compile-args = [
+    "-O3",
+]
+```
+
+- _hatch.toml_
+
+```toml
+[build.targets.wheel.hooks.cython]
+dependencies = ["hatch-cython"]
+
+[build.targets.wheel.hooks.cython.options]
+<!-- optional, defaults below -->
+language-level = 3
+binding = true
+compile-args = [
+    "-O3",
+]
 ```
 
 ## License
