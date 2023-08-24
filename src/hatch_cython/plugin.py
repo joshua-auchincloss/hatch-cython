@@ -60,8 +60,11 @@ class CythonBuildHook(BuildHookInterface):
     compiled_extensions : ClassVar[list] = [
         ".c",
         ".cpp",
+        # unix
         ".so",
-        ".dll"
+        # windows
+        ".dll",
+        ".pyd",
     ]
 
     _included: list[str]

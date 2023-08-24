@@ -41,6 +41,5 @@ jobs:
       - name: test-example
         run: |
            cd example && 
-           hatch build &&
-           pip install dist/example-0.0.1-py3-none-any.whl && 
+           pip install . &&
            pytest
