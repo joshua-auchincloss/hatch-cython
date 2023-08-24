@@ -1,0 +1,20 @@
+version: "3"
+
+
+tasks:
+  example:
+    dir: example
+    cmds:
+      - pip install .
+      - pytest
+
+  clean:
+    cmds:
+      - rm -rf __pycache__
+      - rm -rf ./**/__pycache__
+      - rm -rf ./**/*.c
+      - rm -rf ./**/*.so
+      - rm -rf .ruff_cache
+      - rm -rf ./**/.ruff_cache
+      - rm -rf .pytest_cache
+      - rm -rf ./**/.pytest_cache

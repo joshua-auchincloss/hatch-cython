@@ -1,0 +1,59 @@
+[build]
+ignore-vcs = true
+artifacts = [
+    "*.so",
+    "*.dll",
+]
+
+[build.targets.wheel.hooks.custom]
+path = "../src/hatch_cython/plugin.py"
+dependencies = [
+  "Cython",
+  "setuptools",
+]
+[[envs.all.matrix]]
+python = ["3.10", "3.11"]
+
+[envs.lint]
+detached = true
+dependencies = [
+  "black>=23.1.0",
+  "mypy>=1.0.0",
+  "ruff>=0.0.243",
+]
+
+
+[envs.lint.scripts]
+typing = "mypy --install-types --non-interactive {args:src/funcclasses tests}"
+style = [
+  "ruff {args:.}",
+  "black --check --diff {args:.}",
+]
+fmt = [
+  "black {args:.}",
+  "ruff --fix {args:.}",
+  "style",
+]
+all = [
+  "style",
+  "typing",
+]
+
+[envs.default]
+dependencies = [
+  "coverage",
+  "pytest",
+  "beartype"
+]
+
+[envs.default.scripts]
+test = "pytest {args:tests}"
+test-cov = "coverage run -m pytest {args:tests}"
+cov-report = [
+  "- coverage combine",
+  "coverage report",
+]
+cov = [
+  "test-cov",
+  "cov-report",
+]
