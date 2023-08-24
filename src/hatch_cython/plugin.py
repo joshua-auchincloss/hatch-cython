@@ -191,6 +191,7 @@ class CythonBuildHook(BuildHookInterface):
             if not isinstance(llevel, (int)):
                 msg = "language-level must be an int, got %s" % type(llevel)
                 raise ValueError(msg)
+        self.app.display_info("pre-build artifacts: ", glob("./*/**"))
         with self.get_build_dirs() as (config, temp):
             shared_temp_build_dir = os.path.join(config, "build")
             temp_build_dir = os.path.join(temp, "tmp")
@@ -227,6 +228,7 @@ class CythonBuildHook(BuildHookInterface):
             if process.returncode:
                 raise Exception(process.stdout.decode("utf-8"))
 
+        self.app.display_info("post-build artifacts: ", glob("./*/**"))
         build_data["infer_tag"] = True
         build_data["pure_python"] = False
         build_data["artifacts"].extend(self.artifact_patterns)
