@@ -231,7 +231,10 @@ class CythonBuildHook(BuildHookInterface):
                 stderr=subprocess.STDOUT,
             )
             if process.returncode:
-                raise Exception(process.stdout.decode("utf-8"))
+                self.app.display_error(f"cythonize exited non null status {process.returncode}")
+                self.app.display_error(process.stdout.decode("utf-8"))
+                msg = "failed compilation"
+                raise Exception(msg)
 
             self.app.display_success("post build artifacts")
             self.app.display_success(glob(f"{temp}/build/**/*.*"))

@@ -46,7 +46,10 @@ jobs:
         run: hatch run cov
 
       - name: test-example
-        run: cd example && pip install . && pytest
+        run: |
+           cd example && 
+           pip install . &&
+           pytest
 
   deploy:
     needs: test
