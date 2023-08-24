@@ -79,6 +79,11 @@ class CythonBuildHook(BuildHookInterface):
     def is_windows(self):
         return os.name.lower() == "nt"
 
+    def normalize(self, pattern: str):
+        if self.is_windows:
+            return pattern.replace("/", "\\")
+        return pattern.replace("\\", "/")
+
     @property
     def included_files(self):
         if self._included is None:
@@ -92,10 +97,7 @@ class CythonBuildHook(BuildHookInterface):
     @property
     def normalized_included_files(self):
         if self._norm_included_files is None:
-            if self.is_windows:
-                self._norm_included_files = [f.replace("\\", "/") for f in self.included_files]
-            else:
-                self._norm_included_files = self.included_files
+            self._norm_included_files = [self.normalize(f) for f in self.included_files]
         return self._norm_included_files
 
     @property
@@ -111,17 +113,13 @@ class CythonBuildHook(BuildHookInterface):
     @property
     def normalized_artifact_globs(self):
         if self._norm_artifact_patterns is None:
-            if self.is_windows:
-                self._norm_artifact_patterns = [f.replace("\\", "/") for f in self.artifact_globs]
-            else:
-                self._norm_artifact_patterns = self.artifact_globs
-
+            self._norm_artifact_patterns = [self.normalize(f) for f in self.artifact_globs]
         return self._norm_artifact_patterns
 
     @property
     def artifact_patterns(self):
         if self._artifact_patterns is None:
-            self._artifact_patterns = [f"/{artifact_glob}" for artifact_glob in self.normalized_artifact_globs]
+            self._artifact_patterns = [self.normalize(f"/{artifact_glob}") for artifact_glob in self.normalized_artifact_globs]
         return self._artifact_patterns
 
     @contextmanager
