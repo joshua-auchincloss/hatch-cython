@@ -122,7 +122,7 @@ class CythonBuildHook(BuildHookInterface):
         Produces files in platform native format (e.g. a/b vs a\\b)
         """
         if self._norm_artifact_patterns is None:
-            self._norm_artifact_patterns = [self.normalize_path(f) for f in self.artifact_globs]
+            self._norm_artifact_patterns = [self.normalize_glob(f) for f in self.artifact_globs]
         return self._norm_artifact_patterns
 
     @property
