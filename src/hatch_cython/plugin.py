@@ -5,7 +5,7 @@ from contextlib import contextmanager
 from glob import glob
 from logging import getLogger
 from tempfile import TemporaryDirectory
-from typing import Optional, ParamSpec
+from typing import Optional, ParamSpec, ClassVar
 
 from hatchling.builders.hooks.plugin.interface import BuildHookInterface
 
@@ -55,7 +55,13 @@ if __name__ == "__main__":
 
 class CythonBuildHook(BuildHookInterface):
     PLUGIN_NAME = "cython"
-    compiled_extension = ".pyx"
+
+    precompiled_extension = ".pyx"
+    compiled_extensions : ClassVar[list] = [
+        ".c",
+        ".cpp",
+        ".so",
+    ]
 
     _included: list[str]
     _artifact_patterns: list[str]
@@ -112,7 +118,7 @@ class CythonBuildHook(BuildHookInterface):
             artifact_globs = []
             for included_file in self.normalized_included_files:
                 root, _ = os.path.splitext(included_file)
-                artifact_globs.append(f"{root}.*{self.compiled_extension}")
+                artifact_globs.append(f"{root}.*{self.precompiled_extension}")
             self._artifact_globs = artifact_globs
         return self._artifact_globs
 
@@ -138,6 +144,30 @@ class CythonBuildHook(BuildHookInterface):
         with TemporaryDirectory() as temp_dir:
             real = os.path.realpath(temp_dir)
             yield real, real
+
+    @property
+    def compiled(self):
+        if self.is_src:
+            root = "./src/"
+        else:
+            root = "./"
+        globs = [f"{root}/**/*{ext}" for ext in self.compiled_extensions]
+        globbed = []
+        for g in globs:
+            globbed += [self.normalize_path(f) for f in glob(g)]
+
+        return list(set(globbed))
+
+    @property
+    def inclusion_map(self):
+        include = {}
+        for compl in self.compiled:
+            include[compl] = compl
+        return include
+
+    def clean(self, _versions: list[str]):
+        for f in self.compiled:
+            os.remove(f)
 
     def initialize(self, version: str, build_data: dict):
         if self.target_name != "wheel":
@@ -199,3 +229,4 @@ class CythonBuildHook(BuildHookInterface):
         build_data["infer_tag"] = True
         build_data["pure_python"] = False
         build_data["artifacts"].extend(self.artifact_patterns)
+        build_data["force_include"].update(self.inclusion_map)
