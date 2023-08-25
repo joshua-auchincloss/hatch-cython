@@ -111,12 +111,16 @@ class CythonBuildHook(BuildHookInterface):
         return pattern.replace("\\", "/")
 
     @property
+    def dir_name(self):
+        return self.options.src if self.options.src else self.metadata.name
+
+    @property
     def project_dir(self):
         if self._dir is None:
             if self.is_src:
-                src = f"./src/{self.metadata.name}"
+                src = f"./src/{self.dir_name}"
             else:
-                src = f"./{self.metadata.name}"
+                src = f"./{self.dir_name}"
             self._dir = src
         return self._dir
 

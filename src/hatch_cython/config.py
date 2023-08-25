@@ -1,6 +1,7 @@
 from dataclasses import asdict, dataclass, field
 from importlib import import_module
 from os import name
+from typing import Optional
 
 from hatchling.builders.hooks.plugin.interface import BuildHookInterface
 
@@ -110,6 +111,7 @@ def parse_from_dict(cls: BuildHookInterface):
 
 @dataclass
 class Config:
+    src: Optional[str] = field(default=None)  # noqa: UP007
     includes: ListStr = field(default_factory=list)
     libraries: ListStr = field(default_factory=list)
     library_dirs: ListStr = field(default_factory=list)

@@ -5,6 +5,9 @@ artifacts = [
     "*.dll",
 ]
 
+[build.targets.wheel]
+packages = ["src/example_lib"]
+
 [build.targets.wheel.hooks.custom]
 path = "../src/hatch_cython/devel.py"
 dependencies = [
@@ -14,6 +17,7 @@ dependencies = [
 ]
 
 [build.targets.wheel.hooks.custom.options]
+src = "example_lib"
 include_numpy = true
 compile_args = [
   { platforms = "posix", arg = "-Wcpp" }

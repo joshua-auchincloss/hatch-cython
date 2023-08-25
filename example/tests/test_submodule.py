@@ -1,4 +1,4 @@
-from example.mod_a.adds import fmul, imul
+from example_lib.mod_a.adds import fmul, imul
 
 
 def test_muls():
