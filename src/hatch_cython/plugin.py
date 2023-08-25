@@ -233,6 +233,7 @@ class CythonBuildHook(BuildHookInterface):
             self.clean([version])
 
             setup_file = os.path.join(temp, "setup.py")
+            self.app.display_info(self.options.asdict())
             with open(setup_file, "w") as f:
                 setup = setup_py(
                     *self.normalized_included_files,
