@@ -18,6 +18,7 @@ __known__ = (
     "retain_intermediate_artifacts",
 )
 
+ANON = "anon"
 INCLUDE = "include_"
 DIRECTIVES = {
     "binding": True,
@@ -106,6 +107,27 @@ def parse_from_dict(cls: BuildHookInterface):
             passed.pop(kw)
         elif is_include:
             passed.pop(kw)
+
+    try:
+        compiler = passed.pop("compiler")
+    except KeyError:
+        compiler = ANON
+
+    if "parallel" in passed and passed.get("parallel"):
+        passed.pop("parallel")
+
+        omp = "/openmp" if compiler == "msvc" else "-fopenmp"
+        eca = cfg.compile_args
+        cfg.compile_args.append(
+            omp
+        )
+        eca.append(omp)
+
+        ela = passed.get("extra_link_args", [])
+        ela.append(omp)
+
+        cfg.compile_args = eca
+        passed["extra_link_args"] = ela
 
     cfg.compile_kwargs = passed
     return cfg
