@@ -118,9 +118,7 @@ def parse_from_dict(cls: BuildHookInterface):
 
         omp = "/openmp" if compiler == "msvc" else "-fopenmp"
         eca = cfg.compile_args
-        cfg.compile_args.append(
-            omp
-        )
+        cfg.compile_args.append(omp)
         eca.append(omp)
 
         ela = passed.get("extra_link_args", [])
