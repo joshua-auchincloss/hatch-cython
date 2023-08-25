@@ -2,6 +2,7 @@
 
 [![PyPI - Version](https://img.shields.io/pypi/v/hatch-cython.svg)](https://pypi.org/project/hatch-cython)
 [![PyPI - Python Version](https://img.shields.io/pypi/pyversions/hatch-cython.svg)](https://pypi.org/project/hatch-cython)
+![PyPI - Downloads](https://img.shields.io/pypi/dw/hatch-cython)
 
 ---
 
@@ -67,7 +68,7 @@ compile-args = [
 ]
 includes = []
 include_numpy = false
-<!-- equivalent to include_numpy = true -->
+<!-- equivalent to include_pyarrow = true -->
 include_somelib = { pkg = "pyarrow", include="get_include", libraries="get_libraries", library_dirs="get_library_dirs", required_call="create_library_symlinks" }
 ```
 
