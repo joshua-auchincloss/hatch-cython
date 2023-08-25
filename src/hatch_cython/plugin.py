@@ -9,13 +9,11 @@ from typing import ClassVar
 from hatchling.builders.hooks.plugin.interface import BuildHookInterface
 
 from hatch_cython.config import Config, parse_from_dict
-from hatch_cython.types import ListStr
-
-DIRECTIVES = {"binding": True, "language_level": 3}
+from hatch_cython.types import ListStr, list_t
 
 
 def setup_py(
-    *files: ListStr,
+    *files: list_t(ListStr),
     options: Config,
 ):
     code = """
@@ -27,18 +25,19 @@ DIRECTIVES = {directives}
 INCLUDES = {includes}
 LIBRARIES = {libs}
 LIBRARY_DIRS = {lib_dirs}
+EXTENSIONS = ({ext_files})
+
 
 if __name__ == "__main__":
     exts = [
-    Extension("*", [
-                ex
-            ],
-            extra_compile_args=COMPILEARGS,
-            include_dirs=INCLUDES,
-            libraries=LIBRARIES,
-            library_dirs=LIBRARY_DIRS,
-        {keywords}
-        ) for ex in ({ext_files})
+        Extension("*",
+                    ex,
+                    extra_compile_args=COMPILEARGS,
+                    include_dirs=INCLUDES,
+                    libraries=LIBRARIES,
+                    library_dirs=LIBRARY_DIRS,
+                    {keywords}
+        ) for ex in EXTENSIONS
     ]
     ext_modules = cythonize(
             exts,
@@ -47,7 +46,7 @@ if __name__ == "__main__":
     )
     setup(ext_modules=ext_modules)
 """
-    ext_files = ",\n\t".join(f'"{f}"' for f in files)
+    ext_files = ",".join([repr(lf) for lf in files])
     kwds = ",\n\t".join((f'{k}="{v}"' for k, v in options.compile_kwargs.items()))
     return code.format(
         compile_args=repr(options.compile_args_for_platform),
@@ -63,7 +62,10 @@ if __name__ == "__main__":
 class CythonBuildHook(BuildHookInterface):
     PLUGIN_NAME = "cython"
 
-    precompiled_extension = ".pyx"
+    precompiled_extension: ClassVar[list] = [
+        ".pyx",
+        ".pxd",
+    ]
     intermediate_extensions: ClassVar[list] = [
         ".c",
         ".cpp",
@@ -83,6 +85,7 @@ class CythonBuildHook(BuildHookInterface):
     _artifact_globs: ListStr
     _norm_included_files: ListStr
     _norm_artifact_patterns: ListStr
+    _grouped_norm: list_t(ListStr)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -93,6 +96,7 @@ class CythonBuildHook(BuildHookInterface):
         self._norm_artifact_patterns = None
         self._config = None
         self._dir = None
+        self._grouped_norm = None
 
     @property
     def is_src(self):
@@ -126,7 +130,10 @@ class CythonBuildHook(BuildHookInterface):
 
     @property
     def precompiled_globs(self):
-        return [f"{self.project_dir}/*.pyx", f"{self.project_dir}/**/*.pyx"]
+        _globs = []
+        for ex in self.precompiled_extension:
+            _globs.extend((f"{self.project_dir}/*{ex}", f"{self.project_dir}/**/*{ex}"))
+        return _globs
 
     @property
     def included_files(self):
@@ -146,12 +153,33 @@ class CythonBuildHook(BuildHookInterface):
         return self._norm_included_files
 
     @property
+    def grouped_included_files(self) -> list_t(ListStr):
+        if self._grouped_norm is None:
+            grouped = {}
+            for norm in self.normalized_included_files:
+                root, ext = os.path.splitext(norm)
+                ok = True
+                if ext == ".pxd":
+                    pyfile = norm.replace(".pxd", ".py")
+                    if os.path.exists(pyfile):
+                        norm = pyfile  # noqa: PLW2901
+                    else:
+                        ok = False
+                        self.app.display_warning(f"attempted to use .pxd file without .py file ({norm})")
+                if grouped.get(root) and ok:
+                    grouped[root].append(norm)
+                elif ok:
+                    grouped[root] = [norm]
+            self._grouped_norm = list(grouped.values())
+        return self._grouped_norm
+
+    @property
     def artifact_globs(self):
         if self._artifact_globs is None:
             artifact_globs = []
             for included_file in self.normalized_included_files:
                 root, _ = os.path.splitext(included_file)
-                artifact_globs.append(f"{root}.*{self.precompiled_extension}")
+                artifact_globs.extend(f"{root}.*{ext}" for ext in self.precompiled_extension)
             self._artifact_globs = artifact_globs
         return self._artifact_globs
 
@@ -237,7 +265,7 @@ class CythonBuildHook(BuildHookInterface):
             setup_file = os.path.join(temp, "setup.py")
             with open(setup_file, "w") as f:
                 setup = setup_py(
-                    *self.normalized_included_files,
+                    *self.grouped_included_files,
                     options=self.options,
                 )
                 f.write(setup)

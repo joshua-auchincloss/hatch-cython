@@ -15,18 +15,19 @@ DIRECTIVES = {'binding': True, 'language_level': 3}
 INCLUDES = ['/123']
 LIBRARIES = ['/abc']
 LIBRARY_DIRS = ['/def']
+EXTENSIONS = (['./abc/def.pyx'],['./abc/depb.py'])
+
 
 if __name__ == "__main__":
     exts = [
-    Extension("*", [
-                ex
-            ],
-            extra_compile_args=COMPILEARGS,
-            include_dirs=INCLUDES,
-            libraries=LIBRARIES,
-            library_dirs=LIBRARY_DIRS,
+        Extension("*",
+                    ex,
+                    extra_compile_args=COMPILEARGS,
+                    include_dirs=INCLUDES,
+                    libraries=LIBRARIES,
+                    library_dirs=LIBRARY_DIRS,
 
-        ) for ex in ("./abc/def.pyx")
+        ) for ex in EXTENSIONS
     ]
     ext_modules = cythonize(
             exts,
@@ -43,9 +44,9 @@ def test_setup_py():
         libraries=["/abc"],
         library_dirs=["/def"],
     )
-    assert clean(
-        setup_py(
-            "./abc/def.pyx",
-            options=cfg,
-        )
-    ) == clean(EXPECT)
+    setup = setup_py(
+        ["./abc/def.pyx"],
+        ["./abc/depb.py"],
+        options=cfg,
+    )
+    assert clean(setup) == clean(EXPECT)
