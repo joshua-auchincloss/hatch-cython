@@ -18,6 +18,7 @@ include_numpy = true
 compile_args = [
   { platforms = "posix", arg = "-Wcpp" }
 ]
+retain_intermediate_artifacts = true
 
 
 [[envs.all.matrix]]

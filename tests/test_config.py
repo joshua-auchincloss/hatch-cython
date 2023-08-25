@@ -18,7 +18,7 @@ compile_args = [{ platforms = ["nt"], arg = "-std=c++17" }, { platforms = "posix
 
 directives = { boundscheck = false, nonecheck = false, language_level = 3, binding = true }
 
-compile_kwargs = { }
+abc_compile_kwarg = "test"
 """  # noqa: E501
 
 
@@ -66,3 +66,4 @@ def test_config_parser():
     assert cfg.libraries == gets_libraries()
     assert cfg.library_dirs == gets_library_dirs()
     assert get_include() in cfg.includes
+    assert cfg.compile_kwargs == {"abc_compile_kwarg": "test"}

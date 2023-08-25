@@ -5,11 +5,12 @@ from os import name
 from hatchling.builders.hooks.plugin.interface import BuildHookInterface
 
 __known__ = (
-    "binding",
     "includes",
-    "language_level",
-    "compile_args",
+    "libraries",
+    "library_dirs",
     "directives",
+    "compile_args",
+    "compile_kwargsretain_intermediate_artifacts",
 )
 
 INCLUDE = "include_"
@@ -73,7 +74,8 @@ def parse_from_dict(cls: BuildHookInterface):
 
     cfg = Config(**kwargs, compile_args=args)
     for kw, val in passed.copy().items():
-        if kw.startswith(INCLUDE) and val:
+        is_include = kw.startswith(INCLUDE)
+        if is_include and val:
             import_p = __packages__.get(kw.replace(INCLUDE, ""))
             if import_p is None:
                 if isinstance(val, str):
@@ -97,6 +99,8 @@ def parse_from_dict(cls: BuildHookInterface):
                 import_p,
             )
             passed.pop(kw)
+        elif is_include:
+            passed.pop(kw)
 
     cfg.compile_kwargs = passed
     return cfg
@@ -110,6 +114,7 @@ class Config:
     directives: dict = field(default_factory=lambda: DIRECTIVES)
     compile_args: list[CompileArgs | str] = field(default_factory=lambda: COMPILE_ARGS)
     compile_kwargs: dict = field(default_factory=dict)
+    retain_intermediate_artifacts: bool = field(default=False)
 
     def __post_init__(self):
         self.directives = {**DIRECTIVES, **self.directives}
@@ -172,7 +177,7 @@ class Config:
         args = []
         for arg in self.compile_args:
             if isinstance(arg, CompileArgs):
-                if (isinstance(arg.platforms, list) and name in arg.platforms) or (
+                if (isinstance(arg.platforms, list) and name in arg.platforms or "*" in arg.platforms) or (
                     isinstance(arg.platforms, str) and (arg.platforms in (name, "*"))
                 ):
                     args.append(arg.arg)
