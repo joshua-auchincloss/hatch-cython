@@ -11,6 +11,7 @@ from Cython.Build import cythonize
 
 COMPILEARGS = ['-O2']
 DIRECTIVES = {'binding': True, 'language_level': 3}
+INCLUDES = ['/123']
 
 if __name__ == "__main__":
     exts = [
@@ -21,10 +22,16 @@ if __name__ == "__main__":
 
         ),
     ]
-    ext_modules = cythonize(exts, compiler_directives=DIRECTIVES)
+    ext_modules = cythonize(
+            exts,
+            compiler_directives=DIRECTIVES,
+            include_path=INCLUDES
+    )
     setup(ext_modules=ext_modules)
 """.strip()
 
 
 def test_setup_py():
-    assert clean(setup_py("./abc/def.pyx")) == clean(EXPECT)
+    assert clean(setup_py("./abc/def.pyx",
+                          includes=["/123"],
+                          )) == clean(EXPECT)

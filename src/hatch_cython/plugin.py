@@ -6,7 +6,7 @@ from glob import glob
 from logging import getLogger
 from tempfile import TemporaryDirectory
 from typing import Optional, ParamSpec, ClassVar
-
+from dataclasses import dataclass
 from hatchling.builders.hooks.plugin.interface import BuildHookInterface
 
 logger = getLogger(__name__)
@@ -16,13 +16,24 @@ P = ParamSpec("P")
 DIRECTIVES = {"binding": True, "language_level": 3}
 
 
-def setup_py(*files: list[str], compile_args: Optional[list[str]] = None, directives: Optional[dict] = None, **kwargs):
+def setup_py(*files: list[str], 
+            compile_args: Optional[list[str]] = None,
+            directives: Optional[dict] = None,
+            includes: Optional[list[str]] = None,
+            include_numpy: Optional[bool] = False,
+            **kwargs):
     if compile_args is None:
         compile_args = ["-O2"]
     if directives is None:
         directives = DIRECTIVES
     else:
         directives = {**DIRECTIVES, **{k: v for k, v in directives.items() if v is not None}}
+    if includes is None:
+        includes = []
+
+    if include_numpy:
+        from numpy import get_include
+        includes.append(get_include())
 
     code = """
 from setuptools import Extension, setup
@@ -30,6 +41,7 @@ from Cython.Build import cythonize
 
 COMPILEARGS = {compile_args}
 DIRECTIVES = {directives}
+INCLUDES = {includes}
 
 if __name__ == "__main__":
     exts = [
@@ -40,7 +52,11 @@ if __name__ == "__main__":
         {keywords}
         ),
     ]
-    ext_modules = cythonize(exts, compiler_directives=DIRECTIVES)
+    ext_modules = cythonize(
+            exts,
+            compiler_directives=DIRECTIVES,
+            include_path=INCLUDES
+    )
     setup(ext_modules=ext_modules)
 """
     ext_files = ",\n\t".join(f'"{f}"' for f in files)
@@ -50,6 +66,7 @@ if __name__ == "__main__":
         directives=repr(directives),
         ext_files=ext_files,
         keywords=kwds,
+        includes=repr(includes),
     ).strip()
 
 
@@ -194,6 +211,18 @@ class CythonBuildHook(BuildHookInterface):
                 msg = "language-level must be an int, got %s" % type(llevel)
                 raise ValueError(msg)
 
+        includes = self.config.get("includes")
+        if includes is not None:
+            if not isinstance(includes, (list)):
+                msg = "includes must be a list, got %s" % type(includes)
+                raise ValueError(msg)
+
+        numpy = self.config.get("include-numpy")
+        if numpy is not None:
+            if not isinstance(numpy, bool):
+                msg = "include-numpy must be a bool, got %s" % type(numpy)
+                raise ValueError(msg)
+
         self.app.display_waiting("pre-build artifacts")
         self.app.display_waiting(glob("./*/**"))
 
@@ -204,6 +233,7 @@ class CythonBuildHook(BuildHookInterface):
             os.mkdir(temp_build_dir)
             self.clean([version])
 
+
             setup_file = os.path.join(temp, "setup.py")
             with open(setup_file, "w") as f:
                 setup = setup_py(
@@ -213,6 +243,9 @@ class CythonBuildHook(BuildHookInterface):
                         "binding": binding,
                         "language_level": llevel,
                     },
+                    includes=includes,
+                    include_numpy=numpy,
+                    **self.config,
                 )
                 f.write(setup)
 
