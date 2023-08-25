@@ -4,9 +4,11 @@ import sys
 from contextlib import contextmanager
 from glob import glob
 from tempfile import TemporaryDirectory
-from typing import ClassVar, Optional, ParamSpec
+from typing import ClassVar, ParamSpec
 
 from hatchling.builders.hooks.plugin.interface import BuildHookInterface
+
+from hatch_cython.config import Config, parse_from_dict
 
 P = ParamSpec("P")
 
@@ -15,26 +17,8 @@ DIRECTIVES = {"binding": True, "language_level": 3}
 
 def setup_py(
     *files: list[str],
-    compile_args: Optional[list[str]] = None,
-    directives: Optional[dict] = None,
-    includes: Optional[list[str]] = None,
-    include_numpy: Optional[bool] = False,
-    **kwargs,
+    options: Config,
 ):
-    if compile_args is None:
-        compile_args = ["-O2"]
-    if directives is None:
-        directives = DIRECTIVES
-    else:
-        directives = {**DIRECTIVES, **{k: v for k, v in directives.items() if v is not None}}
-    if includes is None:
-        includes = []
-
-    if include_numpy:
-        from numpy import get_include
-
-        includes.append(get_include())
-
     code = """
 from setuptools import Extension, setup
 from Cython.Build import cythonize
@@ -42,6 +26,8 @@ from Cython.Build import cythonize
 COMPILEARGS = {compile_args}
 DIRECTIVES = {directives}
 INCLUDES = {includes}
+LIBRARIES = {libs}
+LIBRARY_DIRS = {lib_dirs}
 
 if __name__ == "__main__":
     exts = [
@@ -49,6 +35,9 @@ if __name__ == "__main__":
                 {ext_files}
             ],
             extra_compile_args=COMPILEARGS,
+            include_dirs=INCLUDES,
+            libraries=LIBRARIES,
+            library_dirs=LIBRARY_DIRS,
         {keywords}
         ),
     ]
@@ -60,13 +49,15 @@ if __name__ == "__main__":
     setup(ext_modules=ext_modules)
 """
     ext_files = ",\n\t".join(f'"{f}"' for f in files)
-    kwds = ",\n\t".join((f'{k}="{v}"' for k, v in kwargs.items()))
+    kwds = ",\n\t".join((f'{k}="{v}"' for k, v in options.compile_kwargs.items()))
     return code.format(
-        compile_args=repr(compile_args),
-        directives=repr(directives),
+        compile_args=repr(options.compile_args_for_platform),
+        directives=repr(options.directives),
         ext_files=ext_files,
         keywords=kwds,
-        includes=repr(includes),
+        includes=repr(options.includes),
+        libs=repr(options.libraries),
+        lib_dirs=repr(options.library_dirs),
     ).strip()
 
 
@@ -84,6 +75,8 @@ class CythonBuildHook(BuildHookInterface):
         ".pyd",
     ]
 
+    _config: Config
+
     _included: list[str]
     _artifact_patterns: list[str]
     _artifact_globs: list[str]
@@ -97,6 +90,7 @@ class CythonBuildHook(BuildHookInterface):
         self._artifact_patterns = None
         self._artifact_globs = None
         self._norm_artifact_patterns = None
+        self._config = None
 
     @property
     def is_src(self):
@@ -188,9 +182,16 @@ class CythonBuildHook(BuildHookInterface):
         for f in self.compiled:
             os.remove(f)
 
+    @property
+    def options(self):
+        if self._config is None:
+            self._config = parse_from_dict(self)
+        return self._config
+
     def initialize(self, version: str, build_data: dict):
         if self.target_name != "wheel":
             return
+
         compile_args = self.config.get("compile-args")
         if compile_args is not None:
             if not isinstance(compile_args, list):
@@ -235,16 +236,14 @@ class CythonBuildHook(BuildHookInterface):
             with open(setup_file, "w") as f:
                 setup = setup_py(
                     *self.normalized_included_files,
-                    compile_args=compile_args,
-                    directives={
-                        "binding": binding,
-                        "language_level": llevel,
-                    },
-                    includes=includes,
-                    include_numpy=numpy,
-                    **self.config,
+                    options=self.options,
                 )
                 f.write(setup)
+
+            for opt in self.options.includes:
+                if not os.path.exists(opt):
+                    msg = "%s does not exist"
+                    raise ValueError(msg)
 
             process = subprocess.run(  # noqa: PLW1510
                 [  # noqa: S603

@@ -21,16 +21,36 @@ The build hook name is `cython`.
 dependencies = ["hatch-cython"]
 
 [tool.hatch.build.targets.wheel.hooks.cython.options]
-<!-- optional, defaults below -->
-language-level = 3
-binding = true
-compile-args = [
-    "-O3",
-]
 <!-- include .h or .cpp directories -->
 includes = []
 <!-- include numpy headers -->
-include-numpy = false
+include_numpy = false
+include_pyarrow = false
+
+include_somelib = {
+    pkg = "somelib",
+    <!-- somelib.gets_include() -> str -->
+    include = "gets_include",
+    <!-- somelib.gets_libraries() -> list[str] -->
+    libraries = "gets_libraries",
+    <!-- somelib.gets_library_dirs() -> list[str] -->
+    library_dirs = "gets_library_dirs",
+    <!-- somelib.some_setup_op() before build -->
+    required_call = "some_setup_op"
+}
+
+compile_args = [
+    <!-- single string -->
+    "-std=c++17",
+    <!-- list of platforms + arg -->
+    { platforms = ["nt"], arg = "-std=c++17" },
+    <!-- single platform + arg -->
+    { platforms = "posix", arg = "-I/abc/def" },
+]
+
+directives = { boundscheck = false, nonecheck = false, language_level = 3, binding = true }
+
+compile_kwargs = { }
 ```
 
 - _hatch.toml_
@@ -41,13 +61,14 @@ dependencies = ["hatch-cython"]
 
 [build.targets.wheel.hooks.cython.options]
 <!-- optional, defaults below -->
-language-level = 3
-binding = true
+directives = { boundscheck = false, nonecheck = false, language_level = 3, binding = true }
 compile-args = [
     "-O3",
 ]
 includes = []
-include-numpy = false
+include_numpy = false
+<!-- equivalent to include_numpy = true -->
+include_somelib = { pkg = "pyarrow", include="get_include", libraries="get_libraries", library_dirs="get_library_dirs", required_call="create_library_symlinks" }
 ```
 
 ## License

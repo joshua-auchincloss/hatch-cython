@@ -1,3 +1,4 @@
+from hatch_cython.config import Config
 from hatch_cython.plugin import setup_py
 
 
@@ -12,6 +13,8 @@ from Cython.Build import cythonize
 COMPILEARGS = ['-O2']
 DIRECTIVES = {'binding': True, 'language_level': 3}
 INCLUDES = ['/123']
+LIBRARIES = ['/abc']
+LIBRARY_DIRS = ['/def']
 
 if __name__ == "__main__":
     exts = [
@@ -19,6 +22,9 @@ if __name__ == "__main__":
                 "./abc/def.pyx"
             ],
             extra_compile_args=COMPILEARGS,
+            include_dirs=INCLUDES,
+            libraries=LIBRARIES,
+            library_dirs=LIBRARY_DIRS,
 
         ),
     ]
@@ -32,9 +38,14 @@ if __name__ == "__main__":
 
 
 def test_setup_py():
+    cfg = Config(
+        includes=["/123"],
+        libraries=["/abc"],
+        library_dirs=["/def"],
+    )
     assert clean(
         setup_py(
             "./abc/def.pyx",
-            includes=["/123"],
+            options=cfg,
         )
     ) == clean(EXPECT)

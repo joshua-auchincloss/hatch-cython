@@ -47,9 +47,9 @@ jobs:
 
       - name: test-example
         run: |
-           cd example && 
-           pip install . &&
-           pytest
+          cd example &&
+          hatch build &&
+          hatch run cov
 
   Build:
     needs: Validate
@@ -72,7 +72,7 @@ jobs:
       - name: Build package
         run: hatch build
       - name: Publish package
-        uses: pypa/gh-action-pypi-publish@master
+        uses: pypa/gh-action-pypi-publish@release/v1
         with:
           user: __token__
           password: ${{ secrets.PYPI_API_TOKEN }}

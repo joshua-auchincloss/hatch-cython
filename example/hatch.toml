@@ -6,11 +6,20 @@ artifacts = [
 ]
 
 [build.targets.wheel.hooks.custom]
-path = "../src/hatch_cython/plugin.py"
+path = "../src/hatch_cython/devel.py"
 dependencies = [
   "Cython",
   "setuptools",
+  "numpy"
 ]
+
+[build.targets.wheel.hooks.custom.options]
+include_numpy = true
+compile_args = [
+  { platforms = "posix", arg = "" }
+]
+
+
 [[envs.all.matrix]]
 python = ["3.10", "3.11"]
 
@@ -40,13 +49,16 @@ all = [
 ]
 
 [envs.default]
+python = "3.11"
 dependencies = [
   "coverage",
   "pytest",
-  "beartype"
+  "beartype",
+  "numpy",
 ]
 
 [envs.default.scripts]
+install = "pip install dist/example-0.0.1-*.whl --force-reinstall"
 test = "pytest {args:tests}"
 test-cov = "coverage run -m pytest {args:tests}"
 cov-report = [
@@ -54,6 +66,7 @@ cov-report = [
   "coverage report",
 ]
 cov = [
+  "install",
   "test-cov",
   "cov-report",
 ]

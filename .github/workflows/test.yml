@@ -40,6 +40,6 @@ jobs:
 
       - name: test-example
         run: |
-           cd example && 
-           pip install . &&
-           pytest
+           cd example &&
+           hatch build &&
+           hatch run cov
