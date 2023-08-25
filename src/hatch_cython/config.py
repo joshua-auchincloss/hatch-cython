@@ -1,7 +1,8 @@
+import platform
 from collections.abc import Callable, Generator
 from dataclasses import asdict, dataclass, field
 from importlib import import_module
-from os import name, path
+from os import path
 from typing import Optional
 
 from hatchling.builders.hooks.plugin.interface import BuildHookInterface
@@ -26,6 +27,9 @@ DIRECTIVES = {
 }
 
 
+PF = platform.platform().lower()
+
+
 @dataclass
 class Autoimport:
     pkg: str
@@ -40,6 +44,17 @@ class Autoimport:
 class CompileArgs:
     arg: str
     platforms: union_t(ListStr, str) = "*"
+
+    def __post_init__(self):
+        if isinstance(self.platforms, list):
+            self.platforms = [p.lower() for p in self.platforms]
+        elif isinstance(self.platforms, str):
+            self.platforms = self.platforms.lower()
+
+    def applies(self):
+        if isinstance(self.platforms, list):
+            return PF in self.platforms or "*" in self.platforms
+        return self.platforms in (PF, "*")
 
 
 __packages__ = {
@@ -125,6 +140,7 @@ def parse_from_dict(cls: BuildHookInterface):
         ela.append(omp)
 
         cfg.compile_args = eca
+        # TODO: manage link args
         passed["extra_link_args"] = ela
 
     cfg.compile_kwargs = passed
@@ -212,9 +228,7 @@ class Config:
         args = []
         for arg in self.compile_args:
             if isinstance(arg, CompileArgs):
-                if (isinstance(arg.platforms, list) and name in arg.platforms or "*" in arg.platforms) or (
-                    isinstance(arg.platforms, str) and (arg.platforms in (name, "*"))
-                ):
+                if arg.applies():
                     args.append(arg.arg)
             else:
                 args.append(arg)
