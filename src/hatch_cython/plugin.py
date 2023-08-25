@@ -242,10 +242,7 @@ class CythonBuildHook(BuildHookInterface):
                 )
                 f.write(setup)
 
-            for opt in self.options.includes:
-                if not os.path.exists(opt):
-                    msg = "%s does not exist"
-                    raise ValueError(msg)
+            self.options.validate_include_opts()
 
             process = subprocess.run(  # noqa: PLW1510
                 [  # noqa: S603
