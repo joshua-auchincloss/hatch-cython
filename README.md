@@ -27,6 +27,10 @@ binding = true
 compile-args = [
     "-O3",
 ]
+<!-- include .h or .cpp directories -->
+includes = []
+<!-- include numpy headers -->
+include-numpy = false
 ```
 
 - _hatch.toml_
@@ -42,6 +46,8 @@ binding = true
 compile-args = [
     "-O3",
 ]
+includes = []
+include-numpy = false
 ```
 
 ## License
