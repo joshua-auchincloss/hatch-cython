@@ -6,7 +6,7 @@ cimport numpy as cnp
 
 cnp.import_array()
 
-ctypedef cnp.int64_t dtype
+ctypedef cnp.longlong_t dtype
 
 cpdef str hello_world(str name):
     cdef str response
@@ -16,6 +16,7 @@ cpdef str hello_world(str name):
 
 cpdef dtype hello_numpy(cnp.ndarray[dtype, ndim=1] arr):
     cdef dtype tot
+    tot = 0
     for k in arr:
         tot = tot + k
     return tot
