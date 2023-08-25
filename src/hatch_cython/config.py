@@ -67,19 +67,21 @@ def parse_from_dict(cls: BuildHookInterface):
         for i, arg in enumerate(args):
             if isinstance(arg, dict):
                 args[i] = CompileArgs(**arg)
+
     except KeyError:
         args = []
 
     cfg = Config(**kwargs, compile_args=args)
-    remove = []
-    for kw, val in passed.items():
-        if kw.startswith(INCLUDE):
+    for kw, val in passed.copy().items():
+        if kw.startswith(INCLUDE) and val:
             import_p = __packages__.get(kw.replace(INCLUDE, ""))
             if import_p is None:
                 if isinstance(val, str):
                     import_p = Autoimport(pkg=kw, include=val)
                 elif isinstance(val, dict):
-                    import_p = Autoimport(pkg=kw, **val)
+                    if "pkg" not in val:
+                        val["pkg"] = kw
+                    import_p = Autoimport(**val)
                 else:
                     msg = " ".join(
                         (
@@ -89,14 +91,12 @@ def parse_from_dict(cls: BuildHookInterface):
                         )
                     )
                     raise ValueError(msg)
+
             cfg.resolve_pkg(
                 cls,
                 import_p,
             )
-        remove.append(kw)
-
-    for kw in remove:
-        passed.pop(kw)
+            passed.pop(kw)
 
     cfg.compile_kwargs = passed
     return cfg
