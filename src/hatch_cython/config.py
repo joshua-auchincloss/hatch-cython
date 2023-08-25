@@ -1,3 +1,4 @@
+from collections.abc import Callable, Generator
 from dataclasses import asdict, dataclass, field
 from importlib import import_module
 from os import name
@@ -125,18 +126,27 @@ class Config:
         self.directives = {**DIRECTIVES, **self.directives}
 
     def _post_import_attr(
-        self, cls: BuildHookInterface, im: Autoimport, att: str, mod: any, extend: callable, append: callable
+        self,
+        cls: BuildHookInterface,
+        im: Autoimport,
+        att: str,
+        mod: any,
+        extend: Callable[[ListStr], None],
+        append: Callable[[str], None],
     ):
         attr = getattr(im, att)
         if attr is not None:
             try:
                 libraries = getattr(mod, attr)
                 if callable(libraries):
-                    extend(libraries())
-                elif isinstance(libraries, list):
-                    extend(libraries)
-                elif isinstance(libraries, str):
+                    libraries = libraries()
+
+                if isinstance(libraries, str):
                     append(libraries)
+                elif isinstance(libraries, (list, Generator)):  # noqa: UP038
+                    extend(libraries)
+                elif isinstance(libraries, dict):
+                    extend(libraries.values())
                 else:
                     cls.app.display_warning(f"{im.pkg}.{attr} has an invalid type ({type(libraries)})")
 
