@@ -3,13 +3,10 @@ import subprocess
 import sys
 from contextlib import contextmanager
 from glob import glob
-from logging import getLogger
 from tempfile import TemporaryDirectory
 from typing import ClassVar, Optional, ParamSpec
 
 from hatchling.builders.hooks.plugin.interface import BuildHookInterface
-
-logger = getLogger(__name__)
 
 P = ParamSpec("P")
 
