@@ -8,12 +8,13 @@ from hatchling.builders.hooks.plugin.interface import BuildHookInterface
 from hatch_cython.types import ListStr, list_t, union_t
 
 __known__ = (
+    "src",
     "includes",
     "libraries",
     "library_dirs",
     "directives",
     "compile_args",
-    "compile_kwargsretain_intermediate_artifacts",
+    "retain_intermediate_artifacts",
 )
 
 INCLUDE = "include_"

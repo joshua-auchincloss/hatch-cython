@@ -112,7 +112,7 @@ class CythonBuildHook(BuildHookInterface):
 
     @property
     def dir_name(self):
-        return self.options.src if self.options.src else self.metadata.name
+        return self.options.src if self.options.src is not None else self.metadata.name
 
     @property
     def project_dir(self):
@@ -222,14 +222,12 @@ class CythonBuildHook(BuildHookInterface):
 
     def initialize(self, version: str, build_data: dict):
         self.app.display_mini_header(self.PLUGIN_NAME)
+        self.app.display_debug("Options")
+        self.app.display_debug(self.options.asdict(), level=1)
 
         self.app.display_waiting("Pre-build artifacts")
-
-        self.app.display_debug(glob(f"{self.project_dir}/*/**"), level=1)
-        self.app.display_debug(self.options.asdict(), level=1)
         self.app.display_info("Building c/c++ extensions...")
-
-        self.app.display_debug(self.normalized_included_files)
+        self.app.display_info(self.normalized_included_files)
         with self.get_build_dirs() as temp:
             shared_temp_build_dir = os.path.join(temp, "build")
             temp_build_dir = os.path.join(temp, "tmp")
@@ -269,8 +267,8 @@ class CythonBuildHook(BuildHookInterface):
                 msg = "failed compilation"
                 raise Exception(msg)
 
-            self.app.display_success("post build artifacts")
-            self.app.display_debug(glob(f"{self.project_dir}/*/**"))
+            self.app.display_success("Post-build artifacts")
+            self.app.display_info(glob(f"{self.project_dir}/*/**"))
 
         if not self.options.retain_intermediate_artifacts:
             self.clean_intermediate()
