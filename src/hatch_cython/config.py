@@ -1,6 +1,7 @@
+from collections.abc import Callable, Generator
 from dataclasses import asdict, dataclass, field
 from importlib import import_module
-from os import name
+from os import name, path
 from typing import Optional
 
 from hatchling.builders.hooks.plugin.interface import BuildHookInterface
@@ -91,11 +92,11 @@ def parse_from_dict(cls: BuildHookInterface):
                 else:
                     msg = " ".join(
                         (
-                            "%s is invalid, either provide a known package or",
+                            "%s (%s) is invalid, either provide a known package or",
                             "a path in the format of module.get_xxx where get_xxx is",
                             "the directory to be included",
                         )
-                    )
+                    ).format(val, type(val))
                     raise ValueError(msg)
 
             cfg.resolve_pkg(
@@ -125,18 +126,27 @@ class Config:
         self.directives = {**DIRECTIVES, **self.directives}
 
     def _post_import_attr(
-        self, cls: BuildHookInterface, im: Autoimport, att: str, mod: any, extend: callable, append: callable
+        self,
+        cls: BuildHookInterface,
+        im: Autoimport,
+        att: str,
+        mod: any,
+        extend: Callable[[ListStr], None],
+        append: Callable[[str], None],
     ):
         attr = getattr(im, att)
         if attr is not None:
             try:
                 libraries = getattr(mod, attr)
                 if callable(libraries):
-                    extend(libraries())
-                elif isinstance(libraries, list):
-                    extend(libraries)
-                elif isinstance(libraries, str):
+                    libraries = libraries()
+
+                if isinstance(libraries, str):
                     append(libraries)
+                elif isinstance(libraries, (list, Generator)):  # noqa: UP038
+                    extend(libraries)
+                elif isinstance(libraries, dict):
+                    extend(libraries.values())
                 else:
                     cls.app.display_warning(f"{im.pkg}.{attr} has an invalid type ({type(libraries)})")
 
@@ -192,3 +202,9 @@ class Config:
 
     def asdict(self):
         return asdict(self)
+
+    def validate_include_opts(self):
+        for opt in self.includes:
+            if not path.exists(opt):
+                msg = "%s does not exist" % opt
+                raise ValueError(msg)

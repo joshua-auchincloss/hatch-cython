@@ -16,7 +16,6 @@ authors = [
 classifiers = [
   "Development Status :: 4 - Beta",
   "Programming Language :: Python",
-  "Programming Language :: Python :: 3.7",
   "Programming Language :: Python :: 3.8",
   "Programming Language :: Python :: 3.9",
   "Programming Language :: Python :: 3.10",
@@ -27,8 +26,6 @@ classifiers = [
 dependencies = [
   "pytest",
 ]
-
-
 
 [project.urls]
 Documentation = "https://github.com/unknown/example#readme"
@@ -84,12 +81,10 @@ ignore = [
   "C901", "PLR0911", "PLR0912", "PLR0913", "PLR0915",
 ]
 unfixable = [
-  # Don't touch unused imports
-  "F401",
 ]
 
 [tool.ruff.isort]
-known-first-party = ["example"]
+known-first-party = ["example", "example_lib"]
 
 [tool.ruff.flake8-tidy-imports]
 ban-relative-imports = "all"
@@ -99,7 +94,7 @@ ban-relative-imports = "all"
 "tests/**/*" = ["PLR2004", "S101", "TID252"]
 
 [tool.coverage.run]
-source_pkgs = ["example", "tests"]
+source_pkgs = ["example_lib", "example"]
 branch = true
 parallel = true
 omit = [
@@ -107,7 +102,7 @@ omit = [
 ]
 
 [tool.coverage.paths]
-example = ["src/example", "*/example/src/example"]
+example = ["*/example_lib/*", "*/src/example_lib", "*/example/src/example_lib"]
 tests = ["tests", "*/example/tests"]
 
 [tool.coverage.report]
