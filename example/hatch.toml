@@ -22,7 +22,7 @@ retain_intermediate_artifacts = true
 
 
 [[envs.all.matrix]]
-python = ["3.10", "3.11"]
+python = ["3.8", "3.9", "3.10", "3.11"]
 
 [envs.lint]
 detached = true
