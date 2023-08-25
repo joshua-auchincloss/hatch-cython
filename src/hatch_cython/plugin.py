@@ -189,42 +189,12 @@ class CythonBuildHook(BuildHookInterface):
         return self._config
 
     def initialize(self, version: str, build_data: dict):
-        if self.target_name != "wheel":
-            return
+        self.app.display_mini_header(self.PLUGIN_NAME)
 
-        compile_args = self.config.get("compile-args")
-        if compile_args is not None:
-            if not isinstance(compile_args, list):
-                msg = "compile-args must be a list, got %s" % type(compile_args)
-                raise ValueError(msg)
-
-        binding = self.config.get("binding")
-        if binding is not None:
-            if not isinstance(binding, bool):
-                msg = "binding must be a bool, got %s" % type(binding)
-                raise ValueError(msg)
-
-        llevel = self.config.get("language-level")
-        if llevel is not None:
-            if not isinstance(llevel, (int)):
-                msg = "language-level must be an int, got %s" % type(llevel)
-                raise ValueError(msg)
-
-        includes = self.config.get("includes")
-        if includes is not None:
-            if not isinstance(includes, (list)):
-                msg = "includes must be a list, got %s" % type(includes)
-                raise ValueError(msg)
-
-        numpy = self.config.get("include-numpy")
-        if numpy is not None:
-            if not isinstance(numpy, bool):
-                msg = "include-numpy must be a bool, got %s" % type(numpy)
-                raise ValueError(msg)
-
-        self.app.display_waiting("pre-build artifacts")
+        self.app.display_waiting("Pre-build artifacts")
         self.app.display_waiting(glob("./*/**"))
 
+        self.app.display_info("Building c/c++ extensions...")
         with self.get_build_dirs() as (config, temp):
             shared_temp_build_dir = os.path.join(config, "build")
             temp_build_dir = os.path.join(temp, "tmp")
@@ -233,6 +203,7 @@ class CythonBuildHook(BuildHookInterface):
             self.clean([version])
 
             setup_file = os.path.join(temp, "setup.py")
+            self.app.display_info(self.options.asdict())
             with open(setup_file, "w") as f:
                 setup = setup_py(
                     *self.normalized_included_files,
@@ -272,3 +243,4 @@ class CythonBuildHook(BuildHookInterface):
         build_data["pure_python"] = False
         build_data["artifacts"].extend(self.artifact_patterns)
         build_data["force_include"].update(self.inclusion_map)
+        self.app.display_info("Extensions complete")

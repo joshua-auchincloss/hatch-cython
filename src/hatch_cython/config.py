@@ -1,4 +1,4 @@
-from dataclasses import dataclass, field
+from dataclasses import asdict, dataclass, field
 from importlib import import_module
 from os import name
 
@@ -179,3 +179,6 @@ class Config:
             else:
                 args.append(arg)
         return args
+
+    def asdict(self):
+        return asdict(self)

@@ -1,4 +1,4 @@
-from numpy import arange
+from numpy import linspace, longlong
 
 from example.test import hello_numpy, hello_world
 
@@ -8,4 +8,4 @@ def test_hello_world():
 
 
 def test_hello_numpy():
-    hello_numpy(arange(100))
+    assert hello_numpy(linspace(0, 100, 25, dtype=longlong)) == 1240

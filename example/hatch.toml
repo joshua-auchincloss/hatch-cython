@@ -16,7 +16,7 @@ dependencies = [
 [build.targets.wheel.hooks.custom.options]
 include_numpy = true
 compile_args = [
-  { platforms = "posix", arg = "" }
+  { platforms = "posix", arg = "-Wcpp" }
 ]
 
 
@@ -49,7 +49,6 @@ all = [
 ]
 
 [envs.default]
-python = "3.11"
 dependencies = [
   "coverage",
   "pytest",
@@ -58,7 +57,7 @@ dependencies = [
 ]
 
 [envs.default.scripts]
-install = "pip install dist/example-0.0.1-*.whl --force-reinstall"
+install = "python bootstrap.py"
 test = "pytest {args:tests}"
 test-cov = "coverage run -m pytest {args:tests}"
 cov-report = [

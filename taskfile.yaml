@@ -13,17 +13,21 @@ tasks:
 
   clean:
     cmds:
+      - rm -rf dist
+      - rm -rf **/dist
       - rm -rf __pycache__
-      - rm -rf ./**/__pycache__
-      - rm -rf ./**/*.c
-      - rm -rf ./**/*.so
+      - rm -rf **/__pycache__
+      - rm -f **/*.c
+      - rm -f **/**/*.so
+      - rm -f **/**/*.cpp
+      - rm -f **/*.so
       - rm -rf .ruff_cache
-      - rm -rf ./**/.ruff_cache
+      - rm -rf **/.ruff_cache
       - rm -rf .pytest_cache
-      - rm -rf ./**/.pytest_cache
+      - rm -rf **/.pytest_cache
 
   lint:
     cmds:
       - black .
       - isort .
-      - ruff ./src --fix
+      - ruff src --fix
