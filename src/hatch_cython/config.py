@@ -1,16 +1,20 @@
 from dataclasses import asdict, dataclass, field
 from importlib import import_module
 from os import name
+from typing import Optional
 
 from hatchling.builders.hooks.plugin.interface import BuildHookInterface
 
+from hatch_cython.types import ListStr, list_t, union_t
+
 __known__ = (
+    "src",
     "includes",
     "libraries",
     "library_dirs",
     "directives",
     "compile_args",
-    "compile_kwargsretain_intermediate_artifacts",
+    "retain_intermediate_artifacts",
 )
 
 INCLUDE = "include_"
@@ -33,7 +37,7 @@ class Autoimport:
 @dataclass
 class CompileArgs:
     arg: str
-    platforms: list[str] | str = "*"
+    platforms: union_t(ListStr, str) = "*"
 
 
 __packages__ = {
@@ -108,11 +112,12 @@ def parse_from_dict(cls: BuildHookInterface):
 
 @dataclass
 class Config:
-    includes: list[str] = field(default_factory=list)
-    libraries: list[str] = field(default_factory=list)
-    library_dirs: list[str] = field(default_factory=list)
+    src: Optional[str] = field(default=None)  # noqa: UP007
+    includes: ListStr = field(default_factory=list)
+    libraries: ListStr = field(default_factory=list)
+    library_dirs: ListStr = field(default_factory=list)
     directives: dict = field(default_factory=lambda: DIRECTIVES)
-    compile_args: list[CompileArgs | str] = field(default_factory=lambda: COMPILE_ARGS)
+    compile_args: list_t(union_t(CompileArgs, str)) = field(default_factory=lambda: COMPILE_ARGS)
     compile_kwargs: dict = field(default_factory=dict)
     retain_intermediate_artifacts: bool = field(default=False)
 

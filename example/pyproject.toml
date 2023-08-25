@@ -36,7 +36,7 @@ Issues = "https://github.com/unknown/example/issues"
 Source = "https://github.com/unknown/example"
 
 [tool.hatch.version]
-path = "src/example/__about__.py"
+path = "src/example_lib/__about__.py"
 
 [tool.black]
 target-version = ["py37"]
@@ -103,7 +103,7 @@ source_pkgs = ["example", "tests"]
 branch = true
 parallel = true
 omit = [
-  "src/example/__about__.py",
+  "src/example_lib/__about__.py",
 ]
 
 [tool.coverage.paths]

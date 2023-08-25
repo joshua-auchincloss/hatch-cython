@@ -4,19 +4,18 @@ import sys
 from contextlib import contextmanager
 from glob import glob
 from tempfile import TemporaryDirectory
-from typing import ClassVar, ParamSpec
+from typing import ClassVar
 
 from hatchling.builders.hooks.plugin.interface import BuildHookInterface
 
 from hatch_cython.config import Config, parse_from_dict
-
-P = ParamSpec("P")
+from hatch_cython.types import ListStr
 
 DIRECTIVES = {"binding": True, "language_level": 3}
 
 
 def setup_py(
-    *files: list[str],
+    *files: ListStr,
     options: Config,
 ):
     code = """
@@ -79,11 +78,11 @@ class CythonBuildHook(BuildHookInterface):
 
     _config: Config
     _dir: str
-    _included: list[str]
-    _artifact_patterns: list[str]
-    _artifact_globs: list[str]
-    _norm_included_files: list[str]
-    _norm_artifact_patterns: list[str]
+    _included: ListStr
+    _artifact_patterns: ListStr
+    _artifact_globs: ListStr
+    _norm_included_files: ListStr
+    _norm_artifact_patterns: ListStr
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -112,12 +111,16 @@ class CythonBuildHook(BuildHookInterface):
         return pattern.replace("\\", "/")
 
     @property
+    def dir_name(self):
+        return self.options.src if self.options.src is not None else self.metadata.name
+
+    @property
     def project_dir(self):
         if self._dir is None:
             if self.is_src:
-                src = f"./src/{self.metadata.name}"
+                src = f"./src/{self.dir_name}"
             else:
-                src = f"./{self.metadata.name}"
+                src = f"./{self.dir_name}"
             self._dir = src
         return self._dir
 
@@ -172,7 +175,7 @@ class CythonBuildHook(BuildHookInterface):
         with TemporaryDirectory() as temp_dir:
             yield os.path.realpath(temp_dir)
 
-    def _globs(self, exts: list[str]):
+    def _globs(self, exts: ListStr):
         globs = [
             *(f"{self.project_dir}/**/*{ext}" for ext in exts),
             *(f"{self.project_dir}/*{ext}" for ext in exts),
@@ -197,7 +200,7 @@ class CythonBuildHook(BuildHookInterface):
             include[compl] = compl
         return include
 
-    def rm_recurse(self, li: list[str]):
+    def rm_recurse(self, li: ListStr):
         for f in li:
             os.remove(f)
 
@@ -207,7 +210,7 @@ class CythonBuildHook(BuildHookInterface):
     def clean_compiled(self):
         self.rm_recurse(self.compiled)
 
-    def clean(self, _versions: list[str]):
+    def clean(self, _versions: ListStr):
         self.clean_intermediate()
         self.clean_compiled()
 
@@ -219,12 +222,11 @@ class CythonBuildHook(BuildHookInterface):
 
     def initialize(self, version: str, build_data: dict):
         self.app.display_mini_header(self.PLUGIN_NAME)
+        self.app.display_debug("Options")
+        self.app.display_debug(self.options.asdict(), level=1)
 
         self.app.display_waiting("Pre-build artifacts")
-        self.app.display_debug(glob(f"{self.project_dir}/*/**"), level=1)
-        self.app.display_debug(self.options.asdict(), level=1)
         self.app.display_info("Building c/c++ extensions...")
-
         self.app.display_info(self.normalized_included_files)
         with self.get_build_dirs() as temp:
             shared_temp_build_dir = os.path.join(temp, "build")
@@ -265,7 +267,7 @@ class CythonBuildHook(BuildHookInterface):
                 msg = "failed compilation"
                 raise Exception(msg)
 
-            self.app.display_success("post build artifacts")
+            self.app.display_success("Post-build artifacts")
             self.app.display_info(glob(f"{self.project_dir}/*/**"))
 
         if not self.options.retain_intermediate_artifacts:
