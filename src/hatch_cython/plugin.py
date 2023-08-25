@@ -5,8 +5,8 @@ from contextlib import contextmanager
 from glob import glob
 from logging import getLogger
 from tempfile import TemporaryDirectory
-from typing import Optional, ParamSpec, ClassVar
-from dataclasses import dataclass
+from typing import ClassVar, Optional, ParamSpec
+
 from hatchling.builders.hooks.plugin.interface import BuildHookInterface
 
 logger = getLogger(__name__)
@@ -16,12 +16,14 @@ P = ParamSpec("P")
 DIRECTIVES = {"binding": True, "language_level": 3}
 
 
-def setup_py(*files: list[str], 
-            compile_args: Optional[list[str]] = None,
-            directives: Optional[dict] = None,
-            includes: Optional[list[str]] = None,
-            include_numpy: Optional[bool] = False,
-            **kwargs):
+def setup_py(
+    *files: list[str],
+    compile_args: Optional[list[str]] = None,
+    directives: Optional[dict] = None,
+    includes: Optional[list[str]] = None,
+    include_numpy: Optional[bool] = False,
+    **kwargs,
+):
     if compile_args is None:
         compile_args = ["-O2"]
     if directives is None:
@@ -33,6 +35,7 @@ def setup_py(*files: list[str],
 
     if include_numpy:
         from numpy import get_include
+
         includes.append(get_include())
 
     code = """
@@ -74,7 +77,7 @@ class CythonBuildHook(BuildHookInterface):
     PLUGIN_NAME = "cython"
 
     precompiled_extension = ".pyx"
-    compiled_extensions : ClassVar[list] = [
+    compiled_extensions: ClassVar[list] = [
         ".c",
         ".cpp",
         # unix
@@ -155,9 +158,7 @@ class CythonBuildHook(BuildHookInterface):
     @property
     def artifact_patterns(self):
         if self._artifact_patterns is None:
-            self._artifact_patterns = [
-                f"/{artifact_glob}" for artifact_glob in self.normalized_artifact_globs
-            ]
+            self._artifact_patterns = [f"/{artifact_glob}" for artifact_glob in self.normalized_artifact_globs]
         return self._artifact_patterns
 
     @contextmanager
@@ -232,7 +233,6 @@ class CythonBuildHook(BuildHookInterface):
             os.mkdir(shared_temp_build_dir)
             os.mkdir(temp_build_dir)
             self.clean([version])
-
 
             setup_file = os.path.join(temp, "setup.py")
             with open(setup_file, "w") as f:

@@ -32,6 +32,9 @@ if __name__ == "__main__":
 
 
 def test_setup_py():
-    assert clean(setup_py("./abc/def.pyx",
-                          includes=["/123"],
-                          )) == clean(EXPECT)
+    assert clean(
+        setup_py(
+            "./abc/def.pyx",
+            includes=["/123"],
+        )
+    ) == clean(EXPECT)
