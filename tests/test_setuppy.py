@@ -2,7 +2,7 @@ from hatch_cython.plugin import setup_py
 
 
 def clean(s: str):
-    return "\n".join((v.strip() for v in s.splitlines() if v.strip() != ""))
+    return "\n".join(v.strip() for v in s.splitlines() if v.strip() != "")
 
 
 EXPECT = """

@@ -27,6 +27,9 @@ dependencies = [
   "setuptools",
 ]
 
+[project.entry-points.hatch]
+cython = "hatch_cython.hooks"
+
 [project.urls]
 Documentation = "https://github.com/joshua-auchincloss/hatch-cython#readme"
 Issues = "https://github.com/joshua-auchincloss/hatch-cython/issues"
