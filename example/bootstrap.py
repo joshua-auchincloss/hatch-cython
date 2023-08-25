@@ -1,6 +1,6 @@
-from os import name
 import subprocess
 import sys
+from os import name
 
 py310 = (3, 10)
 py311 = (3, 11)
@@ -13,14 +13,7 @@ if __name__ == "__main__":
     win = f"dist\\example-0.0.1-{cp}-{cp}-win_amd64.whl"
     posix = "dist/example-*.whl"
     subprocess.run(  # noqa: PLW1510
-        [ # noqa: S603
-            sys.executable,
-            "-m",
-            "pip",
-            "install",
-            win if name == "nt" else posix,
-            "--force-reinstall"
-        ],
+        [sys.executable, "-m", "pip", "install", win if name == "nt" else posix, "--force-reinstall"],  # noqa: S603
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
     )
