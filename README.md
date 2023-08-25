@@ -63,7 +63,7 @@ dependencies = ["hatch-cython"]
 [build.targets.wheel.hooks.cython.options]
 <!-- optional, defaults below -->
 directives = { boundscheck = false, nonecheck = false, language_level = 3, binding = true }
-compile-args = [
+compile_args = [
     "-O3",
 ]
 includes = []
@@ -71,6 +71,19 @@ include_numpy = false
 <!-- equivalent to include_pyarrow = true -->
 include_somelib = { pkg = "pyarrow", include="get_include", libraries="get_libraries", library_dirs="get_library_dirs", required_call="create_library_symlinks" }
 ```
+
+## Configuration Options
+
+| Field                              | Type                                                                                                                                                                                                                                     |
+| ---------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| src                                | `str \| None` <br/> directory within `src` dir or `.`  which aliases the package being built. e.g. `package_a` -> `src/package_a_lib` <br/> `src = "package_a"`                                                                          |
+| directives                         | directives to cython (see cython docs)                                                                                                                                                                                                   |
+| compile_args                       | str or `{ platforms = ["*"] \| "*", arg = str }`                                                                                                                                                                                         |
+| includes                           | list str                                                                                                                                                                                                                                 |
+| includes_{package}                 | `{ pkg = str, include = str, libraries = str\| None, library_dirs = str \| None , required_call = str \| None }` <br/> where all fields, but `pkg`, are attributes in the type of `callable() -> list[str] \| str` \| `list[str] \| str` |
+| includes_numpy \| includes_pyarrow | bool<br/> 3rd party named imports. must have the respective opt in `dependencies`                                                                                                                                                        |
+| retain_intermediate_artifacts      | bool = False <br/> whether to keep `.c` \| `.cpp` files                                                                                                                                                                                  |
+| \*\* kwargs                        | keyword = value pair arguments to pass to the extension module when building                                                                                                                                                             |
 
 ## License
 
