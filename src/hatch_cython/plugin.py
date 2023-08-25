@@ -32,14 +32,14 @@ LIBRARY_DIRS = {lib_dirs}
 if __name__ == "__main__":
     exts = [
     Extension("*", [
-                {ext_files}
+                ex
             ],
             extra_compile_args=COMPILEARGS,
             include_dirs=INCLUDES,
             libraries=LIBRARIES,
             library_dirs=LIBRARY_DIRS,
         {keywords}
-        ),
+        ) for ex in ({ext_files})
     ]
     ext_modules = cythonize(
             exts,
@@ -65,9 +65,11 @@ class CythonBuildHook(BuildHookInterface):
     PLUGIN_NAME = "cython"
 
     precompiled_extension = ".pyx"
-    compiled_extensions: ClassVar[list] = [
+    intermediate_extensions: ClassVar[list] = [
         ".c",
         ".cpp",
+    ]
+    compiled_extensions: ClassVar[list] = [
         # unix
         ".so",
         # windows
@@ -76,7 +78,7 @@ class CythonBuildHook(BuildHookInterface):
     ]
 
     _config: Config
-
+    _dir: str
     _included: list[str]
     _artifact_patterns: list[str]
     _artifact_globs: list[str]
@@ -91,6 +93,7 @@ class CythonBuildHook(BuildHookInterface):
         self._artifact_globs = None
         self._norm_artifact_patterns = None
         self._config = None
+        self._dir = None
 
     @property
     def is_src(self):
@@ -109,13 +112,25 @@ class CythonBuildHook(BuildHookInterface):
         return pattern.replace("\\", "/")
 
     @property
+    def project_dir(self):
+        if self._dir is None:
+            if self.is_src:
+                src = f"./src/{self.metadata.name}"
+            else:
+                src = f"./{self.metadata.name}"
+            self._dir = src
+        return self._dir
+
+    @property
+    def precompiled_globs(self):
+        return [f"{self.project_dir}/*.pyx", f"{self.project_dir}/**/*.pyx"]
+
+    @property
     def included_files(self):
         if self._included is None:
-            if self.is_src:
-                pattern = "./src/**/*.pyx"
-            else:
-                pattern = "./**/*.pyx"
-            self._included = glob(pattern)
+            self._included = []
+            for patt in self.precompiled_globs:
+                self._included.extend(glob(patt))
         return self._included
 
     @property
@@ -155,21 +170,25 @@ class CythonBuildHook(BuildHookInterface):
     @contextmanager
     def get_build_dirs(self):
         with TemporaryDirectory() as temp_dir:
-            real = os.path.realpath(temp_dir)
-            yield real, real
+            yield os.path.realpath(temp_dir)
 
-    @property
-    def compiled(self):
-        if self.is_src:
-            root = "./src/"
-        else:
-            root = "./"
-        globs = [f"{root}/**/*{ext}" for ext in self.compiled_extensions]
+    def _globs(self, exts: list[str]):
+        globs = [
+            *(f"{self.project_dir}/**/*{ext}" for ext in exts),
+            *(f"{self.project_dir}/*{ext}" for ext in exts),
+        ]
         globbed = []
         for g in globs:
             globbed += [self.normalize_path(f) for f in glob(g)]
-
         return list(set(globbed))
+
+    @property
+    def intermediate(self):
+        return self._globs(self.intermediate_extensions)
+
+    @property
+    def compiled(self):
+        return self._globs(self.compiled_extensions)
 
     @property
     def inclusion_map(self):
@@ -178,9 +197,19 @@ class CythonBuildHook(BuildHookInterface):
             include[compl] = compl
         return include
 
-    def clean(self, _versions: list[str]):
-        for f in self.compiled:
+    def rm_recurse(self, li: list[str]):
+        for f in li:
             os.remove(f)
+
+    def clean_intermediate(self):
+        self.rm_recurse(self.intermediate)
+
+    def clean_compiled(self):
+        self.rm_recurse(self.compiled)
+
+    def clean(self, _versions: list[str]):
+        self.clean_intermediate()
+        self.clean_compiled()
 
     @property
     def options(self):
@@ -192,18 +221,18 @@ class CythonBuildHook(BuildHookInterface):
         self.app.display_mini_header(self.PLUGIN_NAME)
 
         self.app.display_waiting("Pre-build artifacts")
-        self.app.display_waiting(glob("./*/**"))
-
+        self.app.display_debug(glob(f"{self.project_dir}/*/**"), level=1)
+        self.app.display_debug(self.options.asdict(), level=1)
         self.app.display_info("Building c/c++ extensions...")
-        with self.get_build_dirs() as (config, temp):
-            shared_temp_build_dir = os.path.join(config, "build")
+
+        self.app.display_info(self.normalized_included_files)
+        with self.get_build_dirs() as temp:
+            shared_temp_build_dir = os.path.join(temp, "build")
             temp_build_dir = os.path.join(temp, "tmp")
             os.mkdir(shared_temp_build_dir)
             os.mkdir(temp_build_dir)
             self.clean([version])
-
             setup_file = os.path.join(temp, "setup.py")
-            self.app.display_info(self.options.asdict())
             with open(setup_file, "w") as f:
                 setup = setup_py(
                     *self.normalized_included_files,
@@ -237,7 +266,10 @@ class CythonBuildHook(BuildHookInterface):
                 raise Exception(msg)
 
             self.app.display_success("post build artifacts")
-            self.app.display_success(glob(f"{temp}/build/**/*.*"))
+            self.app.display_info(glob(f"{self.project_dir}/*/**"))
+
+        if not self.options.retain_intermediate_artifacts:
+            self.clean_intermediate()
 
         build_data["infer_tag"] = True
         build_data["pure_python"] = False

@@ -19,14 +19,14 @@ LIBRARY_DIRS = ['/def']
 if __name__ == "__main__":
     exts = [
     Extension("*", [
-                "./abc/def.pyx"
+                ex
             ],
             extra_compile_args=COMPILEARGS,
             include_dirs=INCLUDES,
             libraries=LIBRARIES,
             library_dirs=LIBRARY_DIRS,
 
-        ),
+        ) for ex in ("./abc/def.pyx")
     ]
     ext_modules = cythonize(
             exts,
