@@ -4,6 +4,8 @@
 
 cimport numpy as cnp
 
+from cython.parallel import parallel, prange
+
 cnp.import_array()
 
 ctypedef cnp.longlong_t dtype
@@ -16,7 +18,12 @@ cpdef str hello_world(str name):
 
 cpdef dtype hello_numpy(cnp.ndarray[dtype, ndim=1] arr):
     cdef dtype tot
+    cdef int cap
+    cdef int i
     tot = 0
-    for k in arr:
-        tot = tot + k
+    cap = arr.size
+    with nogil, parallel():
+        for i in prange(cap):
+            with gil:
+                tot += arr[i]
     return tot
