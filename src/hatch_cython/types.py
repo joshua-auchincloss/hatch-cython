@@ -2,8 +2,13 @@ from sys import version_info
 from typing import TypeVar
 
 A = TypeVar("A")
+"""Union A"""
 B = TypeVar("B")
+"""Union B"""
+T = TypeVar("T")
+"""Generic T"""
 Un = TypeVar("Un")
+"""Union Output"""
 
 vmaj = (version_info[0], version_info[1])
 if vmaj >= (3, 10):
@@ -16,10 +21,9 @@ else:
 
 def union_t(a: A, b: B) -> Un:
     if vmaj >= (3, 10):
-        union: Un = a | b
+        return a | b
     else:
-        union: Un = Union[a, b]  # noqa: UP007
-    return union
+        return Union[a, b]  # noqa: UP007
 
 
 def list_t(of: A) -> B:

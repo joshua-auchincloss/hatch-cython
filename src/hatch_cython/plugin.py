@@ -26,13 +26,14 @@ INCLUDES = {includes}
 LIBRARIES = {libs}
 LIBRARY_DIRS = {lib_dirs}
 EXTENSIONS = ({ext_files})
-
+LINKARGS = {extra_link_args}
 
 if __name__ == "__main__":
     exts = [
         Extension("*",
                     ex,
                     extra_compile_args=COMPILEARGS,
+                    extra_link_args=LINKARGS,
                     include_dirs=INCLUDES,
                     libraries=LIBRARIES,
                     library_dirs=LIBRARY_DIRS,
@@ -50,6 +51,7 @@ if __name__ == "__main__":
     kwds = ",\n\t".join((f'{k}="{v}"' for k, v in options.compile_kwargs.items()))
     return code.format(
         compile_args=repr(options.compile_args_for_platform),
+        extra_link_args=repr(options.compile_links_for_platform),
         directives=repr(options.directives),
         ext_files=ext_files,
         keywords=kwds,

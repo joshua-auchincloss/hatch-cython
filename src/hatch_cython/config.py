@@ -1,5 +1,5 @@
 import platform
-from collections.abc import Callable, Generator
+from collections.abc import Callable, Generator, Hashable
 from dataclasses import asdict, dataclass, field
 from importlib import import_module
 from os import path
@@ -16,11 +16,13 @@ __known__ = (
     "library_dirs",
     "directives",
     "compile_args",
+    "extra_link_args",
     "retain_intermediate_artifacts",
 )
 
 ANON = "anon"
 INCLUDE = "include_"
+OPTIMIZE = "-O2"
 DIRECTIVES = {
     "binding": True,
     "language_level": 3,
@@ -41,7 +43,7 @@ class Autoimport:
 
 
 @dataclass
-class CompileArgs:
+class PlatformArgs(Hashable):
     arg: str
     platforms: union_t(ListStr, str) = "*"
 
@@ -56,7 +58,14 @@ class CompileArgs:
             return PF in self.platforms or "*" in self.platforms
         return self.platforms in (PF, "*")
 
+    def __hash__(self) -> int:
+        return hash(self.arg)
 
+
+ListedArgs = list_t(union_t(PlatformArgs, str))
+"""
+List[str, PlatformArgs]
+"""
 __packages__ = {
     a.pkg: a
     for a in (
@@ -71,7 +80,18 @@ __packages__ = {
     )
 }
 
-COMPILE_ARGS = [CompileArgs(arg="-O2")]
+COMPILE_ARGS = [PlatformArgs(arg="-O2")]
+
+
+def parse_platform_args(kwargs: dict, name: str) -> list_t(union_t(str, PlatformArgs)):
+    try:
+        args = kwargs.pop(name)
+        for i, arg in enumerate(args):
+            if isinstance(arg, dict):
+                args[i] = PlatformArgs(**arg)
+    except KeyError:
+        args = []
+    return args
 
 
 def parse_from_dict(cls: BuildHookInterface):
@@ -84,16 +104,10 @@ def parse_from_dict(cls: BuildHookInterface):
             passed.pop(kw)
             continue
 
-    try:
-        args = kwargs.pop("compile_args")
-        for i, arg in enumerate(args):
-            if isinstance(arg, dict):
-                args[i] = CompileArgs(**arg)
+    compile_args = parse_platform_args(kwargs, "compile_args")
+    link_args = parse_platform_args(kwargs, "extra_link_args")
 
-    except KeyError:
-        args = []
-
-    cfg = Config(**kwargs, compile_args=args)
+    cfg = Config(**kwargs, compile_args=compile_args, extra_link_args=link_args)
     for kw, val in passed.copy().items():
         is_include = kw.startswith(INCLUDE)
         if is_include and val:
@@ -130,18 +144,15 @@ def parse_from_dict(cls: BuildHookInterface):
 
     if "parallel" in passed and passed.get("parallel"):
         passed.pop("parallel")
-
-        omp = "/openmp" if compiler == "msvc" else "-fopenmp"
-        eca = cfg.compile_args
-        cfg.compile_args.append(omp)
-        eca.append(omp)
-
-        ela = passed.get("extra_link_args", [])
-        ela.append(omp)
-
-        cfg.compile_args = eca
-        # TODO: manage link args
-        passed["extra_link_args"] = ela
+        omp = "/openmp" if (PF == "windows" or compiler == "msvc") else "-fopenmp" if PF == "linux" else None
+        cma = {*cfg.compile_args}
+        if omp:
+            cma.add(omp)
+        cfg.compile_args = list(cma)
+        seb = {*cfg.extra_link_args}
+        if omp:
+            seb.add(omp)
+        cfg.extra_link_args = list(seb)
 
     cfg.compile_kwargs = passed
     return cfg
@@ -154,8 +165,9 @@ class Config:
     libraries: ListStr = field(default_factory=list)
     library_dirs: ListStr = field(default_factory=list)
     directives: dict = field(default_factory=lambda: DIRECTIVES)
-    compile_args: list_t(union_t(CompileArgs, str)) = field(default_factory=lambda: COMPILE_ARGS)
+    compile_args: ListedArgs = field(default_factory=lambda: COMPILE_ARGS)
     compile_kwargs: dict = field(default_factory=dict)
+    extra_link_args: ListedArgs = field(default_factory=lambda: [])
     retain_intermediate_artifacts: bool = field(default=False)
 
     def __post_init__(self):
@@ -223,16 +235,25 @@ class Config:
             else:
                 cls.app.display_warning(f"{im.pkg}.{im.required_call} is invalid")
 
-    @property
-    def compile_args_for_platform(self):
+    def _arg_impl(self, target: ListedArgs):
         args = []
-        for arg in self.compile_args:
-            if isinstance(arg, CompileArgs):
+        for arg in target:
+            # if compile-arg format, check platform applies
+            if isinstance(arg, PlatformArgs):
                 if arg.applies():
                     args.append(arg.arg)
+            # else assume string / user knows what theyre doing and add to the call params
             else:
                 args.append(arg)
         return args
+
+    @property
+    def compile_args_for_platform(self):
+        return self._arg_impl(self.compile_args)
+
+    @property
+    def compile_links_for_platform(self):
+        return self._arg_impl(self.extra_link_args)
 
     def asdict(self):
         return asdict(self)

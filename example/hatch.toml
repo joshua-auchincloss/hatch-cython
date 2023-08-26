@@ -13,15 +13,19 @@ path = "../src/hatch_cython/devel.py"
 dependencies = [
   "Cython",
   "setuptools",
-  "numpy"
+  "numpy",
+  "llvmlite"
 ]
 
 [build.targets.wheel.hooks.custom.options]
 src = "example_lib"
 include_numpy = true
+parallel = true
 compile_args = [
   { platforms = ["linux", "darwin"], arg = "-Wcpp" },
-  { platforms = ["darwin"], arg = "-L/usr/local/opt/llvm/lib" }
+]
+extra_link_args =  [
+  { platforms = ["darwin"],  arg = "-L/usr/local/opt/llvm/lib" },
 ]
 retain_intermediate_artifacts = true
 

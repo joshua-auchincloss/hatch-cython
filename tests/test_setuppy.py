@@ -1,4 +1,4 @@
-from hatch_cython.config import Config
+from hatch_cython.config import Config, PlatformArgs
 from hatch_cython.plugin import setup_py
 
 
@@ -16,13 +16,14 @@ INCLUDES = ['/123']
 LIBRARIES = ['/abc']
 LIBRARY_DIRS = ['/def']
 EXTENSIONS = (['./abc/def.pyx'],['./abc/depb.py'])
-
+LINKARGS = ['-I/etc/abc/linka.h']
 
 if __name__ == "__main__":
     exts = [
         Extension("*",
                     ex,
                     extra_compile_args=COMPILEARGS,
+                    extra_link_args=LINKARGS,
                     include_dirs=INCLUDES,
                     libraries=LIBRARIES,
                     library_dirs=LIBRARY_DIRS,
@@ -43,6 +44,7 @@ def test_setup_py():
         includes=["/123"],
         libraries=["/abc"],
         library_dirs=["/def"],
+        extra_link_args=[PlatformArgs("-I/etc/abc/linka.h")],
     )
     setup = setup_py(
         ["./abc/def.pyx"],
