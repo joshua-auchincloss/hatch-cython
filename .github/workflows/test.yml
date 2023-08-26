@@ -47,6 +47,16 @@ jobs:
           echo $(brew info llvm) &&
           echo $(arch)
 
+      - name: Vars
+        if: ! startsWith(matrix.os, 'windows-')
+        run: |
+          export CC=c++
+  
+      - name: Vars
+        if: startsWith(matrix.os, 'windows-')
+        run: |
+          export CC=g++
+
       - name: test-example
         run: |
            cd example &&
