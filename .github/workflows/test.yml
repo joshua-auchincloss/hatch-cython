@@ -41,7 +41,6 @@ jobs:
       - name: Install
         if: startsWith(matrix.os, 'macos-')
         run: |
-          xcode-select --install &&
           brew install libomp llvm &&
           brew link llvm
 
