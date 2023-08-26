@@ -47,18 +47,15 @@ jobs:
           echo $(brew info llvm) &&
           echo $(arch)
 
-      - name: Vars
-        if: ${{ !startsWith( matrix.os , 'windows-' ) }}
-        run: |
-          export CC=c++
-  
-      - name: Vars
-        if: startsWith(matrix.os, 'windows-')
-        run: |
-          export CC=g++
-
-      - name: test-example
-        run: |
-           cd example &&
-           hatch build &&
-           hatch run cov
+      - name: Test Compile
+        shell: bash
+        run:   |
+              if [ "$RUNNER_OS" == "Windows" ]; then
+                export CC=g++ 
+              else
+                export CC=c++
+              fi
+              cd example
+              hatch build
+              hatch run cov
+         
