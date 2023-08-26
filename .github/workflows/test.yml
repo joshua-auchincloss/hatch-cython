@@ -38,6 +38,11 @@ jobs:
       - name: Run tests
         run: hatch run cov
 
+      - name: Install
+        if: startsWith(matrix.os, 'macos-')
+        run: |
+          brew install libomp
+
       - name: test-example
         run: |
            cd example &&
