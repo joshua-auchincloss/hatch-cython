@@ -113,6 +113,7 @@ def get_default_link():
     return [
         PlatformArgs(arg="-L/opt/homebrew/lib", platforms="darwin", depends_path=True),
         PlatformArgs(arg="-L/usr/local/lib", platforms="darwin", depends_path=True),
+        PlatformArgs(arg="-L/usr/local/opt", platforms="darwin", depends_path=True),
     ]
 
 
