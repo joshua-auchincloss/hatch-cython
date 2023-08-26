@@ -41,7 +41,8 @@ jobs:
       - name: Install
         if: startsWith(matrix.os, 'macos-')
         run: |
-          brew install libomp
+          brew install libomp &&
+          echo c++ --version
 
       - name: test-example
         run: |
