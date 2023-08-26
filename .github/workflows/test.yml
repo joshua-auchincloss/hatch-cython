@@ -50,6 +50,12 @@ jobs:
       - name: Test Compile
         shell: bash
         run:   |
+              if [ "$RUNNER_OS" == "Windows" ]; then
+                echo "using native C++"
+              else
+                echo "using g++"
+                export CC=g++
+              fi
               cd example
               echo $RUNNER_OS
               hatch build
