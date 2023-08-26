@@ -35,7 +35,7 @@ extra_link_args =  [
 ]
 retain_intermediate_artifacts = true
 
-cythonize_kwargs = {  cplus = true, annotate = true }
+cythonize_kwargs = { annotate = true }
 
 [[envs.all.matrix]]
 python = ["3.8", "3.9", "3.10", "3.11"]

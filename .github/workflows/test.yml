@@ -50,12 +50,8 @@ jobs:
       - name: Test Compile
         shell: bash
         run:   |
-              if [ "$RUNNER_OS" == "Windows" ]; then
-                export CC=g++ 
-              else
-                export CC=c++
-              fi
               cd example
+              echo $RUNNER_OS
               hatch build
               hatch run cov
          
