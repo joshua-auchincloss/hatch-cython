@@ -305,9 +305,9 @@ class Config:
             matched = list(filter(lambda s: arg.startswith(s), MUST_UNIQUE))
             if len(matched):
                 m = matched[0]
-                args[m] = arg
+                args[m] = arg.split(" ")
             else:
-                args["any"].append(arg)
+                args["any"].append(arg.split(" "))
 
         for arg in target:
             # if compile-arg format, check platform applies
@@ -322,13 +322,13 @@ class Config:
 
         def flush(it):
             if isinstance(it, list):
-                flat.extend(it)
+                for v in it:
+                    flush(v)
             else:
                 flat.append(it)
 
         # side effect
         list(map(flush, args.values()))
-
         return flat
 
     def asdict(self):

@@ -297,6 +297,8 @@ class CythonBuildHook(BuildHookInterface):
                 msg = "failed compilation"
                 raise Exception(msg)
 
+            self.app.display_info(process.stdout.decode("utf-8"))
+
             self.app.display_success("Post-build artifacts")
             self.app.display_info(glob(f"{self.project_dir}/*/**"))
 

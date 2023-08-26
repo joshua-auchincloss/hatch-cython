@@ -61,4 +61,3 @@ jobs:
               echo $RUNNER_OS
               hatch build
               hatch run cov
-         

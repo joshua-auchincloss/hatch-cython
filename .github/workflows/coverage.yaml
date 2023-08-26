@@ -1,0 +1,16 @@
+name: Coverage
+on: [push, pull_request]
+jobs:
+  cov:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+      - name: Run tests and collect coverage
+        run: hatch run cov
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3

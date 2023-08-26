@@ -145,7 +145,7 @@ ban-relative-imports = "all"
 "**/__init__.py" = ["F401"]
 
 [tool.coverage.run]
-source_pkgs = ["hatch_cython", "tests"]
+source_pkgs = ["hatch_cython"]
 branch = true
 parallel = true
 omit = [
