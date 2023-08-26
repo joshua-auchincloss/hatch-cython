@@ -55,6 +55,7 @@ jobs:
               else
                 echo "using g++"
                 export CC=g++
+                export CXX=g++
               fi
               cd example
               echo $RUNNER_OS
