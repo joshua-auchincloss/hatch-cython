@@ -8,6 +8,7 @@ from typing import Optional
 from hatchling.builders.hooks.plugin.interface import BuildHookInterface
 
 from hatch_cython.types import ListStr, list_t, union_t
+from hatch_cython.utils import memo
 
 EXIST_TRIM = 2
 
@@ -19,9 +20,18 @@ DIRECTIVES = {
     "language_level": 3,
 }
 
-MUST_UNIQUE: list[str] = ["-O"]
-PLAT = platform.system().lower()
-AARCH = platform.machine().lower()
+MUST_UNIQUE: list[str] = ["-O", "-arch"]
+
+
+@memo
+def plat():
+    return platform.system().lower()
+
+
+@memo
+def aarch():
+    return platform.machine().lower()
+
 
 # fields tracked by this plugin
 __known__ = (
@@ -90,8 +100,8 @@ class PlatformArgs(Hashable):
         return (att in (defn, "*")) or _anon
 
     def applies(self):
-        _isplatform = self._applies_impl("platforms", PLAT)
-        _isarch = self._applies_impl("arch", AARCH)
+        _isplatform = self._applies_impl("platforms", plat())
+        _isarch = self._applies_impl("arch", aarch())
         return _isplatform and _isarch
 
     def __hash__(self) -> int:
@@ -118,11 +128,16 @@ def get_default_link():
 
 
 def get_default_compile():
-    return [
+    args = [
         PlatformArgs(arg="-O2"),
         PlatformArgs(arg="-I/opt/homebrew/include", platforms="darwin", depends_path=True),
         PlatformArgs(arg="-I/usr/local/include", platforms="darwin", depends_path=True),
     ]
+
+    if aarch() != "":
+        args.append(PlatformArgs(arg=f"-arch {aarch()}"))
+
+    return args
 
 
 def parse_platform_args(kwargs: dict, name: str, default: Callable) -> list_t(union_t(str, PlatformArgs)):
@@ -214,6 +229,22 @@ class Config:
     def __post_init__(self):
         self.directives = {**DIRECTIVES, **self.directives}
 
+    @property
+    def language(self):
+        try:
+            lang = self.compile_kwargs.pop("language")
+        except KeyError:
+            lang = None
+        return lang
+
+    @property
+    def compile_args_for_platform(self):
+        return self._arg_impl(self.compile_args)
+
+    @property
+    def compile_links_for_platform(self):
+        return self._arg_impl(self.extra_link_args)
+
     def _post_import_attr(
         self,
         cls: BuildHookInterface,
@@ -278,41 +309,37 @@ class Config:
 
     def _arg_impl(self, target: ListedArgs):
         args = {"any": []}
+
+        def with_argvalue(arg: str):
+            # be careful with e.g. -Ox flags
+            matched = list(filter(lambda s: arg.startswith(s), MUST_UNIQUE))
+            if len(matched):
+                m = matched[0]
+                args[m] = arg
+            else:
+                args["any"].append(arg)
+
         for arg in target:
             # if compile-arg format, check platform applies
             if isinstance(arg, PlatformArgs):
                 if arg.applies() and arg.is_exist(EXIST_TRIM):
-                    # be careful with e.g. -Ox flags
-                    matched = list(filter(lambda s: arg.arg.startswith(s), MUST_UNIQUE))
-                    if len(matched):
-                        m = matched[0]
-                        args[m] = arg.arg
-                    else:
-                        args["any"].append(arg.arg)
+                    with_argvalue(arg.arg)
             # else assume string / user knows what theyre doing and add to the call params
             else:
-                args["any"].append(arg)
+                with_argvalue(arg)
 
         flat = []
 
-        def attach(it):
+        def flush(it):
             if isinstance(it, list):
                 flat.extend(it)
             else:
                 flat.append(it)
 
         # side effect
-        list(map(attach, args.values()))
+        list(map(flush, args.values()))
 
         return flat
-
-    @property
-    def compile_args_for_platform(self):
-        return self._arg_impl(self.compile_args)
-
-    @property
-    def compile_links_for_platform(self):
-        return self._arg_impl(self.extra_link_args)
 
     def asdict(self):
         return asdict(self)

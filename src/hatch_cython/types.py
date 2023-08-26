@@ -12,9 +12,13 @@ Un = TypeVar("Un")
 
 vmaj = (version_info[0], version_info[1])
 if vmaj >= (3, 10):
+    from typing import ParamSpec
+
     ListStr = list[str]
 else:
     from typing import List, Union  # noqa: UP035
+
+    from typing_extensions import ParamSpec
 
     ListStr = List[str]  # noqa: UP006
 
@@ -30,3 +34,6 @@ def list_t(of: A) -> B:
     if vmaj >= (3, 9):
         return list[of]
     return List[of]  # noqa: UP006
+
+
+P = ParamSpec("P")

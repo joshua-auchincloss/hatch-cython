@@ -8,7 +8,7 @@ from typing import ClassVar
 
 from hatchling.builders.hooks.plugin.interface import BuildHookInterface
 
-from hatch_cython.config import PLAT, Config, parse_from_dict
+from hatch_cython.config import Config, parse_from_dict, plat
 from hatch_cython.types import ListStr, list_t
 
 
@@ -27,6 +27,7 @@ LIBRARIES = {libs}
 LIBRARY_DIRS = {lib_dirs}
 EXTENSIONS = ({ext_files})
 LINKARGS = {extra_link_args}
+LANGUAGE = {language}
 
 if __name__ == "__main__":
     exts = [
@@ -37,16 +38,19 @@ if __name__ == "__main__":
                     include_dirs=INCLUDES,
                     libraries=LIBRARIES,
                     library_dirs=LIBRARY_DIRS,
+                    language=LANGUAGE,
                     {keywords}
         ) for ex in EXTENSIONS
     ]
     ext_modules = cythonize(
             exts,
             compiler_directives=DIRECTIVES,
-            include_path=INCLUDES
+            include_path=INCLUDES,
+            language=LANGUAGE
     )
     setup(ext_modules=ext_modules)
 """
+    lang = repr(options.language)
     ext_files = ",".join([repr(lf) for lf in files])
     kwds = ",\n\t".join((f'{k}="{v}"' for k, v in options.compile_kwargs.items()))
     return code.format(
@@ -58,6 +62,7 @@ if __name__ == "__main__":
         includes=repr(options.includes),
         libs=repr(options.libraries),
         lib_dirs=repr(options.library_dirs),
+        language=lang,
     ).strip()
 
 
@@ -73,10 +78,10 @@ class CythonBuildHook(BuildHookInterface):
         ".cpp",
     ]
     compiled_extensions: ClassVar[list] = [
+        ".dll",
         # unix
         ".so",
         # windows
-        ".dll",
         ".pyd",
     ]
 
@@ -106,7 +111,7 @@ class CythonBuildHook(BuildHookInterface):
 
     @property
     def is_windows(self):
-        return PLAT == "windows"
+        return plat() == "windows"
 
     def normalize_path(self, pattern: str):
         if self.is_windows:

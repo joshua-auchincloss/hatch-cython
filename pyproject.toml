@@ -27,6 +27,7 @@ dependencies = [
   "Cython",
   "hatchling",
   "setuptools",
+  "typing_extensions; python_version < '3.10'"
 ]
 
 [project.entry-points.hatch]
@@ -48,7 +49,7 @@ dependencies = [
 ]
 [tool.hatch.envs.default.scripts]
 test = "pytest {args:tests}"
-test-cov = "coverage run -m pytest -vv {args:tests}"
+test-cov = "coverage run -m pytest -v {args:tests}"
 cov-report = [
   "- coverage combine",
   "coverage report",
