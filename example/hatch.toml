@@ -24,6 +24,7 @@ include_numpy = true
 parallel = true
 directives = { language_level = 3, boundscheck = false }
 compile_args = [
+  { arg = "-v" },
   { platforms = ["linux", "darwin"], arg = "-Wcpp" },
   { platforms = ["darwin"], arch = "x86_64", arg = "-arch x86_64" },
   { platforms = ["darwin"], arch = "arm64", arg = "-arch arm64" },

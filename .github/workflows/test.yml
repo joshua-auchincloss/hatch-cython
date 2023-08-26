@@ -27,6 +27,14 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
+      - name: Install
+        if: startsWith(matrix.os, 'macos-')
+        run: |
+          brew install libomp llvm &&
+          brew link llvm &&
+          echo $(brew info llvm) &&
+          echo $(arch)
+
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v4
         with:
@@ -38,14 +46,6 @@ jobs:
 
       - name: Run tests
         run: hatch run cov
-
-      - name: Install
-        if: startsWith(matrix.os, 'macos-')
-        run: |
-          brew install libomp llvm &&
-          brew link llvm &&
-          echo $(brew info llvm) &&
-          echo $(arch)
 
       - name: Test Compile
         shell: bash
