@@ -48,7 +48,7 @@ jobs:
           echo $(arch)
 
       - name: Vars
-        if: ! startsWith(matrix.os, 'windows-')
+        if: ${{ !startsWith( matrix.os , 'windows-' ) }}
         run: |
           export CC=c++
   
