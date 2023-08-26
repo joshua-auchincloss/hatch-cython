@@ -9,6 +9,21 @@ from hatchling.builders.hooks.plugin.interface import BuildHookInterface
 
 from hatch_cython.types import ListStr, list_t, union_t
 
+EXIST_TRIM = 2
+
+ANON = "anon"
+INCLUDE = "include_"
+OPTIMIZE = "-O2"
+DIRECTIVES = {
+    "binding": True,
+    "language_level": 3,
+}
+
+MUST_UNIQUE: list[str] = ["-O"]
+PLAT = platform.system().lower()
+AARCH = platform.machine().lower()
+
+# fields tracked by this plugin
 __known__ = (
     "src",
     "includes",
@@ -19,17 +34,6 @@ __known__ = (
     "extra_link_args",
     "retain_intermediate_artifacts",
 )
-
-ANON = "anon"
-INCLUDE = "include_"
-OPTIMIZE = "-O2"
-DIRECTIVES = {
-    "binding": True,
-    "language_level": 3,
-}
-
-PLAT = platform.system().lower()
-AARCH = platform.machine().lower()
 
 
 @dataclass
@@ -42,11 +46,27 @@ class Autoimport:
     required_call: str = field(default=None)
 
 
+__packages__ = {
+    a.pkg: a
+    for a in (
+        Autoimport("numpy", "get_include"),
+        Autoimport(
+            "pyarrow",
+            include="get_include",
+            libraries="get_libraries",
+            library_dirs="get_library_dirs",
+            required_call="create_library_symlinks",
+        ),
+    )
+}
+
+
 @dataclass
 class PlatformArgs(Hashable):
     arg: str
     platforms: union_t(ListStr, str) = "*"
     arch: union_t(ListStr, str) = "*"
+    depends_path: bool = False
 
     def do_rewrite(self, attr: str):
         att = getattr(self, attr)
@@ -77,36 +97,41 @@ class PlatformArgs(Hashable):
     def __hash__(self) -> int:
         return hash(self.arg)
 
+    def is_exist(self, trim: int = 0):
+        if self.depends_path:
+            return path.exists(self.arg[trim:])
+        return True
+
 
 ListedArgs = list_t(union_t(PlatformArgs, str))
 """
-List[str, PlatformArgs]
+List[str | PlatformArgs]
 """
-__packages__ = {
-    a.pkg: a
-    for a in (
-        Autoimport("numpy", "get_include"),
-        Autoimport(
-            "pyarrow",
-            include="get_include",
-            libraries="get_libraries",
-            library_dirs="get_library_dirs",
-            required_call="create_library_symlinks",
-        ),
-    )
-}
-
-COMPILE_ARGS = [PlatformArgs(arg="-O2")]
 
 
-def parse_platform_args(kwargs: dict, name: str) -> list_t(union_t(str, PlatformArgs)):
+def get_default_link():
+    return [
+        PlatformArgs(arg="-L/opt/homebrew/lib", platforms="darwin", depends_path=True),
+        PlatformArgs(arg="-L/usr/local/lib", platforms="darwin", depends_path=True),
+    ]
+
+
+def get_default_compile():
+    return [
+        PlatformArgs(arg="-O2"),
+        PlatformArgs(arg="-I/opt/homebrew/include", platforms="darwin", depends_path=True),
+        PlatformArgs(arg="-I/usr/local/include", platforms="darwin", depends_path=True),
+    ]
+
+
+def parse_platform_args(kwargs: dict, name: str, default: Callable) -> list_t(union_t(str, PlatformArgs)):
     try:
-        args = kwargs.pop(name)
+        args = [*default(), *kwargs.pop(name)]
         for i, arg in enumerate(args):
             if isinstance(arg, dict):
                 args[i] = PlatformArgs(**arg)
     except KeyError:
-        args = []
+        args = default()
     return args
 
 
@@ -120,8 +145,8 @@ def parse_from_dict(cls: BuildHookInterface):
             passed.pop(kw)
             continue
 
-    compile_args = parse_platform_args(kwargs, "compile_args")
-    link_args = parse_platform_args(kwargs, "extra_link_args")
+    compile_args = parse_platform_args(kwargs, "compile_args", get_default_compile)
+    link_args = parse_platform_args(kwargs, "extra_link_args", get_default_link)
 
     cfg = Config(**kwargs, compile_args=compile_args, extra_link_args=link_args)
     for kw, val in passed.copy().items():
@@ -180,9 +205,9 @@ class Config:
     libraries: ListStr = field(default_factory=list)
     library_dirs: ListStr = field(default_factory=list)
     directives: dict = field(default_factory=lambda: DIRECTIVES)
-    compile_args: ListedArgs = field(default_factory=lambda: COMPILE_ARGS)
+    compile_args: ListedArgs = field(default_factory=get_default_compile)
     compile_kwargs: dict = field(default_factory=dict)
-    extra_link_args: ListedArgs = field(default_factory=lambda: [])
+    extra_link_args: ListedArgs = field(default_factory=get_default_link)
     retain_intermediate_artifacts: bool = field(default=False)
 
     def __post_init__(self):
@@ -251,16 +276,34 @@ class Config:
                 cls.app.display_warning(f"{im.pkg}.{im.required_call} is invalid")
 
     def _arg_impl(self, target: ListedArgs):
-        args = []
+        args = {"any": []}
         for arg in target:
             # if compile-arg format, check platform applies
             if isinstance(arg, PlatformArgs):
-                if arg.applies():
-                    args.append(arg.arg)
+                if arg.applies() and arg.is_exist(EXIST_TRIM):
+                    # be careful with e.g. -Ox flags
+                    matched = list(filter(lambda s: arg.arg.startswith(s), MUST_UNIQUE))
+                    if len(matched):
+                        m = matched[0]
+                        args[m] = arg.arg
+                    else:
+                        args["any"].append(arg.arg)
             # else assume string / user knows what theyre doing and add to the call params
             else:
-                args.append(arg)
-        return args
+                args["any"].append(arg)
+
+        flat = []
+
+        def attach(it):
+            if isinstance(it, list):
+                flat.extend(it)
+            else:
+                flat.append(it)
+
+        # side effect
+        list(map(attach, args.values()))
+
+        return flat
 
     @property
     def compile_args_for_platform(self):

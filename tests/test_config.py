@@ -6,6 +6,8 @@ from toml import loads
 
 from hatch_cython.config import parse_from_dict
 
+from .utils import true_if_eq
+
 data = """
 [options]
 includes = []
@@ -72,6 +74,9 @@ def test_config_parser():
 
     assert cfg.compile_args
 
+    true_x86_mac = true_if_eq("/usr/local/include", "/usr/local/lib")
+    true_arm_mac = true_if_eq("/opt/homebrew/lib", "/opt/homebrew/include")
+
     with patch("hatch_cython.config.AARCH", "x86_64"):
         with patch("hatch_cython.config.PLAT", "windows"):
             assert cfg.compile_args_for_platform == ["-std=c++17", "-O2"]
@@ -80,8 +85,15 @@ def test_config_parser():
             assert cfg.compile_args_for_platform == ["-I/abc/def", "-Wcpp", "-O2"]
             assert cfg.compile_links_for_platform == ["-L/etc/ssl/ssl.h"]
         with patch("hatch_cython.config.PLAT", "darwin"):
-            assert cfg.compile_args_for_platform == ["-I/abc/def", "-Wcpp", "-L/usr/local/opt/llvm/include", "-O2"]
-            assert cfg.compile_links_for_platform == ["-L/usr/local/opt/llvm/lib"]
+            with patch("hatch_cython.config.path.exists", true_x86_mac):
+                assert cfg.compile_args_for_platform == [
+                    "-I/usr/local/include",
+                    "-I/abc/def",
+                    "-Wcpp",
+                    "-L/usr/local/opt/llvm/include",
+                    "-O2",
+                ]
+                assert cfg.compile_links_for_platform == ["-L/usr/local/lib", "-L/usr/local/opt/llvm/lib"]
 
     with patch("hatch_cython.config.AARCH", "arm64"):
         with patch("hatch_cython.config.PLAT", "windows"):
@@ -91,8 +103,19 @@ def test_config_parser():
             assert cfg.compile_args_for_platform == ["-I/abc/def", "-Wcpp", "-O3"]
             assert cfg.compile_links_for_platform == ["-L/etc/ssl/ssl.h", "-L/usr/include/cpu/simd.h"]
         with patch("hatch_cython.config.PLAT", "darwin"):
-            assert cfg.compile_args_for_platform == ["-I/abc/def", "-Wcpp", "-L/usr/local/opt/llvm/include", "-O3"]
-            assert cfg.compile_links_for_platform == ["-L/usr/local/opt/llvm/lib", "-L/usr/include/cpu/simd.h"]
+            with patch("hatch_cython.config.path.exists", true_arm_mac):
+                assert cfg.compile_args_for_platform == [
+                    "-I/opt/homebrew/include",
+                    "-I/abc/def",
+                    "-Wcpp",
+                    "-L/usr/local/opt/llvm/include",
+                    "-O3",
+                ]
+                assert cfg.compile_links_for_platform == [
+                    "-L/opt/homebrew/lib",
+                    "-L/usr/local/opt/llvm/lib",
+                    "-L/usr/include/cpu/simd.h",
+                ]
 
     with patch("hatch_cython.config.AARCH", ""):
         with patch("hatch_cython.config.PLAT", "windows"):
@@ -106,12 +129,19 @@ def test_config_parser():
                 "-L/etc/ssl/ssl.h",
             ]
         with patch("hatch_cython.config.PLAT", "darwin"):
-            assert cfg.compile_args_for_platform == ["-I/abc/def", "-Wcpp", "-L/usr/local/opt/llvm/include", "-O1"]
-            assert cfg.compile_links_for_platform == ["-L/usr/local/opt/llvm/lib"]
+            with patch("hatch_cython.config.path.exists", true_x86_mac):
+                assert cfg.compile_args_for_platform == [
+                    "-I/usr/local/include",
+                    "-I/abc/def",
+                    "-Wcpp",
+                    "-L/usr/local/opt/llvm/include",
+                    "-O1",
+                ]
+                assert cfg.compile_links_for_platform == ["-L/usr/local/lib", "-L/usr/local/opt/llvm/lib"]
 
     assert cfg.directives == {"boundscheck": False, "nonecheck": False, "language_level": 3, "binding": True}
 
     assert cfg.libraries == gets_libraries()
     assert cfg.library_dirs == gets_library_dirs()
     assert get_include() in cfg.includes
-    assert cfg.compile_kwargs == {"abc_compile_kwarg": "test", "language" : "c++"}
+    assert cfg.compile_kwargs == {"abc_compile_kwarg": "test", "language": "c++"}

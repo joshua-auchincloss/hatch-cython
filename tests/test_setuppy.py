@@ -1,5 +1,9 @@
+from unittest.mock import patch
+
 from hatch_cython.config import Config, PlatformArgs
 from hatch_cython.plugin import setup_py
+
+from .utils import true_if_eq
 
 
 def clean(s: str):
@@ -46,9 +50,10 @@ def test_setup_py():
         library_dirs=["/def"],
         extra_link_args=[PlatformArgs("-I/etc/abc/linka.h")],
     )
-    setup = setup_py(
-        ["./abc/def.pyx"],
-        ["./abc/depb.py"],
-        options=cfg,
-    )
+    with patch("hatch_cython.config.path.exists", true_if_eq()):
+        setup = setup_py(
+            ["./abc/def.pyx"],
+            ["./abc/depb.py"],
+            options=cfg,
+        )
     assert clean(setup) == clean(EXPECT)
