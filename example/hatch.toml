@@ -26,7 +26,7 @@ compile_args = [
   { platforms = ["linux", "darwin"], arg = "-Wcpp" },
 ]
 extra_link_args =  [
-  { platforms = ["darwin"],  arg = "-L/usr/local/opt/llvm/lib" },
+  { platforms = ["darwin"],  arg = "-L/usr/local/opt/llvm/lib", depends_path = true },
 ]
 retain_intermediate_artifacts = true
 
