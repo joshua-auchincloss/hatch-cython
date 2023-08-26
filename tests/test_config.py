@@ -14,7 +14,18 @@ include_pyarrow = false
 
 include_somelib = { pkg = "somelib", include = "gets_include", libraries = "gets_libraries", library_dirs = "gets_library_dirs", required_call = "some_setup_op" }
 
-compile_args = [{ platforms = ["nt"], arg = "-std=c++17" }, { platforms = "posix", arg = "-I/abc/def" } ]
+
+compile_args = [
+  { platforms = ["windows"], arg = "-std=c++17" },
+  { platforms = ["linux", "darwin"], arg = "-I/abc/def" },
+  { platforms = ["linux", "darwin"], arg = "-Wcpp" },
+  { platforms = ["darwin"], arg = "-L/usr/local/opt/llvm/include" }
+]
+extra_link_args =  [
+  { platforms = ["darwin"],  arg = "-L/usr/local/opt/llvm/lib" },
+  { platforms = ["windows"],  arg = "-LC://abc/def" },
+  { platforms = ["linux"], arg = "-L/etc/ssl/ssl.h" }
+]
 
 directives = { boundscheck = false, nonecheck = false, language_level = 3, binding = true }
 
@@ -56,10 +67,15 @@ def test_config_parser():
 
     assert cfg.compile_args
 
-    with patch("hatch_cython.config.name", "nt"):
+    with patch("hatch_cython.config.PF", "windows"):
         assert cfg.compile_args_for_platform == ["-std=c++17"]
-    with patch("hatch_cython.config.name", "posix"):
-        assert cfg.compile_args_for_platform == ["-I/abc/def"]
+        assert cfg.compile_links_for_platform == ["-LC://abc/def"]
+    with patch("hatch_cython.config.PF", "linux"):
+        assert cfg.compile_args_for_platform == ["-I/abc/def", "-Wcpp"]
+        assert cfg.compile_links_for_platform == ["-L/etc/ssl/ssl.h"]
+    with patch("hatch_cython.config.PF", "darwin"):
+        assert cfg.compile_args_for_platform == ["-I/abc/def", "-Wcpp", "-L/usr/local/opt/llvm/include"]
+        assert cfg.compile_links_for_platform == ["-L/usr/local/opt/llvm/lib"]
 
     assert cfg.directives == {"boundscheck": False, "nonecheck": False, "language_level": 3, "binding": True}
 

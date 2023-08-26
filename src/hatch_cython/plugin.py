@@ -8,7 +8,7 @@ from typing import ClassVar
 
 from hatchling.builders.hooks.plugin.interface import BuildHookInterface
 
-from hatch_cython.config import Config, parse_from_dict
+from hatch_cython.config import PF, Config, parse_from_dict
 from hatch_cython.types import ListStr, list_t
 
 
@@ -26,13 +26,14 @@ INCLUDES = {includes}
 LIBRARIES = {libs}
 LIBRARY_DIRS = {lib_dirs}
 EXTENSIONS = ({ext_files})
-
+LINKARGS = {extra_link_args}
 
 if __name__ == "__main__":
     exts = [
         Extension("*",
                     ex,
                     extra_compile_args=COMPILEARGS,
+                    extra_link_args=LINKARGS,
                     include_dirs=INCLUDES,
                     libraries=LIBRARIES,
                     library_dirs=LIBRARY_DIRS,
@@ -50,6 +51,7 @@ if __name__ == "__main__":
     kwds = ",\n\t".join((f'{k}="{v}"' for k, v in options.compile_kwargs.items()))
     return code.format(
         compile_args=repr(options.compile_args_for_platform),
+        extra_link_args=repr(options.compile_links_for_platform),
         directives=repr(options.directives),
         ext_files=ext_files,
         keywords=kwds,
@@ -104,7 +106,7 @@ class CythonBuildHook(BuildHookInterface):
 
     @property
     def is_windows(self):
-        return os.name.lower() == "nt"
+        return PF == "windows"
 
     def normalize_path(self, pattern: str):
         if self.is_windows:

@@ -1,8 +1,8 @@
 # distutils: language=c++
 
-cimport numpy as cnp
-
 #define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
+
+cimport numpy as cnp
 
 cnp.import_array()
 
