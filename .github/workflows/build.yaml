@@ -54,6 +54,7 @@ jobs:
   Build:
     needs: Validate
     runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
     environment:
       name: pypi
       url: https://pypi.org/p/hatch-cython
