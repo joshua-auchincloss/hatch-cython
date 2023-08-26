@@ -30,6 +30,14 @@ dependencies = [
   "typing_extensions; python_version < '3.10'"
 ]
 
+[project.optional-dependencies]
+test = [
+  "coverage[toml]",
+  "pytest",
+  "pytest-cov",
+  "toml",
+]
+
 [project.entry-points.hatch]
 cython = "hatch_cython.hooks"
 

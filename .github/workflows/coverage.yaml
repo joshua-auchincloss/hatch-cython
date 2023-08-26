@@ -10,9 +10,9 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: "3.11"
-      - name: Setup dependencies
-        run: pip install hatch
+      - name: Install dependencies
+        run: pip install '.[test]'
       - name: Run tests and collect coverage
-        run: hatch run cov
+        run: pytest --cov --ignore=example
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v3
