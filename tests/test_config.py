@@ -22,24 +22,23 @@ def test_config_parser():
     include_somelib = { pkg = "somelib", include = "gets_include", libraries = "gets_libraries", library_dirs = "gets_library_dirs", required_call = "some_setup_op" }
 
     compile_args = [
-    { platforms = ["windows"], arg = "-std=c++17" },
-    { platforms = ["linux", "darwin"], arg = "-I/abc/def" },
-    { platforms = ["linux", "darwin"], arg = "-Wcpp" },
-    { platforms = ["darwin"], arg = "-L/usr/local/opt/llvm/include" },
-    { arch = ["anon"], arg = "-O1" },
-    { arch = ["x86_64"], arg = "-O2" },
-    { arch = ["arm64"], arg = "-O3" },
+        { platforms = ["windows"], arg = "-std=c++17" },
+        { platforms = ["linux", "darwin"], arg = "-I/abc/def" },
+        { platforms = ["linux", "darwin"], arg = "-Wcpp" },
+        { platforms = ["darwin"], arg = "-L/usr/local/opt/llvm/include" },
+        { arch = ["anon"], arg = "-O1" },
+        { arch = ["x86_64"], arg = "-O2" },
+        { arch = ["arm64"], arg = "-O3" },
     ]
     extra_link_args =  [
-    { platforms = ["darwin"],  arg = "-L/usr/local/opt/llvm/lib" },
-    { platforms = ["windows"],  arg = "-LC://abc/def" },
-    { platforms = ["linux"], arg = "-L/etc/ssl/ssl.h" },
-    { arch = ["arm64"], arg = "-L/usr/include/cpu/simd.h" },
+        { platforms = ["darwin"],  arg = "-L/usr/local/opt/llvm/lib" },
+        { platforms = ["windows"],  arg = "-LC://abc/def" },
+        { platforms = ["linux"], arg = "-L/etc/ssl/ssl.h" },
+        { arch = ["arm64"], arg = "-L/usr/include/cpu/simd.h" },
     ]
 
     directives = { boundscheck = false, nonecheck = false, language_level = 3, binding = true }
 
-    language = "c++"
     abc_compile_kwarg = "test"
     """  # noqa: E501
     parsed = loads(dedent(data))
@@ -70,8 +69,10 @@ def test_config_parser():
             )
         ),
     ):
+
         def getcfg():
             return parse_from_dict(SimpleNamespace(config=parsed))
+
         cfg = getcfg()
         assert ran
 
@@ -82,7 +83,6 @@ def test_config_parser():
             assert cfg.compile_args_for_platform == [
                 "-std=c++17",
                 "-O2",
-                "-arch x86_64",
             ]
             assert cfg.compile_links_for_platform == ["-LC://abc/def"]
         with arch_platform("x86_64", "linux"):
@@ -91,7 +91,6 @@ def test_config_parser():
                 "-I/abc/def",
                 "-Wcpp",
                 "-O2",
-                "-arch x86_64",
             ]
             assert cfg.compile_links_for_platform == ["-L/etc/ssl/ssl.h"]
         with arch_platform("x86_64", "darwin"):
@@ -104,7 +103,6 @@ def test_config_parser():
                     "-Wcpp",
                     "-L/usr/local/opt/llvm/include",
                     "-O2",
-                    "-arch x86_64",
                 ]
                 assert cfg.compile_links_for_platform == ["-L/usr/local/lib", "-L/usr/local/opt/llvm/lib"]
 
@@ -114,7 +112,6 @@ def test_config_parser():
             assert cfg.compile_args_for_platform == [
                 "-std=c++17",
                 "-O3",
-                "-arch arm64",
             ]
             assert cfg.compile_links_for_platform == ["-LC://abc/def", "-L/usr/include/cpu/simd.h"]
         with arch_platform("arm64", "linux"):
@@ -124,7 +121,6 @@ def test_config_parser():
                 "-I/abc/def",
                 "-Wcpp",
                 "-O3",
-                "-arch arm64",
             ]
             assert cfg.compile_links_for_platform == ["-L/etc/ssl/ssl.h", "-L/usr/include/cpu/simd.h"]
         with arch_platform("arm64", "darwin"):
@@ -137,7 +133,6 @@ def test_config_parser():
                     "-Wcpp",
                     "-L/usr/local/opt/llvm/include",
                     "-O3",
-                    "-arch arm64",
                 ]
                 assert cfg.compile_links_for_platform == [
                     "-L/opt/homebrew/lib",
@@ -178,7 +173,6 @@ def test_config_parser():
     assert cfg.libraries == gets_libraries()
     assert cfg.library_dirs == gets_library_dirs()
     assert get_include() in cfg.includes
-    assert cfg.language == "c++"
     assert cfg.compile_kwargs == {"abc_compile_kwarg": "test"}
 
 
@@ -187,6 +181,7 @@ def test_defaults():
     [options]
     """
     parsed = loads(dedent(data))
+
     def getcfg():
         return parse_from_dict(SimpleNamespace(config=parsed))
 
@@ -198,7 +193,6 @@ def test_defaults():
 
         assert cfg.compile_args_for_platform == [
             "-O2",
-            "-arch x86_64",
         ]
         assert cfg.compile_links_for_platform == []
     with arch_platform("x86_64", "linux"):
@@ -206,7 +200,6 @@ def test_defaults():
 
         assert cfg.compile_args_for_platform == [
             "-O2",
-            "-arch x86_64",
         ]
         assert cfg.compile_links_for_platform == []
     with arch_platform("x86_64", "darwin"):
@@ -216,7 +209,6 @@ def test_defaults():
             assert cfg.compile_args_for_platform == [
                 "-I/usr/local/include",
                 "-O2",
-                "-arch x86_64",
             ]
             assert cfg.compile_links_for_platform == ["-L/usr/local/lib"]
 
@@ -225,7 +217,6 @@ def test_defaults():
 
         assert cfg.compile_args_for_platform == [
             "-O2",
-            "-arch arm64",
         ]
         assert cfg.compile_links_for_platform == []
     with arch_platform("arm64", "linux"):
@@ -233,7 +224,6 @@ def test_defaults():
 
         assert cfg.compile_args_for_platform == [
             "-O2",
-            "-arch arm64",
         ]
         assert cfg.compile_links_for_platform == []
     with arch_platform("arm64", "darwin"):
@@ -243,7 +233,6 @@ def test_defaults():
             assert cfg.compile_args_for_platform == [
                 "-I/opt/homebrew/include",
                 "-O2",
-                "-arch arm64",
             ]
             assert cfg.compile_links_for_platform == [
                 "-L/opt/homebrew/lib",
@@ -274,5 +263,4 @@ def test_defaults():
             ]
 
     cfg = getcfg()
-    assert cfg.language is None
     assert cfg.compile_kwargs == {}

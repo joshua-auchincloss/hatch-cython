@@ -20,7 +20,7 @@ DIRECTIVES = {
     "language_level": 3,
 }
 
-MUST_UNIQUE: list[str] = ["-O", "-arch"]
+MUST_UNIQUE: list[str] = ["-O", "-arch", "-march"]
 
 
 @memo
@@ -41,6 +41,7 @@ __known__ = (
     "library_dirs",
     "directives",
     "compile_args",
+    "cythonize_kwargs",
     "extra_link_args",
     "retain_intermediate_artifacts",
 )
@@ -133,10 +134,6 @@ def get_default_compile():
         PlatformArgs(arg="-I/opt/homebrew/include", platforms="darwin", depends_path=True),
         PlatformArgs(arg="-I/usr/local/include", platforms="darwin", depends_path=True),
     ]
-
-    if aarch() != "":
-        args.append(PlatformArgs(arg=f"-arch {aarch()}"))
-
     return args
 
 
@@ -223,19 +220,12 @@ class Config:
     directives: dict = field(default_factory=lambda: DIRECTIVES)
     compile_args: ListedArgs = field(default_factory=get_default_compile)
     compile_kwargs: dict = field(default_factory=dict)
+    cythonize_kwargs: dict = field(default_factory=dict)
     extra_link_args: ListedArgs = field(default_factory=get_default_link)
     retain_intermediate_artifacts: bool = field(default=False)
 
     def __post_init__(self):
         self.directives = {**DIRECTIVES, **self.directives}
-
-    @property
-    def language(self):
-        try:
-            lang = self.compile_kwargs.pop("language")
-        except KeyError:
-            lang = None
-        return lang
 
     @property
     def compile_args_for_platform(self):

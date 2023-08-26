@@ -14,14 +14,13 @@ EXPECT = """
 from setuptools import Extension, setup
 from Cython.Build import cythonize
 
-COMPILEARGS = ['-O2', '-arch x86_64']
+COMPILEARGS = ['-O2']
 DIRECTIVES = {'binding': True, 'language_level': 3}
 INCLUDES = ['/123']
 LIBRARIES = ['/abc']
 LIBRARY_DIRS = ['/def']
 EXTENSIONS = (['./abc/def.pyx'],['./abc/depb.py'])
 LINKARGS = ['-I/etc/abc/linka.h']
-LANGUAGE = None
 
 if __name__ == "__main__":
     exts = [
@@ -32,7 +31,6 @@ if __name__ == "__main__":
                     include_dirs=INCLUDES,
                     libraries=LIBRARIES,
                     library_dirs=LIBRARY_DIRS,
-                    language=LANGUAGE,
 
         ) for ex in EXTENSIONS
     ]
@@ -40,7 +38,7 @@ if __name__ == "__main__":
             exts,
             compiler_directives=DIRECTIVES,
             include_path=INCLUDES,
-            language=LANGUAGE
+            abc="def"
     )
     setup(ext_modules=ext_modules)
 """.strip()
@@ -51,6 +49,7 @@ def test_setup_py():
         includes=["/123"],
         libraries=["/abc"],
         library_dirs=["/def"],
+        cythonize_kwargs={"abc": "def"},
         extra_link_args=[PlatformArgs("-I/etc/abc/linka.h")],
     )
     with patch("hatch_cython.config.path.exists", true_if_eq()):

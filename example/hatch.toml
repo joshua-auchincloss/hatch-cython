@@ -21,7 +21,6 @@ dependencies = [
 src = "example_lib"
 include_numpy = true
 parallel = true
-language = "c++"
 directives = { language_level = 3, boundscheck = false }
 compile_args = [
   { platforms = ["linux", "darwin"], arg = "-Wcpp" },
@@ -35,6 +34,8 @@ extra_link_args =  [
   { platforms = ["darwin"],  arg = "-L/opt/homebrew/opt/llvm/lib", depends_path = true },
 ]
 retain_intermediate_artifacts = true
+
+cythonize_kwargs = {  cplus = true, annotate = true }
 
 [[envs.all.matrix]]
 python = ["3.8", "3.9", "3.10", "3.11"]
