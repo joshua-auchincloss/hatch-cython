@@ -8,7 +8,7 @@ from typing import ClassVar
 
 from hatchling.builders.hooks.plugin.interface import BuildHookInterface
 
-from hatch_cython.config import PF, Config, parse_from_dict
+from hatch_cython.config import PLAT, Config, parse_from_dict
 from hatch_cython.types import ListStr, list_t
 
 
@@ -106,7 +106,7 @@ class CythonBuildHook(BuildHookInterface):
 
     @property
     def is_windows(self):
-        return PF == "windows"
+        return PLAT == "windows"
 
     def normalize_path(self, pattern: str):
         if self.is_windows:

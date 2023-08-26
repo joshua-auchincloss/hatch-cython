@@ -21,6 +21,7 @@ dependencies = [
 src = "example_lib"
 include_numpy = true
 parallel = true
+language = "c++"
 compile_args = [
   { platforms = ["linux", "darwin"], arg = "-Wcpp" },
 ]

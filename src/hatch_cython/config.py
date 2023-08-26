@@ -28,8 +28,8 @@ DIRECTIVES = {
     "language_level": 3,
 }
 
-
-PF = platform.platform().lower()
+PLAT = platform.system().lower()
+AARCH = platform.machine().lower()
 
 
 @dataclass
@@ -46,17 +46,33 @@ class Autoimport:
 class PlatformArgs(Hashable):
     arg: str
     platforms: union_t(ListStr, str) = "*"
+    arch: union_t(ListStr, str) = "*"
+
+    def do_rewrite(self, attr: str):
+        att = getattr(self, attr)
+        if isinstance(att, list):
+            setattr(self, attr, [p.lower() for p in att])
+        elif isinstance(att, str):
+            setattr(self, attr, att.lower())
 
     def __post_init__(self):
-        if isinstance(self.platforms, list):
-            self.platforms = [p.lower() for p in self.platforms]
-        elif isinstance(self.platforms, str):
-            self.platforms = self.platforms.lower()
+        self.do_rewrite("platforms")
+        self.do_rewrite("arch")
+
+    def _applies_impl(self, attr: str, defn: str):
+        att = getattr(self, attr)
+        if isinstance(att, list):
+            # https://docs.python.org/3/library/platform.html#platform.machine
+            # "" is a possible value so we have to add conditions for anon
+            _anon = ANON in att and defn == ""
+            return defn in att or "*" in att or _anon
+        _anon = ANON == att and defn == ""
+        return (att in (defn, "*")) or _anon
 
     def applies(self):
-        if isinstance(self.platforms, list):
-            return PF in self.platforms or "*" in self.platforms
-        return self.platforms in (PF, "*")
+        _isplatform = self._applies_impl("platforms", PLAT)
+        _isarch = self._applies_impl("arch", AARCH)
+        return _isplatform and _isarch
 
     def __hash__(self) -> int:
         return hash(self.arg)
@@ -137,21 +153,20 @@ def parse_from_dict(cls: BuildHookInterface):
         elif is_include:
             passed.pop(kw)
 
-    try:
-        compiler = passed.pop("compiler")
-    except KeyError:
-        compiler = ANON
-
     if "parallel" in passed and passed.get("parallel"):
         passed.pop("parallel")
-        omp = "/openmp" if (PF == "windows" or compiler == "msvc") else "-fopenmp" if PF == "linux" else None
-        cma = {*cfg.compile_args}
-        if omp:
-            cma.add(omp)
+        comp = [
+            PlatformArgs("/openmp", "windows"),
+            PlatformArgs("-fopenmp", ["linux"]),
+        ]
+        link = [
+            PlatformArgs("/openmp", "windows"),
+            PlatformArgs("-fopenmp", "linux"),
+            PlatformArgs("-lomp", "darwin"),
+        ]
+        cma = ({*cfg.compile_args}).union({*comp})
         cfg.compile_args = list(cma)
-        seb = {*cfg.extra_link_args}
-        if omp:
-            seb.add(omp)
+        seb = ({*cfg.extra_link_args}).union({*link})
         cfg.extra_link_args = list(seb)
 
     cfg.compile_kwargs = passed
