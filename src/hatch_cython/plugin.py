@@ -283,6 +283,7 @@ class CythonBuildHook(BuildHookInterface):
                     setup_file,
                     "build_ext",
                     "--inplace",
+                    "--verbose",
                     "--build-lib",
                     shared_temp_build_dir,
                     "--build-temp",

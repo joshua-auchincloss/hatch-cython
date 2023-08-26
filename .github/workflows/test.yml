@@ -16,12 +16,12 @@ env:
 
 jobs:
   run:
-    name: Python ${{ matrix.python-version }} on ${{ startsWith(matrix.os, 'macos-') && 'macOS' || startsWith(matrix.os, 'windows-') && 'Windows' || 'Linux' }}
+    name: Python ${{ matrix.python-version }} on ${{ startsWith(matrix.os[0], 'macos-') && 'macOS' || startsWith(matrix.os[0], 'windows-') && 'Windows' || 'Linux' }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
+        os: [[ubuntu-latest, x64], [windows-latest, x64], [macos-latest, x64]]
         python-version: ["3.9", "3.10", "3.11"]
 
     steps:
@@ -38,7 +38,7 @@ jobs:
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v4
         with:
-          architecture: 'x64'
+          architecture: ${{matrix.os[1]}}
           python-version: ${{ matrix.python-version }}
 
       - name: Install Hatch
