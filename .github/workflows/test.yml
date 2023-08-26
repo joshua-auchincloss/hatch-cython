@@ -43,13 +43,12 @@ jobs:
         if: startsWith(matrix.os, 'macos-')
         run: |
           brew install libomp llvm &&
-          brew link llvm && 
-          brew info llvm &&
+          brew link llvm &&
+          echo $(brew info llvm) &&
           echo $(arch)
 
       - name: test-example
         run: |
            cd example &&
-           export CC=c++ &&
            hatch build &&
            hatch run cov

@@ -24,6 +24,8 @@ parallel = true
 language = "c++"
 compile_args = [
   { platforms = ["linux", "darwin"], arg = "-Wcpp" },
+  { platforms = ["darwin"], arch = "x86_64", arg = "-arch x86_64" },
+  { platforms = ["darwin"], arch = "arm64", arg = "-arch arm64" },
   { platforms = ["darwin"], arg = "-I/usr/local/opt/llvm/include", depends_path = true  },
   { platforms = ["darwin"], arg = "-I/opt/homebrew/opt/llvm/include", depends_path = true  },
 ]
