@@ -212,7 +212,7 @@ def get_default_compile():
     return args
 
 
-def parse_to_plat(cls, arg, args: list | dict, key: int | str, require_argform: bool, **kwargs):
+def parse_to_plat(cls, arg, args: union_t[list, dict], key: union_t[int, str], require_argform: bool, **kwargs):
     if isinstance(arg, dict):
         args[key] = cls(**arg, **kwargs)
     elif require_argform:
