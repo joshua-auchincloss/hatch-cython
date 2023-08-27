@@ -61,7 +61,9 @@ test = "pytest {args:tests}"
 test-cov = "coverage run -m pytest -vv {args:tests}"
 cov-report = [
   "- coverage combine",
-  "coverage report",
+  "coverage report --format=markdown > COVERAGE.md",
+  "coverage html",
+  "coverage report"
 ]
 cov = [
   "test-cov",
