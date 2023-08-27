@@ -25,8 +25,18 @@ classifiers = [
 ]
 dependencies = [
   "Cython",
+  "hatch",
   "hatchling",
   "setuptools",
+  "typing_extensions; python_version < '3.10'"
+]
+
+[project.optional-dependencies]
+test = [
+  "coverage[toml]",
+  "pytest",
+  "pytest-cov",
+  "toml",
 ]
 
 [project.entry-points.hatch]
@@ -51,7 +61,9 @@ test = "pytest {args:tests}"
 test-cov = "coverage run -m pytest -vv {args:tests}"
 cov-report = [
   "- coverage combine",
-  "coverage report",
+  "coverage report --format=markdown > COVERAGE.md",
+  "coverage html",
+  "coverage report"
 ]
 cov = [
   "test-cov",
@@ -120,13 +132,10 @@ select = [
   "YTT",
 ]
 ignore = [
-  # Allow non-abstract empty methods in abstract base classes
   "B027",
-  # Allow boolean positional values in function calls, like `dict.get(... True)`
+  "FBT001",
   "FBT003",
-  # Ignore checks for possible passwords
   "S105", "S106", "S107",
-  # Ignore complexity
   "C901", "PLR0911", "PLR0912", "PLR0913", "PLR0915",
 ]
 unfixable = [
@@ -144,7 +153,7 @@ ban-relative-imports = "all"
 "**/__init__.py" = ["F401"]
 
 [tool.coverage.run]
-source_pkgs = ["hatch_cython", "tests"]
+source_pkgs = ["hatch_cython"]
 branch = true
 parallel = true
 omit = [

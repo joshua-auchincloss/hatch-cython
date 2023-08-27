@@ -15,6 +15,7 @@ tasks:
     cmds:
       - rm -rf dist
       - rm -rf **/dist
+      - rm -rf .coverag*
       - rm -rf __pycache__
       - rm -rf **/__pycache__
       - rm -f **/*.c

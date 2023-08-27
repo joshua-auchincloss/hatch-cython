@@ -4,8 +4,7 @@
 import os
 import sys
 
-sep = "\\" if os.name == "nt" else "/"
-src = sep.join(__file__.split(sep)[:-2])
+src = os.sep.join(__file__.split(os.sep)[:-2])
 sys.path.append(src)
 
-from hatch_cython import CythonBuildHook, hatch_register_build_hook  # noqa: F401, E402
+from hatch_cython import CythonBuildHook  # noqa: E402, F401

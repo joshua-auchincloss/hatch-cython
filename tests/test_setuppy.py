@@ -1,5 +1,9 @@
+from unittest.mock import patch
+
 from hatch_cython.config import Config, PlatformArgs
 from hatch_cython.plugin import setup_py
+
+from .utils import arch_platform, true_if_eq
 
 
 def clean(s: str):
@@ -33,7 +37,8 @@ if __name__ == "__main__":
     ext_modules = cythonize(
             exts,
             compiler_directives=DIRECTIVES,
-            include_path=INCLUDES
+            include_path=INCLUDES,
+            abc='def'
     )
     setup(ext_modules=ext_modules)
 """.strip()
@@ -44,11 +49,14 @@ def test_setup_py():
         includes=["/123"],
         libraries=["/abc"],
         library_dirs=["/def"],
-        extra_link_args=[PlatformArgs("-I/etc/abc/linka.h")],
+        cythonize_kwargs={"abc": "def"},
+        extra_link_args=[PlatformArgs(arg="-I/etc/abc/linka.h")],
     )
-    setup = setup_py(
-        ["./abc/def.pyx"],
-        ["./abc/depb.py"],
-        options=cfg,
-    )
+    with patch("hatch_cython.config.path.exists", true_if_eq()):
+        with arch_platform("x86_64", ""):
+            setup = setup_py(
+                ["./abc/def.pyx"],
+                ["./abc/depb.py"],
+                options=cfg,
+            )
     assert clean(setup) == clean(EXPECT)

@@ -1,32 +1,21 @@
 from sys import version_info
-from typing import TypeVar
+from typing import TypeVar, Union
 
-A = TypeVar("A")
-"""Union A"""
-B = TypeVar("B")
-"""Union B"""
 T = TypeVar("T")
-"""Generic T"""
-Un = TypeVar("Un")
-"""Union Output"""
 
 vmaj = (version_info[0], version_info[1])
 if vmaj >= (3, 10):
+    from typing import ParamSpec
+
+    list_t = list
     ListStr = list[str]
 else:
-    from typing import List, Union  # noqa: UP035
+    from typing import List  # noqa: UP035
 
+    from typing_extensions import ParamSpec
+
+    list_t = List  # noqa: UP006
     ListStr = List[str]  # noqa: UP006
 
-
-def union_t(a: A, b: B) -> Un:
-    if vmaj >= (3, 10):
-        return a | b
-    else:
-        return Union[a, b]  # noqa: UP007
-
-
-def list_t(of: A) -> B:
-    if vmaj >= (3, 9):
-        return list[of]
-    return List[of]  # noqa: UP006
+P = ParamSpec("P")
+union_t = Union

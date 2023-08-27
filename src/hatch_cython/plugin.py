@@ -8,12 +8,16 @@ from typing import ClassVar
 
 from hatchling.builders.hooks.plugin.interface import BuildHookInterface
 
-from hatch_cython.config import PF, Config, parse_from_dict
+from hatch_cython.config import Config, parse_from_dict, plat
 from hatch_cython.types import ListStr, list_t
 
 
+def options_kws(kwds: dict):
+    return ",\n\t".join((f"{k}={v!r}" for k, v in kwds.items()))
+
+
 def setup_py(
-    *files: list_t(ListStr),
+    *files: list_t[ListStr],
     options: Config,
 ):
     code = """
@@ -43,18 +47,21 @@ if __name__ == "__main__":
     ext_modules = cythonize(
             exts,
             compiler_directives=DIRECTIVES,
-            include_path=INCLUDES
+            include_path=INCLUDES,
+            {cython}
     )
     setup(ext_modules=ext_modules)
 """
     ext_files = ",".join([repr(lf) for lf in files])
-    kwds = ",\n\t".join((f'{k}="{v}"' for k, v in options.compile_kwargs.items()))
+    kwds = options_kws(options.compile_kwargs)
+    cython = options_kws(options.cythonize_kwargs)
     return code.format(
         compile_args=repr(options.compile_args_for_platform),
         extra_link_args=repr(options.compile_links_for_platform),
         directives=repr(options.directives),
         ext_files=ext_files,
         keywords=kwds,
+        cython=cython,
         includes=repr(options.includes),
         libs=repr(options.libraries),
         lib_dirs=repr(options.library_dirs),
@@ -73,10 +80,10 @@ class CythonBuildHook(BuildHookInterface):
         ".cpp",
     ]
     compiled_extensions: ClassVar[list] = [
+        ".dll",
         # unix
         ".so",
         # windows
-        ".dll",
         ".pyd",
     ]
 
@@ -87,7 +94,7 @@ class CythonBuildHook(BuildHookInterface):
     _artifact_globs: ListStr
     _norm_included_files: ListStr
     _norm_artifact_patterns: ListStr
-    _grouped_norm: list_t(ListStr)
+    _grouped_norm: list_t[ListStr]
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -106,7 +113,7 @@ class CythonBuildHook(BuildHookInterface):
 
     @property
     def is_windows(self):
-        return PF == "windows"
+        return plat() == "windows"
 
     def normalize_path(self, pattern: str):
         if self.is_windows:
@@ -155,7 +162,7 @@ class CythonBuildHook(BuildHookInterface):
         return self._norm_included_files
 
     @property
-    def grouped_included_files(self) -> list_t(ListStr):
+    def grouped_included_files(self) -> list_t[ListStr]:
         if self._grouped_norm is None:
             grouped = {}
             for norm in self.normalized_included_files:
@@ -280,6 +287,7 @@ class CythonBuildHook(BuildHookInterface):
                     setup_file,
                     "build_ext",
                     "--inplace",
+                    "--verbose",
                     "--build-lib",
                     shared_temp_build_dir,
                     "--build-temp",
@@ -287,12 +295,15 @@ class CythonBuildHook(BuildHookInterface):
                 ],
                 stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT,
+                env=self.options.envflags.env,
             )
             if process.returncode:
                 self.app.display_error(f"cythonize exited non null status {process.returncode}")
                 self.app.display_error(process.stdout.decode("utf-8"))
                 msg = "failed compilation"
                 raise Exception(msg)
+
+            self.app.display_info(process.stdout.decode("utf-8"))
 
             self.app.display_success("Post-build artifacts")
             self.app.display_info(glob(f"{self.project_dir}/*/**"))
