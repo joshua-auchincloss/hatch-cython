@@ -1,15 +1,11 @@
 from textwrap import dedent
 from types import SimpleNamespace
-from unittest.mock import patch
 
 from toml import loads
 
 from hatch_cython.config import parse_from_dict
 
-from .utils import arch_platform, pyversion, true_if_eq
-
-true_x86_mac = true_if_eq("/usr/local/include", "/usr/local/lib")
-true_arm_mac = true_if_eq("/opt/homebrew/lib", "/opt/homebrew/include")
+from .utils import arch_platform, import_module, patch_path, pyversion
 
 
 def test_config_parser():
@@ -44,7 +40,7 @@ def test_config_parser():
     """  # noqa: E501
     parsed = loads(dedent(data))
 
-    def get_include():
+    def gets_include():
         return "abc"
 
     def gets_libraries():
@@ -60,16 +56,11 @@ def test_config_parser():
         ran = True
 
     with pyversion():
-        with patch(
-            "hatch_cython.config.import_module",
-            (
-                lambda _: SimpleNamespace(
-                    gets_include=get_include,
-                    gets_libraries=gets_libraries,
-                    gets_library_dirs=gets_library_dirs,
-                    some_setup_op=some_setup_op,
-                )
-            ),
+        with import_module(
+            gets_include=gets_include,
+            gets_libraries=gets_libraries,
+            gets_library_dirs=gets_library_dirs,
+            some_setup_op=some_setup_op,
         ):
 
             def getcfg():
@@ -79,17 +70,16 @@ def test_config_parser():
             assert ran
             assert len(getcfg().compile_args)
 
-            with pyversion("3", "9"):
-                with arch_platform("arm64", "darwin"):
-                    cfg = getcfg()
-                    assert cfg.compile_args_for_platform == [
-                        "-I/usr/local/include",
-                        "-I/abc/def",
-                        "-Wcpp",
-                        "-L/usr/local/opt/llvm/include",
-                        "-py39",
-                        "-O3",
-                    ]
+            with pyversion("3", "9") as ___, arch_platform("arm64", "darwin") as _, patch_path("arm64") as __:
+                cfg = getcfg()
+                assert cfg.compile_args_for_platform == [
+                    "-I/opt/homebrew/include",
+                    "-I/abc/def",
+                    "-Wcpp",
+                    "-L/usr/local/opt/llvm/include",
+                    "-py39",
+                    "-O3",
+                ]
 
             with arch_platform("x86_64", "windows"):
                 cfg = getcfg()
@@ -106,18 +96,16 @@ def test_config_parser():
                     "-O2",
                 ]
                 assert cfg.compile_links_for_platform == ["-L/etc/ssl/ssl.h"]
-            with arch_platform("x86_64", "darwin"):
+            with arch_platform("x86_64", "darwin") as _, patch_path("x86_64") as __:
                 cfg = getcfg()
-
-                with patch("hatch_cython.config.path.exists", true_x86_mac):
-                    assert cfg.compile_args_for_platform == [
-                        "-I/usr/local/include",
-                        "-I/abc/def",
-                        "-Wcpp",
-                        "-L/usr/local/opt/llvm/include",
-                        "-O2",
-                    ]
-                    assert cfg.compile_links_for_platform == ["-L/usr/local/lib", "-L/usr/local/opt/llvm/lib"]
+                assert cfg.compile_args_for_platform == [
+                    "-I/usr/local/include",
+                    "-I/abc/def",
+                    "-Wcpp",
+                    "-L/usr/local/opt/llvm/include",
+                    "-O2",
+                ]
+                assert cfg.compile_links_for_platform == ["-L/usr/local/lib", "-L/usr/local/opt/llvm/lib"]
 
             with arch_platform("arm64", "windows"):
                 cfg = getcfg()
@@ -136,22 +124,20 @@ def test_config_parser():
                     "-O3",
                 ]
                 assert cfg.compile_links_for_platform == ["-L/etc/ssl/ssl.h", "-L/usr/include/cpu/simd.h"]
-            with arch_platform("arm64", "darwin"):
+            with arch_platform("arm64", "darwin"), patch_path("arm64"):
                 cfg = getcfg()
-
-                with patch("hatch_cython.config.path.exists", true_arm_mac):
-                    assert cfg.compile_args_for_platform == [
-                        "-I/opt/homebrew/include",
-                        "-I/abc/def",
-                        "-Wcpp",
-                        "-L/usr/local/opt/llvm/include",
-                        "-O3",
-                    ]
-                    assert cfg.compile_links_for_platform == [
-                        "-L/opt/homebrew/lib",
-                        "-L/usr/local/opt/llvm/lib",
-                        "-L/usr/include/cpu/simd.h",
-                    ]
+                assert cfg.compile_args_for_platform == [
+                    "-I/opt/homebrew/include",
+                    "-I/abc/def",
+                    "-Wcpp",
+                    "-L/usr/local/opt/llvm/include",
+                    "-O3",
+                ]
+                assert cfg.compile_links_for_platform == [
+                    "-L/opt/homebrew/lib",
+                    "-L/usr/local/opt/llvm/lib",
+                    "-L/usr/include/cpu/simd.h",
+                ]
 
             with arch_platform("", "windows"):
                 cfg = getcfg()
@@ -167,25 +153,23 @@ def test_config_parser():
                 assert cfg.compile_links_for_platform == [
                     "-L/etc/ssl/ssl.h",
                 ]
-            with arch_platform("", "darwin"):
+            with arch_platform("", "darwin"), patch_path("x86_64"):
                 cfg = getcfg()
-
-                with patch("hatch_cython.config.path.exists", true_x86_mac):
-                    assert cfg.compile_args_for_platform == [
-                        "-I/usr/local/include",
-                        "-I/abc/def",
-                        "-Wcpp",
-                        "-L/usr/local/opt/llvm/include",
-                        "-O1",
-                    ]
-                    assert cfg.compile_links_for_platform == ["-L/usr/local/lib", "-L/usr/local/opt/llvm/lib"]
+                assert cfg.compile_args_for_platform == [
+                    "-I/usr/local/include",
+                    "-I/abc/def",
+                    "-Wcpp",
+                    "-L/usr/local/opt/llvm/include",
+                    "-O1",
+                ]
+                assert cfg.compile_links_for_platform == ["-L/usr/local/lib", "-L/usr/local/opt/llvm/lib"]
 
             cfg = getcfg()
 
     assert cfg.directives == {"boundscheck": False, "nonecheck": False, "language_level": 3, "binding": True}
     assert cfg.libraries == gets_libraries()
     assert cfg.library_dirs == gets_library_dirs()
-    assert get_include() in cfg.includes
+    assert gets_include() in cfg.includes
     assert cfg.compile_kwargs == {"abc_compile_kwarg": "test"}
 
 
@@ -215,15 +199,13 @@ def test_defaults():
             "-O2",
         ]
         assert cfg.compile_links_for_platform == []
-    with arch_platform("x86_64", "darwin"):
+    with arch_platform("x86_64", "darwin"), patch_path("x86_64"):
         cfg = getcfg()
-
-        with patch("hatch_cython.config.path.exists", true_x86_mac):
-            assert cfg.compile_args_for_platform == [
-                "-I/usr/local/include",
-                "-O2",
-            ]
-            assert cfg.compile_links_for_platform == ["-L/usr/local/lib"]
+        assert cfg.compile_args_for_platform == [
+            "-I/usr/local/include",
+            "-O2",
+        ]
+        assert cfg.compile_links_for_platform == ["-L/usr/local/lib"]
 
     with arch_platform("arm64", "windows"):
         cfg = getcfg()
@@ -239,17 +221,16 @@ def test_defaults():
             "-O2",
         ]
         assert cfg.compile_links_for_platform == []
-    with arch_platform("arm64", "darwin"):
+    with arch_platform("arm64", "darwin"), patch_path("arm64"):
         cfg = getcfg()
 
-        with patch("hatch_cython.config.path.exists", true_arm_mac):
-            assert cfg.compile_args_for_platform == [
-                "-I/opt/homebrew/include",
-                "-O2",
-            ]
-            assert cfg.compile_links_for_platform == [
-                "-L/opt/homebrew/lib",
-            ]
+        assert cfg.compile_args_for_platform == [
+            "-I/opt/homebrew/include",
+            "-O2",
+        ]
+        assert cfg.compile_links_for_platform == [
+            "-L/opt/homebrew/lib",
+        ]
 
     with arch_platform("", "windows"):
         cfg = getcfg()
@@ -263,17 +244,15 @@ def test_defaults():
         assert cfg.compile_args_for_platform == ["-O2"]
         assert cfg.compile_links_for_platform == []
 
-    with arch_platform("", "darwin"):
+    with arch_platform("", "darwin"), patch_path("x86_64"):
         cfg = getcfg()
-
-        with patch("hatch_cython.config.path.exists", true_x86_mac):
-            assert cfg.compile_args_for_platform == [
-                "-I/usr/local/include",
-                "-O2",
-            ]
-            assert cfg.compile_links_for_platform == [
-                "-L/usr/local/lib",
-            ]
+        assert cfg.compile_args_for_platform == [
+            "-I/usr/local/include",
+            "-O2",
+        ]
+        assert cfg.compile_links_for_platform == [
+            "-L/usr/local/lib",
+        ]
 
     cfg = getcfg()
     assert cfg.compile_kwargs == {}

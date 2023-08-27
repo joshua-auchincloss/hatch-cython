@@ -5,12 +5,12 @@ from importlib import import_module
 from os import environ, path
 from typing import ClassVar, Optional
 
+from hatch.utils.ci import running_in_ci
 from hatchling.builders.hooks.plugin.interface import BuildHookInterface
 from packaging.markers import Marker
 
 from hatch_cython.types import ListStr, list_t, union_t
 from hatch_cython.utils import memo
-from hatch.utils.ci import running_in_ci
 
 EXIST_TRIM = 2
 
