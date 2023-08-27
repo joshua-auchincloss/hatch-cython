@@ -18,7 +18,7 @@ cpdef str hello_world(str name):
 
 cpdef dtype hello_numpy(cnp.ndarray[dtype, ndim=1] arr):
     cdef dtype tot
-    cdef int cap
+    cdef Py_ssize_t cap
     cdef int i
     tot = 0
     cap = arr.size

@@ -12,8 +12,12 @@ from hatch_cython.config import Config, parse_from_dict, plat
 from hatch_cython.types import ListStr, list_t
 
 
+def options_kws(kwds: dict):
+    return ",\n\t".join((f"{k}={v!r}" for k, v in kwds.items()))
+
+
 def setup_py(
-    *files: list_t(ListStr),
+    *files: list_t[ListStr],
     options: Config,
 ):
     code = """
@@ -49,8 +53,8 @@ if __name__ == "__main__":
     setup(ext_modules=ext_modules)
 """
     ext_files = ",".join([repr(lf) for lf in files])
-    kwds = ",\n\t".join((f'{k}="{v}"' for k, v in options.compile_kwargs.items()))
-    cython = ",\n\t".join((f'{k}="{v}"' for k, v in options.cythonize_kwargs.items()))
+    kwds = options_kws(options.compile_kwargs)
+    cython = options_kws(options.cythonize_kwargs)
     return code.format(
         compile_args=repr(options.compile_args_for_platform),
         extra_link_args=repr(options.compile_links_for_platform),
@@ -90,7 +94,7 @@ class CythonBuildHook(BuildHookInterface):
     _artifact_globs: ListStr
     _norm_included_files: ListStr
     _norm_artifact_patterns: ListStr
-    _grouped_norm: list_t(ListStr)
+    _grouped_norm: list_t[ListStr]
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -158,7 +162,7 @@ class CythonBuildHook(BuildHookInterface):
         return self._norm_included_files
 
     @property
-    def grouped_included_files(self) -> list_t(ListStr):
+    def grouped_included_files(self) -> list_t[ListStr]:
         if self._grouped_norm is None:
             grouped = {}
             for norm in self.normalized_included_files:
@@ -291,6 +295,7 @@ class CythonBuildHook(BuildHookInterface):
                 ],
                 stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT,
+                env=self.options.envflags.env,
             )
             if process.returncode:
                 self.app.display_error(f"cythonize exited non null status {process.returncode}")

@@ -20,24 +20,31 @@ dependencies = [
 
 [build.targets.wheel.hooks.custom.options]
 src = "example_lib"
-include_numpy = true
 parallel = true
+include_numpy = true
+retain_intermediate_artifacts = true
+
 directives = { language_level = 3, boundscheck = false }
 compile_args = [
   { arg = "-v" },
   { platforms = ["linux", "darwin"], arg = "-Wcpp" },
   { platforms = ["darwin"], arch = "x86_64", arg = "-arch x86_64" },
   { platforms = ["darwin"], arch = "arm64", arg = "-arch arm64" },
-  { platforms = ["darwin"], arg = "-I/usr/local/opt/llvm/include", depends_path = true  },
-  { platforms = ["darwin"], arg = "-I/opt/homebrew/opt/llvm/include", depends_path = true  },
+  { platforms = ["darwin"], arch = "x86_64", arg = "-I/usr/local/opt/llvm/include", depends_path = true  },
+  { platforms = ["darwin"], arch = "x86_64", arg = "-I/opt/homebrew/opt/llvm/include", depends_path = true  },
 ]
 extra_link_args =  [
-  { platforms = ["darwin"],  arg = "-L/usr/local/opt/llvm/lib", depends_path = true },
-  { platforms = ["darwin"],  arg = "-L/opt/homebrew/opt/llvm/lib", depends_path = true },
+  { platforms = ["darwin"],  arch = "x86_64", arg = "-L/usr/local/opt/llvm/lib", depends_path = true },
+  { platforms = ["darwin"],  arch = "x86_64", arg = "-L/opt/homebrew/opt/llvm/lib", depends_path = true },
 ]
-retain_intermediate_artifacts = true
 
-cythonize_kwargs = { annotate = true }
+env = [
+  { env = "CC", arg = "c++", platforms = ["darwin", "linux"] },
+  { env = "CPP", arg = "c++", platforms = ["darwin", "linux"] },
+  { env = "CXX", arg = "c++", platforms = ["darwin", "linux"] },
+]
+
+cythonize_kwargs = { annotate = true, nthreads = 4 }
 
 [[envs.all.matrix]]
 python = ["3.8", "3.9", "3.10", "3.11"]

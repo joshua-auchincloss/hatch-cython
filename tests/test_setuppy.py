@@ -38,7 +38,7 @@ if __name__ == "__main__":
             exts,
             compiler_directives=DIRECTIVES,
             include_path=INCLUDES,
-            abc="def"
+            abc='def'
     )
     setup(ext_modules=ext_modules)
 """.strip()
@@ -50,7 +50,7 @@ def test_setup_py():
         libraries=["/abc"],
         library_dirs=["/def"],
         cythonize_kwargs={"abc": "def"},
-        extra_link_args=[PlatformArgs("-I/etc/abc/linka.h")],
+        extra_link_args=[PlatformArgs(arg="-I/etc/abc/linka.h")],
     )
     with patch("hatch_cython.config.path.exists", true_if_eq()):
         with arch_platform("x86_64", ""):

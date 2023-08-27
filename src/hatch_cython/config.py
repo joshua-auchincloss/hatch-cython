@@ -2,8 +2,8 @@ import platform
 from collections.abc import Callable, Generator, Hashable
 from dataclasses import asdict, dataclass, field
 from importlib import import_module
-from os import path
-from typing import Optional
+from os import environ, path
+from typing import ClassVar, Optional
 
 from hatchling.builders.hooks.plugin.interface import BuildHookInterface
 
@@ -20,7 +20,7 @@ DIRECTIVES = {
     "language_level": 3,
 }
 
-MUST_UNIQUE: list[str] = ["-O", "-arch", "-march"]
+MUST_UNIQUE = ["-O", "-arch", "-march"]
 
 
 @memo
@@ -36,6 +36,7 @@ def aarch():
 # fields tracked by this plugin
 __known__ = (
     "src",
+    "env",
     "includes",
     "libraries",
     "library_dirs",
@@ -73,11 +74,14 @@ __packages__ = {
 
 
 @dataclass
-class PlatformArgs(Hashable):
-    arg: str
-    platforms: union_t(ListStr, str) = "*"
-    arch: union_t(ListStr, str) = "*"
+class PlatformBase(Hashable):
+    platforms: union_t[ListStr, str] = "*"
+    arch: union_t[ListStr, str] = "*"
     depends_path: bool = False
+
+    def __post_init__(self):
+        self.do_rewrite("platforms")
+        self.do_rewrite("arch")
 
     def do_rewrite(self, attr: str):
         att = getattr(self, attr)
@@ -85,10 +89,6 @@ class PlatformArgs(Hashable):
             setattr(self, attr, [p.lower() for p in att])
         elif isinstance(att, str):
             setattr(self, attr, att.lower())
-
-    def __post_init__(self):
-        self.do_rewrite("platforms")
-        self.do_rewrite("arch")
 
     def _applies_impl(self, attr: str, defn: str):
         att = getattr(self, attr)
@@ -105,16 +105,91 @@ class PlatformArgs(Hashable):
         _isarch = self._applies_impl("arch", aarch())
         return _isplatform and _isarch
 
-    def __hash__(self) -> int:
-        return hash(self.arg)
-
     def is_exist(self, trim: int = 0):
         if self.depends_path:
             return path.exists(self.arg[trim:])
         return True
 
 
-ListedArgs = list_t(union_t(PlatformArgs, str))
+@dataclass
+class PlatformArgs(PlatformBase):
+    arg: str = None
+
+    def __hash__(self) -> int:
+        return hash(self.arg)
+
+
+@dataclass
+class EnvFlag(PlatformArgs):
+    env: str = field(default="")
+    merges: bool = field(default=False)
+
+    def __hash__(self) -> int:
+        return hash(self.field)
+
+
+__flags__ = (
+    EnvFlag(env="CC", merges=False),
+    EnvFlag(env="CPP", merges=False),
+    EnvFlag(env="CXX", merges=False),
+    EnvFlag(env="CFLAGS", merges=True),
+    EnvFlag(env="CCSHARED", merges=True),
+    EnvFlag(env="CPPFLAGS", merges=True),
+    EnvFlag(env="LDFLAGS", merges=True),
+    EnvFlag(env="LDSHARED", merges=True),
+    EnvFlag(env="SHLIB_SUFFIX", merges=False),
+    EnvFlag(env="AR", merges=False),
+    EnvFlag(env="ARFLAGS", merges=True),
+)
+
+
+@dataclass
+class EnvFlags:
+    CC: PlatformArgs = None
+    CPP: PlatformArgs = None
+    CXX: PlatformArgs = None
+
+    CFLAGS: PlatformArgs = None
+    CCSHARED: PlatformArgs = None
+
+    CPPFLAGS: PlatformArgs = None
+
+    LDFLAGS: PlatformArgs = None
+    LDSHARED: PlatformArgs = None
+
+    SHLIB_SUFFIX: PlatformArgs = None
+
+    AR: PlatformArgs = None
+    ARFLAGS: PlatformArgs = None
+
+    custom: dict[str, PlatformArgs] = field(default_factory=dict)
+    env: dict = field(default_factory=environ.copy)
+
+    __known__: ClassVar[dict[str, EnvFlag]] = {e.env: e for e in __flags__}
+
+    def __post_init__(self):
+        for flag in __flags__:
+            self.merge_to_env(flag, self.get_from_self)
+        for flag in self.custom.values():
+            self.merge_to_env(flag, self.get_from_custom)
+
+    def merge_to_env(self, flag: EnvFlag, get: Callable[[str], EnvFlag]):
+        var = environ.get(flag.env)
+        override: EnvFlag = get(flag.env)
+        if override and flag.merges:
+            add = var + " " if var else ""
+            self.env[flag.env] = add + override.arg
+        elif override:
+            self.env[flag.env] = override.arg
+
+    def get_from_self(self, attr):
+        return getattr(self, attr)
+
+    def get_from_custom(self, attr):
+        return self.custom.get(attr)
+
+
+ListedArgs = list_t[union_t[PlatformArgs, str]]
 """
 List[str | PlatformArgs]
 """
@@ -137,14 +212,37 @@ def get_default_compile():
     return args
 
 
-def parse_platform_args(kwargs: dict, name: str, default: Callable) -> list_t(union_t(str, PlatformArgs)):
+def parse_to_plat(cls, arg, args: list | dict, key: int | str, require_argform: bool, **kwargs):
+    if isinstance(arg, dict):
+        args[key] = cls(**arg, **kwargs)
+    elif require_argform:
+        msg = f"arg {key} is invalid. must be of type ({{ flag = ... , platform = '*' }}) given {arg} ({type(arg)})"
+        raise ValueError(msg)
+
+
+def parse_platform_args(
+    kwargs: dict,
+    name: str,
+    default: Callable,
+) -> list_t[union_t[str, PlatformArgs]]:
     try:
         args = [*default(), *kwargs.pop(name)]
         for i, arg in enumerate(args):
-            if isinstance(arg, dict):
-                args[i] = PlatformArgs(**arg)
+            parse_to_plat(PlatformArgs, arg, args, i, require_argform=False)
     except KeyError:
         args = default()
+    return args
+
+
+def parse_env_args(
+    kwargs: dict,
+):
+    try:
+        args: list = kwargs.pop("env")
+        for i, arg in enumerate(args):
+            parse_to_plat(EnvFlag, arg, args, i, require_argform=True)
+    except KeyError:
+        args = []
     return args
 
 
@@ -160,8 +258,18 @@ def parse_from_dict(cls: BuildHookInterface):
 
     compile_args = parse_platform_args(kwargs, "compile_args", get_default_compile)
     link_args = parse_platform_args(kwargs, "extra_link_args", get_default_link)
+    env = parse_env_args(kwargs)
 
-    cfg = Config(**kwargs, compile_args=compile_args, extra_link_args=link_args)
+    kw = {"custom": {}}
+    for arg in env:
+        arg: EnvFlag
+        if arg.applies():
+            if arg.env in EnvFlags.__known__:
+                kw[arg.env] = arg
+            else:
+                kw["custom"][arg.env] = arg
+    envflags = EnvFlags(**kw)
+    cfg = Config(**kwargs, compile_args=compile_args, extra_link_args=link_args, envflags=envflags)
     for kw, val in passed.copy().items():
         is_include = kw.startswith(INCLUDE)
         if is_include and val:
@@ -194,13 +302,13 @@ def parse_from_dict(cls: BuildHookInterface):
     if "parallel" in passed and passed.get("parallel"):
         passed.pop("parallel")
         comp = [
-            PlatformArgs("/openmp", "windows"),
-            PlatformArgs("-fopenmp", ["linux"]),
+            PlatformArgs(arg="/openmp", platforms="windows"),
+            PlatformArgs(arg="-fopenmp", platforms=["linux"]),
         ]
         link = [
-            PlatformArgs("/openmp", "windows"),
-            PlatformArgs("-fopenmp", "linux"),
-            PlatformArgs("-lomp", "darwin"),
+            PlatformArgs(arg="/openmp", platforms="windows"),
+            PlatformArgs(arg="-fopenmp", platforms="linux"),
+            PlatformArgs(arg="-lomp", platforms="darwin"),
         ]
         cma = ({*cfg.compile_args}).union({*comp})
         cfg.compile_args = list(cma)
@@ -223,6 +331,7 @@ class Config:
     cythonize_kwargs: dict = field(default_factory=dict)
     extra_link_args: ListedArgs = field(default_factory=get_default_link)
     retain_intermediate_artifacts: bool = field(default=False)
+    envflags: EnvFlags = field(default_factory=EnvFlags)
 
     def __post_init__(self):
         self.directives = {**DIRECTIVES, **self.directives}
