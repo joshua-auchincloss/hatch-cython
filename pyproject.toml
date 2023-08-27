@@ -25,6 +25,7 @@ classifiers = [
 ]
 dependencies = [
   "Cython",
+  "hatch",
   "hatchling",
   "setuptools",
   "typing_extensions; python_version < '3.10'"

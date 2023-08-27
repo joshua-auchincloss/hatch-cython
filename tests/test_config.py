@@ -77,8 +77,7 @@ def test_config_parser():
 
             cfg = getcfg()
             assert ran
-
-            assert getcfg().compile_args
+            assert len(getcfg().compile_args)
 
             with pyversion("3", "9"):
                 with arch_platform("arm64", "darwin"):

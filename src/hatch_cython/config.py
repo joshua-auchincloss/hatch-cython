@@ -10,6 +10,7 @@ from packaging.markers import Marker
 
 from hatch_cython.types import ListStr, list_t, union_t
 from hatch_cython.utils import memo
+from hatch.utils.ci import running_in_ci
 
 EXIST_TRIM = 2
 
@@ -20,7 +21,7 @@ DIRECTIVES = {
     "binding": True,
     "language_level": 3,
 }
-
+LTPY311 = "python_version < '3.11'"
 MUST_UNIQUE = ["-O", "-arch", "-march"]
 
 
@@ -80,6 +81,7 @@ class PlatformBase(Hashable):
     arch: union_t[ListStr, str] = "*"
     depends_path: bool = False
     marker: str = None
+    apply_to_marker: Callable[[], bool] = None
 
     def __post_init__(self):
         self.do_rewrite("platforms")
@@ -92,10 +94,19 @@ class PlatformBase(Hashable):
         elif isinstance(att, str):
             setattr(self, attr, att.lower())
 
+    def check_marker(self):
+        do = True
+        if self.apply_to_marker:
+            do = self.apply_to_marker()
+        if do:
+            marker = Marker(self.marker)
+            return marker.evaluate()
+        return False
+
     def _applies_impl(self, attr: str, defn: str):
         if self.marker:
-            marker = Marker(self.marker)
-            if not marker.evaluate():
+            ok = self.check_marker()
+            if not ok:
                 return False
 
         att = getattr(self, attr)
@@ -315,7 +326,7 @@ def parse_from_dict(cls: BuildHookInterface):
         link = [
             PlatformArgs(arg="/openmp", platforms="windows"),
             PlatformArgs(arg="-fopenmp", platforms="linux"),
-            PlatformArgs(arg="-lomp", platforms="darwin"),
+            PlatformArgs(arg="-lomp", platforms="darwin", marker=LTPY311, apply_to_marker=running_in_ci),
         ]
         cma = ({*cfg.compile_args}).union({*comp})
         cfg.compile_args = list(cma)
