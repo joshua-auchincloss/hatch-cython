@@ -30,12 +30,12 @@ compile_args = [
   { platforms = ["linux", "darwin"], arg = "-Wcpp" },
   { platforms = ["darwin"], arch = "x86_64", arg = "-arch x86_64" },
   { platforms = ["darwin"], arch = "arm64", arg = "-arch arm64" },
-  { platforms = ["darwin"], arch = "x86_64", arg = "-I/usr/local/opt/llvm/include", depends_path = true  },
-  { platforms = ["darwin"], arch = "x86_64", arg = "-I/opt/homebrew/opt/llvm/include", depends_path = true  },
+  { platforms = ["darwin"], arch = "x86_64", arg = "-I/usr/local/opt/llvm/include", depends_path = true, marker = "python_version <= '3.10'"  },
+  { platforms = ["darwin"], arch = "x86_64", arg = "-I/opt/homebrew/opt/llvm/include", depends_path = true, marker = "python_version <= '3.10'" },
 ]
 extra_link_args =  [
-  { platforms = ["darwin"],  arch = "x86_64", arg = "-L/usr/local/opt/llvm/lib", depends_path = true },
-  { platforms = ["darwin"],  arch = "x86_64", arg = "-L/opt/homebrew/opt/llvm/lib", depends_path = true },
+  { platforms = ["darwin"],  arch = "x86_64", arg = "-L/usr/local/opt/llvm/lib", depends_path = true, marker = "python_version <= '3.10'" },
+  { platforms = ["darwin"],  arch = "x86_64", arg = "-L/opt/homebrew/opt/llvm/lib", depends_path = true, marker = "python_version <= '3.10'" },
 ]
 
 env = [

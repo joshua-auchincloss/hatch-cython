@@ -6,6 +6,7 @@ from os import environ, path
 from typing import ClassVar, Optional
 
 from hatchling.builders.hooks.plugin.interface import BuildHookInterface
+from packaging.markers import Marker
 
 from hatch_cython.types import ListStr, list_t, union_t
 from hatch_cython.utils import memo
@@ -78,6 +79,7 @@ class PlatformBase(Hashable):
     platforms: union_t[ListStr, str] = "*"
     arch: union_t[ListStr, str] = "*"
     depends_path: bool = False
+    marker: str = None
 
     def __post_init__(self):
         self.do_rewrite("platforms")
@@ -91,6 +93,11 @@ class PlatformBase(Hashable):
             setattr(self, attr, att.lower())
 
     def _applies_impl(self, attr: str, defn: str):
+        if self.marker:
+            marker = Marker(self.marker)
+            if not marker.evaluate():
+                return False
+
         att = getattr(self, attr)
         if isinstance(att, list):
             # https://docs.python.org/3/library/platform.html#platform.machine

@@ -27,3 +27,12 @@ def arch_platform(arch: str, platform: str):
         print(f"Clean {arch}-{platform}")  # noqa: T201
         del aarchgetter, platformgetter
         pass
+
+
+@contextmanager
+def pyversion(maj="3", min="10", p="0"):  # noqa: A002
+    try:
+        with patch("platform.python_version_tuple", lambda: (maj, min, p)):
+            yield
+    finally:
+        pass
