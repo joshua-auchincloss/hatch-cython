@@ -1,6 +1,5 @@
-from numpy import linspace, longlong
-
 from example_lib.test import hello_numpy, hello_world
+from numpy import linspace, longlong
 
 
 def test_hello_world():
