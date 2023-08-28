@@ -59,26 +59,30 @@ def test_build_hook(new_proj):
     proj = "./src/example_lib"
     assert hook.project_dir == proj
 
-    assert hook.precompiled_globs == [
-        "./src/example_lib/*.py",
-        "./src/example_lib/**/*.py",
-        "./src/example_lib/*.pyx",
-        "./src/example_lib/**/*.pyx",
-        "./src/example_lib/*.pxd",
-        "./src/example_lib/**/*.pxd",
-    ]
+    assert sorted(hook.precompiled_globs) == sorted(
+        [
+            "./src/example_lib/*.py",
+            "./src/example_lib/**/*.py",
+            "./src/example_lib/*.pyx",
+            "./src/example_lib/**/*.pyx",
+            "./src/example_lib/*.pxd",
+            "./src/example_lib/**/*.pxd",
+        ]
+    )
 
     with override_dir(new_proj):
-        assert hook.normalized_included_files == [
-            "./src/example_lib/normal.py",
-            "./src/example_lib/__init__.py",
-            "./src/example_lib/__about__.py",
-            "./src/example_lib/mod_a/__init__.py",
-            "./src/example_lib/mod_a/some_defn.py",
-            "./src/example_lib/test.pyx",
-            "./src/example_lib/mod_a/adds.pyx",
-            "./src/example_lib/mod_a/some_defn.pxd",
-        ]
+        assert sorted(hook.normalized_included_files) == sorted(
+            [
+                "./src/example_lib/normal.py",
+                "./src/example_lib/__init__.py",
+                "./src/example_lib/__about__.py",
+                "./src/example_lib/mod_a/__init__.py",
+                "./src/example_lib/mod_a/some_defn.py",
+                "./src/example_lib/test.pyx",
+                "./src/example_lib/mod_a/adds.pyx",
+                "./src/example_lib/mod_a/some_defn.pxd",
+            ]
+        )
 
         assert hook.grouped_included_files == [
             ["./src/example_lib/normal.py"],
@@ -90,35 +94,37 @@ def test_build_hook(new_proj):
             ["./src/example_lib/mod_a/adds.pyx"],
         ]
 
-        rf = [
-            "./src/example_lib/normal.*.py",
-            "./src/example_lib/normal.*.pyx",
-            "./src/example_lib/normal.*.pxd",
-            "./src/example_lib/__init__.*.py",
-            "./src/example_lib/__init__.*.pyx",
-            "./src/example_lib/__init__.*.pxd",
-            "./src/example_lib/__about__.*.py",
-            "./src/example_lib/__about__.*.pyx",
-            "./src/example_lib/__about__.*.pxd",
-            "./src/example_lib/mod_a/__init__.*.py",
-            "./src/example_lib/mod_a/__init__.*.pyx",
-            "./src/example_lib/mod_a/__init__.*.pxd",
-            "./src/example_lib/mod_a/some_defn.*.py",
-            "./src/example_lib/mod_a/some_defn.*.pyx",
-            "./src/example_lib/mod_a/some_defn.*.pxd",
-            "./src/example_lib/test.*.py",
-            "./src/example_lib/test.*.pyx",
-            "./src/example_lib/test.*.pxd",
-            "./src/example_lib/mod_a/adds.*.py",
-            "./src/example_lib/mod_a/adds.*.pyx",
-            "./src/example_lib/mod_a/adds.*.pxd",
-            "./src/example_lib/mod_a/some_defn.*.py",
-            "./src/example_lib/mod_a/some_defn.*.pyx",
-            "./src/example_lib/mod_a/some_defn.*.pxd",
-        ]
-        assert hook.normalized_artifact_globs == rf
+        rf = sorted(
+            [
+                "./src/example_lib/normal.*.py",
+                "./src/example_lib/normal.*.pyx",
+                "./src/example_lib/normal.*.pxd",
+                "./src/example_lib/__init__.*.py",
+                "./src/example_lib/__init__.*.pyx",
+                "./src/example_lib/__init__.*.pxd",
+                "./src/example_lib/__about__.*.py",
+                "./src/example_lib/__about__.*.pyx",
+                "./src/example_lib/__about__.*.pxd",
+                "./src/example_lib/mod_a/__init__.*.py",
+                "./src/example_lib/mod_a/__init__.*.pyx",
+                "./src/example_lib/mod_a/__init__.*.pxd",
+                "./src/example_lib/mod_a/some_defn.*.py",
+                "./src/example_lib/mod_a/some_defn.*.pyx",
+                "./src/example_lib/mod_a/some_defn.*.pxd",
+                "./src/example_lib/test.*.py",
+                "./src/example_lib/test.*.pyx",
+                "./src/example_lib/test.*.pxd",
+                "./src/example_lib/mod_a/adds.*.py",
+                "./src/example_lib/mod_a/adds.*.pyx",
+                "./src/example_lib/mod_a/adds.*.pxd",
+                "./src/example_lib/mod_a/some_defn.*.py",
+                "./src/example_lib/mod_a/some_defn.*.pyx",
+                "./src/example_lib/mod_a/some_defn.*.pxd",
+            ]
+        )
+        assert sorted(hook.normalized_artifact_globs) == rf
 
-        assert hook.artifact_patterns == [f"/{f}" for f in rf]
+        assert sorted(hook.artifact_patterns) == [f"/{f}" for f in rf]
 
         hook.clean([])
 
@@ -130,5 +136,5 @@ def test_build_hook(new_proj):
 
         assert build_data.get("infer_tag")
         assert not build_data.get("pure_python")
-        assert build_data.get("artifacts") == [f"/{f}" for f in rf]
+        assert sorted(build_data.get("artifacts")) == sorted([f"/{f}" for f in rf])
         assert len(build_data.get("force_include")) == 7

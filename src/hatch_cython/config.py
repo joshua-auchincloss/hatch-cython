@@ -9,7 +9,7 @@ from hatch.utils.ci import running_in_ci
 from hatchling.builders.hooks.plugin.interface import BuildHookInterface
 from packaging.markers import Marker
 
-from hatch_cython.types import CorePlatforms, ListStr, callable_t, list_t, union_t
+from hatch_cython.types import CorePlatforms, ListStr, callable_t, dict_t, list_t, union_t
 from hatch_cython.utils import memo
 
 EXIST_TRIM = 2
@@ -182,10 +182,10 @@ class EnvFlags:
     AR: PlatformArgs = None
     ARFLAGS: PlatformArgs = None
 
-    custom: dict[str, PlatformArgs] = field(default_factory=dict)
+    custom: dict_t[str, PlatformArgs] = field(default_factory=dict)
     env: dict = field(default_factory=environ.copy)
 
-    __known__: ClassVar[dict[str, EnvFlag]] = {e.env: e for e in __flags__}
+    __known__: ClassVar[dict_t[str, EnvFlag]] = {e.env: e for e in __flags__}
 
     def __post_init__(self):
         for flag in __flags__:
