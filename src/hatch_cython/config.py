@@ -41,6 +41,7 @@ __known__ = (
     "src",
     "env",
     "files",
+    "compile_py",
     "includes",
     "libraries",
     "library_dirs",
@@ -359,6 +360,7 @@ class Config:
     extra_link_args: ListedArgs = field(default_factory=get_default_link)
     retain_intermediate_artifacts: bool = field(default=False)
     envflags: EnvFlags = field(default_factory=EnvFlags)
+    compile_py: bool = field(default=True)
 
     def __post_init__(self):
         self.directives = {**DIRECTIVES, **self.directives}

@@ -12,6 +12,7 @@ from hatchling.builders.hooks.plugin.interface import BuildHookInterface
 from hatch_cython.config import Config, parse_from_dict, plat
 from hatch_cython.types import ListStr, P, list_t
 
+NORM_GLOB = r"([^.]*)"
 
 def options_kws(kwds: dict):
     return ",\n\t".join((f"{k}={v!r}" for k, v in kwds.items()))
@@ -73,7 +74,6 @@ class CythonBuildHook(BuildHookInterface):
     PLUGIN_NAME = "cython"
 
     precompiled_extension: ClassVar[list] = [
-        ".py",
         ".pyx",
         ".pxd",
     ]
@@ -156,7 +156,7 @@ class CythonBuildHook(BuildHookInterface):
                     filter(
                         lambda s: not any(
                             re.match(
-                                self.normalize_glob(e).replace("*", r"([^\s]*)"), self.normalize_glob(s), re.IGNORECASE
+                                self.normalize_glob(e).replace("*", NORM_GLOB), self.normalize_glob(s), re.IGNORECASE
                             )
                             for e in self.options.files.exclude
                         ),
@@ -269,6 +269,8 @@ class CythonBuildHook(BuildHookInterface):
     def options(self):
         if self._config is None:
             self._config = parse_from_dict(self)
+            if self._config.compile_py:
+                self.precompiled_extension.append(".py")
         return self._config
 
     def initialize(self, version: str, build_data: dict):
