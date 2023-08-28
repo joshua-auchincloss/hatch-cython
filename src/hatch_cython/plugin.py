@@ -1,4 +1,5 @@
 import os
+import re
 import subprocess
 import sys
 from contextlib import contextmanager
@@ -150,7 +151,19 @@ class CythonBuildHook(BuildHookInterface):
         if self._included is None:
             self._included = []
             for patt in self.precompiled_globs:
-                self._included.extend(glob(patt))
+                globbed = glob(patt)
+                matched = list(
+                    filter(
+                        lambda s: not any(
+                            re.match(
+                                self.normalize_glob(e).replace("*", r"([^\s]*)"), self.normalize_glob(s), re.IGNORECASE
+                            )
+                            for e in self.options.files.exclude
+                        ),
+                        globbed,
+                    )
+                )
+                self._included.extend(matched)
         return self._included
 
     @property

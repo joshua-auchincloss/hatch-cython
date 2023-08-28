@@ -84,15 +84,20 @@ def test_build_hook(new_proj):
             ]
         )
 
-        assert sorted([sorted(ls) for ls in hook.grouped_included_files]) == sorted([sorted(ls) for ls in [
-            ["./src/example_lib/normal.py"],
-            ["./src/example_lib/__init__.py"],
-            ["./src/example_lib/__about__.py"],
-            ["./src/example_lib/mod_a/__init__.py"],
-            ["./src/example_lib/mod_a/some_defn.py", "./src/example_lib/mod_a/some_defn.py"],
-            ["./src/example_lib/test.pyx"],
-            ["./src/example_lib/mod_a/adds.pyx"],
-        ]])
+        assert sorted([sorted(ls) for ls in hook.grouped_included_files]) == sorted(
+            [
+                sorted(ls)
+                for ls in [
+                    ["./src/example_lib/normal.py"],
+                    ["./src/example_lib/__init__.py"],
+                    ["./src/example_lib/__about__.py"],
+                    ["./src/example_lib/mod_a/__init__.py"],
+                    ["./src/example_lib/mod_a/some_defn.py", "./src/example_lib/mod_a/some_defn.py"],
+                    ["./src/example_lib/test.pyx"],
+                    ["./src/example_lib/mod_a/adds.pyx"],
+                ]
+            ]
+        )
 
         rf = sorted(
             [

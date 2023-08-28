@@ -47,6 +47,11 @@ env = [
 
 cythonize_kwargs = { annotate = true, nthreads = 4 }
 
+[build.targets.wheel.hooks.custom.options.files]
+exclude = [
+    "*/no_compile/*"
+]
+
 [[envs.all.matrix]]
 python = ["3.8", "3.9", "3.10", "3.11"]
 
