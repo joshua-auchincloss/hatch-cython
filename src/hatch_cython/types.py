@@ -1,5 +1,5 @@
 from sys import version_info
-from typing import TypeVar, Union
+from typing import Literal, TypeVar, Union
 
 T = TypeVar("T")
 
@@ -19,3 +19,8 @@ else:
 
 P = ParamSpec("P")
 union_t = Union
+CorePlatforms = Literal[
+    "darwin",
+    "linux",
+    "windows",
+]

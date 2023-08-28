@@ -70,7 +70,7 @@ def test_config_parser():
             assert ran
             assert len(getcfg().compile_args)
 
-            with pyversion("3", "9") as ___, arch_platform("arm64", "darwin") as _, patch_path("arm64") as __:
+            with pyversion("3", "9"), arch_platform("arm64", "darwin"), patch_path("arm64"):
                 cfg = getcfg()
                 assert cfg.compile_args_for_platform == [
                     "-I/opt/homebrew/include",
@@ -88,15 +88,16 @@ def test_config_parser():
                     "-O2",
                 ]
                 assert cfg.compile_links_for_platform == ["-LC://abc/def"]
-            with arch_platform("x86_64", "linux"):
+            with arch_platform("x86_64", "linux"), patch_path("x86_64", "/usr/local/opt"):
                 cfg = getcfg()
                 assert cfg.compile_args_for_platform == [
+                    "-I/usr/local/include",
                     "-I/abc/def",
                     "-Wcpp",
                     "-O2",
                 ]
-                assert cfg.compile_links_for_platform == ["-L/etc/ssl/ssl.h"]
-            with arch_platform("x86_64", "darwin") as _, patch_path("x86_64") as __:
+                assert cfg.compile_links_for_platform == ["-L/usr/local/lib", "-L/usr/local/opt", "-L/etc/ssl/ssl.h"]
+            with arch_platform("x86_64", "darwin"), patch_path("x86_64"):
                 cfg = getcfg()
                 assert cfg.compile_args_for_platform == [
                     "-I/usr/local/include",
@@ -105,7 +106,11 @@ def test_config_parser():
                     "-L/usr/local/opt/llvm/include",
                     "-O2",
                 ]
-                assert cfg.compile_links_for_platform == ["-L/usr/local/lib", "-L/usr/local/opt/llvm/lib"]
+                assert cfg.compile_links_for_platform == [
+                    "-L/usr/local/lib",
+                    "-L/usr/local/opt",
+                    "-L/usr/local/opt/llvm/lib",
+                ]
 
             with arch_platform("arm64", "windows"):
                 cfg = getcfg()
@@ -115,15 +120,21 @@ def test_config_parser():
                     "-O3",
                 ]
                 assert cfg.compile_links_for_platform == ["-LC://abc/def", "-L/usr/include/cpu/simd.h"]
-            with arch_platform("arm64", "linux"):
+            with arch_platform("arm64", "linux"), patch_path("x86_64"):
                 cfg = getcfg()
 
                 assert cfg.compile_args_for_platform == [
+                    "-I/usr/local/include",
                     "-I/abc/def",
                     "-Wcpp",
                     "-O3",
                 ]
-                assert cfg.compile_links_for_platform == ["-L/etc/ssl/ssl.h", "-L/usr/include/cpu/simd.h"]
+                assert cfg.compile_links_for_platform == [
+                    "-L/usr/local/lib",
+                    "-L/usr/local/opt",
+                    "-L/etc/ssl/ssl.h",
+                    "-L/usr/include/cpu/simd.h",
+                ]
             with arch_platform("arm64", "darwin"), patch_path("arm64"):
                 cfg = getcfg()
                 assert cfg.compile_args_for_platform == [
@@ -146,11 +157,13 @@ def test_config_parser():
                 assert cfg.compile_links_for_platform == [
                     "-LC://abc/def",
                 ]
-            with arch_platform("", "linux"):
+            with arch_platform("", "linux"), patch_path("x86_64"):
                 cfg = getcfg()
 
-                assert cfg.compile_args_for_platform == ["-I/abc/def", "-Wcpp", "-O1"]
+                assert cfg.compile_args_for_platform == ["-I/usr/local/include", "-I/abc/def", "-Wcpp", "-O1"]
                 assert cfg.compile_links_for_platform == [
+                    "-L/usr/local/lib",
+                    "-L/usr/local/opt",
                     "-L/etc/ssl/ssl.h",
                 ]
             with arch_platform("", "darwin"), patch_path("x86_64"):
@@ -162,7 +175,11 @@ def test_config_parser():
                     "-L/usr/local/opt/llvm/include",
                     "-O1",
                 ]
-                assert cfg.compile_links_for_platform == ["-L/usr/local/lib", "-L/usr/local/opt/llvm/lib"]
+                assert cfg.compile_links_for_platform == [
+                    "-L/usr/local/lib",
+                    "-L/usr/local/opt",
+                    "-L/usr/local/opt/llvm/lib",
+                ]
 
             cfg = getcfg()
 
@@ -192,20 +209,20 @@ def test_defaults():
             "-O2",
         ]
         assert cfg.compile_links_for_platform == []
-    with arch_platform("x86_64", "linux"):
+    with arch_platform("x86_64", "linux"), patch_path("x86_64"):
         cfg = getcfg()
-
         assert cfg.compile_args_for_platform == [
+            "-I/usr/local/include",
             "-O2",
         ]
-        assert cfg.compile_links_for_platform == []
+        assert cfg.compile_links_for_platform == ["-L/usr/local/lib", "-L/usr/local/opt"]
     with arch_platform("x86_64", "darwin"), patch_path("x86_64"):
         cfg = getcfg()
         assert cfg.compile_args_for_platform == [
             "-I/usr/local/include",
             "-O2",
         ]
-        assert cfg.compile_links_for_platform == ["-L/usr/local/lib"]
+        assert cfg.compile_links_for_platform == ["-L/usr/local/lib", "-L/usr/local/opt"]
 
     with arch_platform("arm64", "windows"):
         cfg = getcfg()
@@ -214,13 +231,14 @@ def test_defaults():
             "-O2",
         ]
         assert cfg.compile_links_for_platform == []
-    with arch_platform("arm64", "linux"):
+    with arch_platform("arm64", "linux"), patch_path("x86_64"):
         cfg = getcfg()
 
         assert cfg.compile_args_for_platform == [
+            "-I/usr/local/include",
             "-O2",
         ]
-        assert cfg.compile_links_for_platform == []
+        assert cfg.compile_links_for_platform == ["-L/usr/local/lib", "-L/usr/local/opt"]
     with arch_platform("arm64", "darwin"), patch_path("arm64"):
         cfg = getcfg()
 
@@ -238,11 +256,11 @@ def test_defaults():
         assert cfg.compile_args_for_platform == ["-O2"]
         assert cfg.compile_links_for_platform == []
 
-    with arch_platform("", "linux"):
+    with arch_platform("", "linux"), patch_path("x86_64", "/etc/ssl/ssl.h"):
         cfg = getcfg()
 
-        assert cfg.compile_args_for_platform == ["-O2"]
-        assert cfg.compile_links_for_platform == []
+        assert cfg.compile_args_for_platform == ["-I/usr/local/include", "-O2"]
+        assert cfg.compile_links_for_platform == ["-L/usr/local/lib", "-L/usr/local/opt"]
 
     with arch_platform("", "darwin"), patch_path("x86_64"):
         cfg = getcfg()
@@ -250,9 +268,7 @@ def test_defaults():
             "-I/usr/local/include",
             "-O2",
         ]
-        assert cfg.compile_links_for_platform == [
-            "-L/usr/local/lib",
-        ]
+        assert cfg.compile_links_for_platform == ["-L/usr/local/lib", "-L/usr/local/opt"]
 
     cfg = getcfg()
     assert cfg.compile_kwargs == {}

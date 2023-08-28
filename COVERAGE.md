@@ -1,10 +1,10 @@
-| Name                             |   Stmts |    Miss |  Branch | BrPart |   Cover |
-| -------------------------------- | ------: | ------: | ------: | -----: | ------: |
-| src/hatch_cython/\_\_init\_\_.py |       2 |       0 |       0 |      0 |    100% |
-| src/hatch_cython/config.py       |     276 |      32 |     120 |     17 |     86% |
-| src/hatch_cython/devel.py        |       5 |       0 |       0 |      0 |    100% |
-| src/hatch_cython/hooks.py        |       5 |       1 |       2 |      0 |     86% |
-| src/hatch_cython/plugin.py       |     190 |     119 |     100 |      0 |     37% |
-| src/hatch_cython/types.py        |      14 |       4 |       2 |      1 |     69% |
-| src/hatch_cython/utils.py        |      11 |       0 |       2 |      0 |    100% |
-| **TOTAL**                        | **503** | **156** | **226** | **18** | **67%** |
+| Name                              |    Stmts |     Miss |   Branch |   BrPart |   Cover |
+|---------------------------------- | -------: | -------: | -------: | -------: | ------: |
+| src/hatch\_cython/\_\_init\_\_.py |        2 |        0 |        0 |        0 |    100% |
+| src/hatch\_cython/config.py       |      276 |       19 |      120 |       12 |     92% |
+| src/hatch\_cython/devel.py        |        5 |        0 |        0 |        0 |    100% |
+| src/hatch\_cython/hooks.py        |        5 |        1 |        2 |        0 |     86% |
+| src/hatch\_cython/plugin.py       |      191 |       10 |      100 |        9 |     93% |
+| src/hatch\_cython/types.py        |       15 |        4 |        2 |        1 |     71% |
+| src/hatch\_cython/utils.py        |       11 |        0 |        2 |        0 |    100% |
+|                         **TOTAL** |  **505** |   **34** |  **226** |   **22** | **92%** |

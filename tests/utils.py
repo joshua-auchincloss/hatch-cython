@@ -1,26 +1,35 @@
+import os
 from contextlib import contextmanager
 from types import SimpleNamespace
 from unittest.mock import patch
 
 
 def true_if_eq(*vals):
-    def inner(v):
-        return any(v == val for val in vals)
+    def inner(v: str, *extra):
+        merge = [*vals, *extra]
+        ok = any(v == val for val in merge)
+        print(f"ok: {v} {ok} ", merge)  # noqa: T201
+        return ok
 
     return inner
 
 
-true_x64_mac = true_if_eq("/usr/local/include", "/usr/local/lib")
+true_x64_mac = true_if_eq("/usr/local/include", "/usr/local/lib", "/usr/local/opt")
 true_arm_mac = true_if_eq("/opt/homebrew/lib", "/opt/homebrew/include")
 
 
 @contextmanager
-def patch_path(arch: str):
+def patch_path(arch: str, *extra: str):
     arches = {
         "x86_64": true_x64_mac,
         "arm64": true_arm_mac,
     }
-    with patch("hatch_cython.config.path.exists", arches[arch]):
+    h = arches[arch]
+
+    def wrap(path):
+        return h(path, *extra)
+
+    with patch("hatch_cython.config.path.exists", wrap):
         yield
 
 
@@ -35,7 +44,8 @@ def arch_platform(arch: str, platform: str):
     try:
         with patch("hatch_cython.config.aarch", aarchgetter):
             with patch("hatch_cython.config.plat", platformgetter):
-                yield
+                with patch("hatch_cython.plugin.plat", platformgetter):
+                    yield
     finally:
         print(f"Clean {arch}-{platform}")  # noqa: T201
         del aarchgetter, platformgetter
@@ -70,3 +80,28 @@ def import_module(gets_include, gets_libraries=None, gets_library_dirs=None, som
             yield
     finally:
         pass
+
+
+@contextmanager
+def override_dir(path: str):
+    cwd = os.getcwd()
+    try:
+        os.chdir(path)
+        yield
+    finally:
+        os.chdir(cwd)
+
+
+@contextmanager
+def override_env(d: dict):
+    current = os.environ.copy()
+
+    try:
+        new = os.environ.copy()
+        for k, v in d.items():
+            new[k] = v
+        os.environ.update(new)
+        yield
+    finally:
+        for k, v in current.items():
+            os.environ[k] = v

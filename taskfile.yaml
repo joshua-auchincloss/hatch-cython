@@ -32,3 +32,7 @@ tasks:
       - black .
       - isort .
       - ruff src --fix
+
+  missed:
+    cmds:
+      - python3 -m http.server -d ./htmlcov

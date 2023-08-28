@@ -9,7 +9,7 @@ from hatch.utils.ci import running_in_ci
 from hatchling.builders.hooks.plugin.interface import BuildHookInterface
 from packaging.markers import Marker
 
-from hatch_cython.types import ListStr, list_t, union_t
+from hatch_cython.types import CorePlatforms, ListStr, list_t, union_t
 from hatch_cython.utils import memo
 
 EXIST_TRIM = 2
@@ -23,6 +23,8 @@ DIRECTIVES = {
 }
 LTPY311 = "python_version < '3.11'"
 MUST_UNIQUE = ["-O", "-arch", "-march"]
+
+POSIX_CORE: list_t[CorePlatforms] = ["darwin", "linux"]
 
 
 @memo
@@ -215,19 +217,18 @@ List[str | PlatformArgs]
 
 def get_default_link():
     return [
-        PlatformArgs(arg="-L/opt/homebrew/lib", platforms="darwin", depends_path=True),
-        PlatformArgs(arg="-L/usr/local/lib", platforms="darwin", depends_path=True),
-        PlatformArgs(arg="-L/usr/local/opt", platforms="darwin", depends_path=True),
+        PlatformArgs(arg="-L/opt/homebrew/lib", platforms=POSIX_CORE, depends_path=True),
+        PlatformArgs(arg="-L/usr/local/lib", platforms=POSIX_CORE, depends_path=True),
+        PlatformArgs(arg="-L/usr/local/opt", platforms=POSIX_CORE, depends_path=True),
     ]
 
 
 def get_default_compile():
-    args = [
+    return [
         PlatformArgs(arg="-O2"),
-        PlatformArgs(arg="-I/opt/homebrew/include", platforms="darwin", depends_path=True),
-        PlatformArgs(arg="-I/usr/local/include", platforms="darwin", depends_path=True),
+        PlatformArgs(arg="-I/opt/homebrew/include", platforms=POSIX_CORE, depends_path=True),
+        PlatformArgs(arg="-I/usr/local/include", platforms=POSIX_CORE, depends_path=True),
     ]
-    return args
 
 
 def parse_to_plat(cls, arg, args: union_t[list, dict], key: union_t[int, str], require_argform: bool, **kwargs):
