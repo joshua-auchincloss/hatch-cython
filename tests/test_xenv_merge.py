@@ -8,7 +8,7 @@ from hatch_cython.config import parse_from_dict
 from .utils import arch_platform, override_env
 
 
-def test_envvars():
+def test_xenvvars():
     data = """
     [options]
     env = [

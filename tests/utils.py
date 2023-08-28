@@ -97,7 +97,12 @@ def override_env(d: dict):
     current = os.environ.copy()
 
     try:
-        os.environ.update(d)
+        new = os.environ.copy()
+        for k, v in d.items():
+            new[k] = v
+        os.environ.update(new)
         yield
     finally:
-        os.environ.update(current)
+        for k, v in current.items():
+            os.environ[k] = v
+
