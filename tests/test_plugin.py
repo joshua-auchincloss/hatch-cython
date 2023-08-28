@@ -34,10 +34,6 @@ def new_proj(tmp_path):
 
 
 def test_build_hook(new_proj):
-    # ch = BuildHookInterface(
-
-    # )
-    # raise ValueError(load(new_proj / "hatch.toml")["build"]["targets"]["wheel"]["hooks"]["custom"])
     hook = CythonBuildHook(
         new_proj,
         load(new_proj / "hatch.toml")["build"]["targets"]["wheel"]["hooks"]["custom"],
@@ -105,5 +101,5 @@ def test_build_hook(new_proj):
 
         assert build_data.get("infer_tag")
         assert not build_data.get("pure_python")
-        assert build_data.get("artifacts")
-        assert build_data.get("force_include")
+        assert build_data.get("artifacts") == [f"/{f}" for f in rf]
+        assert len(build_data.get("force_include")) == 3

@@ -277,8 +277,7 @@ class CythonBuildHook(BuildHookInterface):
                     *self.grouped_included_files,
                     options=self.options,
                 )
-                self.app.display_info(setup)
-                # raise ValueError(setup)
+                self.app.display_debug(setup)
                 f.write(setup)
 
             self.options.validate_include_opts()
