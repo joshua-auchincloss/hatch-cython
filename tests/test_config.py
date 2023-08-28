@@ -70,7 +70,7 @@ def test_config_parser():
             assert ran
             assert len(getcfg().compile_args)
 
-            with pyversion("3", "9") as ___, arch_platform("arm64", "darwin") as _, patch_path("arm64") as __:
+            with pyversion("3", "9"), arch_platform("arm64", "darwin"), patch_path("arm64"):
                 cfg = getcfg()
                 assert cfg.compile_args_for_platform == [
                     "-I/opt/homebrew/include",
@@ -97,7 +97,7 @@ def test_config_parser():
                     "-O2",
                 ]
                 assert cfg.compile_links_for_platform == ["-L/usr/local/lib", "-L/usr/local/opt", "-L/etc/ssl/ssl.h"]
-            with arch_platform("x86_64", "darwin") as _, patch_path("x86_64") as __:
+            with arch_platform("x86_64", "darwin"), patch_path("x86_64"):
                 cfg = getcfg()
                 assert cfg.compile_args_for_platform == [
                     "-I/usr/local/include",
@@ -231,7 +231,7 @@ def test_defaults():
             "-O2",
         ]
         assert cfg.compile_links_for_platform == []
-    with arch_platform("arm64", "linux"):
+    with arch_platform("arm64", "linux"), patch_path("x86_64"):
         cfg = getcfg()
 
         assert cfg.compile_args_for_platform == [
