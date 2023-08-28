@@ -23,7 +23,6 @@ DIRECTIVES = {
 }
 LTPY311 = "python_version < '3.11'"
 MUST_UNIQUE = ["-O", "-arch", "-march"]
-
 POSIX_CORE: list_t[CorePlatforms] = ["darwin", "linux"]
 
 
@@ -41,6 +40,7 @@ def aarch():
 __known__ = (
     "src",
     "env",
+    "files",
     "includes",
     "libraries",
     "library_dirs",
@@ -215,6 +215,11 @@ List[str | PlatformArgs]
 """
 
 
+@dataclass
+class FileArgs:
+    exclude: ListStr = field(default_factory=list)
+
+
 def get_default_link():
     return [
         PlatformArgs(arg="-L/opt/homebrew/lib", platforms=POSIX_CORE, depends_path=True),
@@ -271,6 +276,8 @@ def parse_from_dict(cls: BuildHookInterface):
     kwargs = {}
     for kw, val in given.items():
         if kw in __known__:
+            if kw == "files":
+                val = FileArgs(**val)  # noqa: PLW2901
             kwargs[kw] = val
             passed.pop(kw)
             continue
@@ -341,6 +348,7 @@ def parse_from_dict(cls: BuildHookInterface):
 @dataclass
 class Config:
     src: Optional[str] = field(default=None)  # noqa: UP007
+    files: FileArgs = field(default_factory=FileArgs)
     includes: ListStr = field(default_factory=list)
     libraries: ListStr = field(default_factory=list)
     library_dirs: ListStr = field(default_factory=list)
