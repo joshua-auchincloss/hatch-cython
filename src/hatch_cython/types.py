@@ -5,12 +5,13 @@ T = TypeVar("T")
 
 vmaj = (version_info[0], version_info[1])
 if vmaj >= (3, 10):
+    from collections.abc import Callable
     from typing import ParamSpec
 
     list_t = list
     ListStr = list[str]
 else:
-    from typing import List  # noqa: UP035
+    from typing import Callable, List  # noqa: UP035
 
     from typing_extensions import ParamSpec
 
@@ -24,3 +25,5 @@ CorePlatforms = Literal[
     "linux",
     "windows",
 ]
+
+callable_t = Callable

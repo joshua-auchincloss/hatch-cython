@@ -60,6 +60,8 @@ def test_build_hook(new_proj):
     assert hook.project_dir == proj
 
     assert hook.precompiled_globs == [
+        "./src/example_lib/*.py",
+        "./src/example_lib/**/*.py",
         "./src/example_lib/*.pyx",
         "./src/example_lib/**/*.pyx",
         "./src/example_lib/*.pxd",
@@ -68,22 +70,49 @@ def test_build_hook(new_proj):
 
     with override_dir(new_proj):
         assert hook.normalized_included_files == [
+            "./src/example_lib/normal.py",
+            "./src/example_lib/__init__.py",
+            "./src/example_lib/__about__.py",
+            "./src/example_lib/mod_a/__init__.py",
+            "./src/example_lib/mod_a/some_defn.py",
             "./src/example_lib/test.pyx",
             "./src/example_lib/mod_a/adds.pyx",
             "./src/example_lib/mod_a/some_defn.pxd",
         ]
 
         assert hook.grouped_included_files == [
+            ["./src/example_lib/normal.py"],
+            ["./src/example_lib/__init__.py"],
+            ["./src/example_lib/__about__.py"],
+            ["./src/example_lib/mod_a/__init__.py"],
+            ["./src/example_lib/mod_a/some_defn.py", "./src/example_lib/mod_a/some_defn.py"],
             ["./src/example_lib/test.pyx"],
             ["./src/example_lib/mod_a/adds.pyx"],
-            ["./src/example_lib/mod_a/some_defn.py"],
         ]
 
         rf = [
+            "./src/example_lib/normal.*.py",
+            "./src/example_lib/normal.*.pyx",
+            "./src/example_lib/normal.*.pxd",
+            "./src/example_lib/__init__.*.py",
+            "./src/example_lib/__init__.*.pyx",
+            "./src/example_lib/__init__.*.pxd",
+            "./src/example_lib/__about__.*.py",
+            "./src/example_lib/__about__.*.pyx",
+            "./src/example_lib/__about__.*.pxd",
+            "./src/example_lib/mod_a/__init__.*.py",
+            "./src/example_lib/mod_a/__init__.*.pyx",
+            "./src/example_lib/mod_a/__init__.*.pxd",
+            "./src/example_lib/mod_a/some_defn.*.py",
+            "./src/example_lib/mod_a/some_defn.*.pyx",
+            "./src/example_lib/mod_a/some_defn.*.pxd",
+            "./src/example_lib/test.*.py",
             "./src/example_lib/test.*.pyx",
             "./src/example_lib/test.*.pxd",
+            "./src/example_lib/mod_a/adds.*.py",
             "./src/example_lib/mod_a/adds.*.pyx",
             "./src/example_lib/mod_a/adds.*.pxd",
+            "./src/example_lib/mod_a/some_defn.*.py",
             "./src/example_lib/mod_a/some_defn.*.pyx",
             "./src/example_lib/mod_a/some_defn.*.pxd",
         ]
@@ -102,4 +131,4 @@ def test_build_hook(new_proj):
         assert build_data.get("infer_tag")
         assert not build_data.get("pure_python")
         assert build_data.get("artifacts") == [f"/{f}" for f in rf]
-        assert len(build_data.get("force_include")) == 3
+        assert len(build_data.get("force_include")) == 7

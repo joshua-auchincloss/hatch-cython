@@ -1,5 +1,5 @@
 import platform
-from collections.abc import Callable, Generator, Hashable
+from collections.abc import Generator, Hashable
 from dataclasses import asdict, dataclass, field
 from importlib import import_module
 from os import environ, path
@@ -9,7 +9,7 @@ from hatch.utils.ci import running_in_ci
 from hatchling.builders.hooks.plugin.interface import BuildHookInterface
 from packaging.markers import Marker
 
-from hatch_cython.types import CorePlatforms, ListStr, list_t, union_t
+from hatch_cython.types import CorePlatforms, ListStr, callable_t, list_t, union_t
 from hatch_cython.utils import memo
 
 EXIST_TRIM = 2
@@ -83,7 +83,7 @@ class PlatformBase(Hashable):
     arch: union_t[ListStr, str] = "*"
     depends_path: bool = False
     marker: str = None
-    apply_to_marker: Callable[[], bool] = None
+    apply_to_marker: callable_t[[], bool] = None
 
     def __post_init__(self):
         self.do_rewrite("platforms")
@@ -193,7 +193,7 @@ class EnvFlags:
         for flag in self.custom.values():
             self.merge_to_env(flag, self.get_from_custom)
 
-    def merge_to_env(self, flag: EnvFlag, get: Callable[[str], EnvFlag]):
+    def merge_to_env(self, flag: EnvFlag, get: callable_t[[str], EnvFlag]):
         var = environ.get(flag.env)
         override: EnvFlag = get(flag.env)
         if override and flag.merges:
@@ -242,7 +242,7 @@ def parse_to_plat(cls, arg, args: union_t[list, dict], key: union_t[int, str], r
 def parse_platform_args(
     kwargs: dict,
     name: str,
-    default: Callable,
+    default: callable_t[[], list_t[PlatformArgs]],
 ) -> list_t[union_t[str, PlatformArgs]]:
     try:
         args = [*default(), *kwargs.pop(name)]
@@ -369,8 +369,8 @@ class Config:
         im: Autoimport,
         att: str,
         mod: any,
-        extend: Callable[[ListStr], None],
-        append: Callable[[str], None],
+        extend: callable_t[[ListStr], None],
+        append: callable_t[[str], None],
     ):
         attr = getattr(im, att)
         if attr is not None:
