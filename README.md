@@ -3,12 +3,17 @@
 [![PyPI - Version](https://img.shields.io/pypi/v/hatch-cython.svg)](https://pypi.org/project/hatch-cython)
 [![PyPI - Python Version](https://img.shields.io/pypi/pyversions/hatch-cython.svg)](https://pypi.org/project/hatch-cython)
 ![PyPI - Downloads](https://img.shields.io/pypi/dw/hatch-cython)
+[![Build](https://github.com/joshua-auchincloss/hatch-cython/actions/workflows/build.yaml/badge.svg)](https://github.com/joshua-auchincloss/hatch-cython/actions)
+[![Tests](https://github.com/joshua-auchincloss/hatch-cython/actions/workflows/test.yml/badge.svg)](https://github.com/joshua-auchincloss/hatch-cython/actions)
+[![codecov](https://codecov.io/gh/joshua-auchincloss/hatch-cython/graph/badge.svg?token=T12ACNLFWV)](https://codecov.io/gh/joshua-auchincloss/hatch-cython)
+[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 
 ---
 
 **Table of Contents**
 
-- [Installation](#installation)
+- [Usage](#usage)
+- [Configuration Options](#configuration-options)
 - [License](#license)
 
 ## Usage
