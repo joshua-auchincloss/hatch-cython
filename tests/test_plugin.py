@@ -25,7 +25,11 @@ def new_proj(tmp_path):
 
     (project_dir / "pyproject.toml").write_text(read("example/pyproject.toml"))
     (project_dir / "hatch.toml").write_text(read("example/hatch.toml"))
+    (project_dir / "README.md").write_text(read("example/README.md"))
+    (project_dir / "LICENSE.txt").write_text(read("example/LICENSE.txt"))
+    (project_dir / "bootstrap.py").write_text(read("example/bootstrap.py"))
     shutil.copytree(join("example", "src"), (project_dir / "src"))
+    shutil.copytree(join("example", "tests"), (project_dir / "tests"))
     return project_dir
 
 
