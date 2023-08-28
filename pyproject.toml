@@ -55,6 +55,7 @@ dependencies = [
   "coverage[toml]>=6.5",
   "pytest",
   "toml",
+  "numpy"
 ]
 [tool.hatch.envs.default.scripts]
 test = "pytest {args:tests}"

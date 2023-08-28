@@ -1,4 +1,3 @@
-from os import environ
 from textwrap import dedent
 from types import SimpleNamespace
 
@@ -6,7 +5,7 @@ import toml
 
 from hatch_cython.config import parse_from_dict
 
-from .utils import arch_platform
+from .utils import arch_platform, override_env
 
 
 def test_envvars():
@@ -30,29 +29,26 @@ def test_envvars():
 
     f1 = "flag1"
     f2 = "flag2"
-    environ["CFLAGS"] = f1
-    environ["CPPFLAGS"] = f1
-    environ["LDFLAGS"] = f1
-    cfg = getcfg()
-
-    f12 = "flag1 flag2"
-    assert cfg.envflags.CC.arg == "c++"
-    assert cfg.envflags.LDFLAGS.arg == "flag2"
-
-    assert cfg.envflags.env.get("CC") == "c++"
-    assert cfg.envflags.env.get("CFLAGS") == f12
-    assert cfg.envflags.env.get("CPPFLAGS") == f12
-    assert cfg.envflags.env.get("LDFLAGS") == f12
-
-    environ["CUSTOM_1"] = f1
-    with arch_platform("x86_64", ""):
+    with override_env({"CFLAGS": f1, "CPPFLAGS": f1, "LDFLAGS": f1}):
         cfg = getcfg()
-        assert cfg.envflags.env.get("CUSTOM_1") == f2
-    with arch_platform("", ""):
-        cfg = getcfg()
-        assert cfg.envflags.env.get("CUSTOM_1") == f1
 
-    environ["CUSTOM_2"] = f1
+        f12 = "flag1 flag2"
+        assert cfg.envflags.CC.arg == "c++"
+        assert cfg.envflags.LDFLAGS.arg == "flag2"
 
-    cfg = getcfg()
-    assert cfg.envflags.env.get("CUSTOM_2") == f12
+        assert cfg.envflags.env.get("CC") == "c++"
+        assert cfg.envflags.env.get("CFLAGS") == f12
+        assert cfg.envflags.env.get("CPPFLAGS") == f12
+        assert cfg.envflags.env.get("LDFLAGS") == f12
+
+        with override_env({"CUSTOM_1": f1}):
+            with arch_platform("x86_64", ""):
+                cfg = getcfg()
+                assert cfg.envflags.env.get("CUSTOM_1") == f2
+            with arch_platform("", ""):
+                cfg = getcfg()
+                assert cfg.envflags.env.get("CUSTOM_1") == f1
+
+        with override_env({"CUSTOM_2": f1}):
+            cfg = getcfg()
+            assert cfg.envflags.env.get("CUSTOM_2") == f12

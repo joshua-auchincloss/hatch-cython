@@ -9,7 +9,7 @@ from typing import ClassVar
 from hatchling.builders.hooks.plugin.interface import BuildHookInterface
 
 from hatch_cython.config import Config, parse_from_dict, plat
-from hatch_cython.types import ListStr, list_t
+from hatch_cython.types import ListStr, P, list_t
 
 
 def options_kws(kwds: dict):
@@ -29,7 +29,7 @@ DIRECTIVES = {directives}
 INCLUDES = {includes}
 LIBRARIES = {libs}
 LIBRARY_DIRS = {lib_dirs}
-EXTENSIONS = ({ext_files})
+EXTENSIONS = [{ext_files}]
 LINKARGS = {extra_link_args}
 
 if __name__ == "__main__":
@@ -96,7 +96,7 @@ class CythonBuildHook(BuildHookInterface):
     _norm_artifact_patterns: ListStr
     _grouped_norm: list_t[ListStr]
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args: P.args, **kwargs: P.kwargs):
         super().__init__(*args, **kwargs)
         self._included = None
         self._norm_included_files = None
@@ -277,6 +277,8 @@ class CythonBuildHook(BuildHookInterface):
                     *self.grouped_included_files,
                     options=self.options,
                 )
+                self.app.display_info(setup)
+                # raise ValueError(setup)
                 f.write(setup)
 
             self.options.validate_include_opts()
