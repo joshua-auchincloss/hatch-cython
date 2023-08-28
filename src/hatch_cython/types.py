@@ -18,14 +18,14 @@ else:
 
     dict_t = Dict  # noqa: UP006
     list_t = List  # noqa: UP006
-    ListStr = List[str]  # noqa: UP006
 
 P = ParamSpec("P")
-union_t = Union
+ListStr = list_t[str]
+UnionT = Union
 CorePlatforms = Literal[
     "darwin",
     "linux",
     "windows",
 ]
 
-callable_t = Callable
+CallableT = Callable

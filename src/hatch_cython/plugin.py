@@ -9,72 +9,10 @@ from typing import ClassVar
 
 from hatchling.builders.hooks.plugin.interface import BuildHookInterface
 
-from hatch_cython.config import Config, parse_from_dict, plat
+from hatch_cython.config import parse_from_dict
+from hatch_cython.temp import ExtensionArg, setup_py
 from hatch_cython.types import ListStr, P, list_t
-from hatch_cython.utils import memo
-
-NORM_GLOB = r"([^\s]*)"
-UAST = "${U_AST}"
-
-
-def parse_user_glob(uglob: str):
-    return uglob.replace("\\*", UAST).replace("*", NORM_GLOB).replace(UAST, "*")
-
-
-def options_kws(kwds: dict):
-    return ",\n\t".join((f"{k}={v!r}" for k, v in kwds.items()))
-
-
-def setup_py(
-    *files: list_t[ListStr],
-    options: Config,
-):
-    code = """
-from setuptools import Extension, setup
-from Cython.Build import cythonize
-
-COMPILEARGS = {compile_args}
-DIRECTIVES = {directives}
-INCLUDES = {includes}
-LIBRARIES = {libs}
-LIBRARY_DIRS = {lib_dirs}
-EXTENSIONS = [{ext_files}]
-LINKARGS = {extra_link_args}
-
-if __name__ == "__main__":
-    exts = [
-        Extension("*",
-                    ex,
-                    extra_compile_args=COMPILEARGS,
-                    extra_link_args=LINKARGS,
-                    include_dirs=INCLUDES,
-                    libraries=LIBRARIES,
-                    library_dirs=LIBRARY_DIRS,
-                    {keywords}
-        ) for ex in EXTENSIONS
-    ]
-    ext_modules = cythonize(
-            exts,
-            compiler_directives=DIRECTIVES,
-            include_path=INCLUDES,
-            {cython}
-    )
-    setup(ext_modules=ext_modules)
-"""
-    ext_files = ",".join([repr(lf) for lf in files])
-    kwds = options_kws(options.compile_kwargs)
-    cython = options_kws(options.cythonize_kwargs)
-    return code.format(
-        compile_args=repr(options.compile_args_for_platform),
-        extra_link_args=repr(options.compile_links_for_platform),
-        directives=repr(options.directives),
-        ext_files=ext_files,
-        keywords=kwds,
-        cython=cython,
-        includes=repr(options.includes),
-        libs=repr(options.libraries),
-        lib_dirs=repr(options.library_dirs),
-    ).strip()
+from hatch_cython.utils import memo, parse_user_glob, plat
 
 
 class CythonBuildHook(BuildHookInterface):
@@ -176,7 +114,7 @@ class CythonBuildHook(BuildHookInterface):
 
     @property
     @memo
-    def grouped_included_files(self) -> list_t[ListStr]:
+    def grouped_included_files(self) -> list_t[ExtensionArg]:
         grouped = {}
         for norm in self.normalized_included_files:
             root, ext = os.path.splitext(norm)
@@ -188,12 +126,14 @@ class CythonBuildHook(BuildHookInterface):
                 else:
                     ok = False
                     self.app.display_warning(f"attempted to use .pxd file without .py file ({norm})")
+            if self.is_src:
+                root = root.replace("./src/", "")
+            root = root.replace("/", ".")
             if grouped.get(root) and ok:
                 grouped[root].append(norm)
             elif ok:
                 grouped[root] = [norm]
-
-        return list(grouped.values())
+        return [ExtensionArg(name=key, files=files) for key, files in grouped.items()]
 
     @property
     @memo

@@ -29,7 +29,7 @@ def patch_path(arch: str, *extra: str):
     def wrap(path):
         return h(path, *extra)
 
-    with patch("hatch_cython.config.path.exists", wrap):
+    with patch("hatch_cython.config.config.path.exists", wrap):
         yield
 
 
@@ -42,10 +42,13 @@ def arch_platform(arch: str, platform: str):
         return platform
 
     try:
-        with patch("hatch_cython.config.aarch", aarchgetter):
-            with patch("hatch_cython.config.plat", platformgetter):
-                with patch("hatch_cython.plugin.plat", platformgetter):
-                    yield
+        with patch("hatch_cython.utils.plat", platformgetter):
+            with patch("hatch_cython.utils.plat", platformgetter):
+                with patch("hatch_cython.config.platform.plat", platformgetter):
+                    with patch("hatch_cython.plugin.plat", platformgetter):
+                        with patch("hatch_cython.utils.aarch", aarchgetter):
+                            with patch("hatch_cython.config.platform.aarch", aarchgetter):
+                                yield
     finally:
         print(f"Clean {arch}-{platform}")  # noqa: T201
         del aarchgetter, platformgetter
@@ -74,7 +77,7 @@ def import_module(gets_include, gets_libraries=None, gets_library_dirs=None, som
 
     try:
         with patch(
-            "hatch_cython.config.import_module",
+            "hatch_cython.config.config.import_module",
             get_import,
         ):
             yield
@@ -101,7 +104,11 @@ def override_env(d: dict):
         for k, v in d.items():
             new[k] = v
         os.environ.update(new)
-        yield
+        with patch(
+            "hatch_cython.config.flags.environ",
+            new,
+        ):
+            yield
     finally:
         for k, v in current.items():
             os.environ[k] = v
