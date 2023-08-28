@@ -1,9 +1,7 @@
-from collections.abc import Callable
-
-from hatch_cython.types import P, T
+from hatch_cython.types import P, T, callable_t
 
 
-def memo(func: Callable[P, T]) -> T:
+def memo(func: callable_t[P, T]) -> T:
     value = None
     ran = False
 

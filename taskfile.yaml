@@ -9,7 +9,7 @@ tasks:
     cmds:
       - hatch build --clean
       # - pip install dist/example-0.0.1-*.whl
-      - hatch run cov
+      - hatch run test
 
   clean:
     cmds:
@@ -32,6 +32,7 @@ tasks:
       - black .
       - isort .
       - ruff src --fix
+      - ruff . --fix
 
   missed:
     cmds:

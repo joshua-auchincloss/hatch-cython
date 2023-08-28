@@ -22,7 +22,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
-        python-version: ["3.9", "3.10", "3.11"]
+        python-version: ["3.8", "3.9", "3.10", "3.11"]
 
     steps:
       - uses: actions/checkout@v3
@@ -53,4 +53,4 @@ jobs:
               cd example
               echo "os: $RUNNER_OS"
               hatch build
-              hatch run cov
+              hatch run test

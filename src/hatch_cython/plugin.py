@@ -72,6 +72,7 @@ class CythonBuildHook(BuildHookInterface):
     PLUGIN_NAME = "cython"
 
     precompiled_extension: ClassVar[list] = [
+        ".py",
         ".pyx",
         ".pxd",
     ]
