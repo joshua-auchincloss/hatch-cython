@@ -18,10 +18,12 @@ tasks:
       - rm -rf .coverag*
       - rm -rf __pycache__
       - rm -rf **/__pycache__
-      - rm -f **/*.c
-      - rm -f **/**/*.so
-      - rm -f **/**/*.cpp
-      - rm -f **/*.so
+      - rm -rf ./example/src/**/**/*.c
+      - rm -rf ./example/src/**/**/*.so
+      - rm -rf ./example/src/**/**/*.cpp
+      - rm -rf ./example/src/**/**/*.html
+      - rm -rf ./**/*.so
+      - rm -rf ./**/*.html
       - rm -rf .ruff_cache
       - rm -rf **/.ruff_cache
       - rm -rf .pytest_cache

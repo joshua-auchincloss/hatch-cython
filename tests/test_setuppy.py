@@ -20,13 +20,13 @@ DIRECTIVES = {'binding': True, 'language_level': 3}
 INCLUDES = ['/123']
 LIBRARIES = ['/abc']
 LIBRARY_DIRS = ['/def']
-EXTENSIONS = [['./abc/def.pyx'],['./abc/depb.py']]
+EXTENSIONS = [{'name': 'abc.def', 'files': ['./abc/def.pyx']},{'name': 'abc.depb', 'files': ['./abc/depb.py']}]
 LINKARGS = ['-I/etc/abc/linka.h']
 
 if __name__ == "__main__":
     exts = [
-        Extension("*",
-                    ex,
+        Extension(  ex.get("name"),
+                    ex.get("files"),
                     extra_compile_args=COMPILEARGS,
                     extra_link_args=LINKARGS,
                     include_dirs=INCLUDES,
@@ -53,11 +53,11 @@ def test_setup_py():
         cythonize_kwargs={"abc": "def"},
         extra_link_args=[PlatformArgs(arg="-I/etc/abc/linka.h")],
     )
-    with patch("hatch_cython.config.path.exists", true_if_eq()):
+    with patch("hatch_cython.config.config.path.exists", true_if_eq()):
         with arch_platform("x86_64", ""):
             setup = setup_py(
-                ["./abc/def.pyx"],
-                ["./abc/depb.py"],
+                {"name": "abc.def", "files": ["./abc/def.pyx"]},
+                {"name": "abc.depb", "files": ["./abc/depb.py"]},
                 options=cfg,
             )
     assert clean(setup) == clean(EXPECT)
@@ -71,10 +71,10 @@ def test_solo_ext_type_validations():
         cythonize_kwargs={"abc": "def"},
         extra_link_args=[PlatformArgs(arg="-I/etc/abc/linka.h")],
     )
-    with patch("hatch_cython.config.path.exists", true_if_eq()):
+    with patch("hatch_cython.config.config.path.exists", true_if_eq()):
         with arch_platform("x86_64", ""):
             setup = setup_py(
-                ["./abc/def.pyx"],
+                {"name": "abc.def", "files": ["./abc/def.pyx"]},
                 options=cfg,
             )
     tested = False
@@ -85,8 +85,9 @@ def test_solo_ext_type_validations():
             ext = ast.literal_eval(ln.replace(exteq, "").strip())
             assert isinstance(ext, list)
             for ex in ext:
-                ok = [isinstance(node, str) for node in ex]
-                assert all(ok)
+                assert isinstance(ex, dict)
+                assert isinstance(ex.get("name"), str)
+                assert isinstance(ex.get("files"), list)
 
     if not tested:
         raise ValueError(setup, tested, "missed test")

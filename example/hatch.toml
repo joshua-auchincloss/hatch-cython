@@ -24,7 +24,6 @@ src = "example_lib"
 parallel = true
 include_numpy = true
 retain_intermediate_artifacts = true
-
 directives = { language_level = 3, boundscheck = false }
 compile_args = [
   { arg = "-v" },
@@ -51,6 +50,7 @@ cythonize_kwargs = { annotate = true, nthreads = 4 }
 exclude = [
     "*/no_compile/*"
 ]
+aliases = {"example_lib._alias" = "example_lib.aliased"}
 
 [[envs.all.matrix]]
 python = ["3.8", "3.9", "3.10", "3.11"]

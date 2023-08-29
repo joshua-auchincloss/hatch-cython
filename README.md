@@ -87,11 +87,12 @@ include_somelib = { pkg = "pyarrow", include="get_include", libraries="get_libra
 | extra_link_args                    | str or `{ platforms = ["*"] \| "*", arg = str }`                                                                                                                                                                                                                                                                                                                                                    |
 | env                                | `{ env = "VAR1", arg = "VALUE", platforms = ["*"], arch = ["*"] }`<br/> if flag is one of:<br/> - ARFLAGS<br/> - LDSHARED <br/> - LDFLAGS<br/> - CPPFLAGS <br/> - CFLAGS <br/> - CCSHARED<br/>the current env vars will be merged with the value (provided platform & arch applies), separated by a space. This can be enabled by adding `{ env = "MYVAR" ... , merges = true }` to the definition. |
 | includes                           | list str                                                                                                                                                                                                                                                                                                                                                                                            |
-| includes\_{package}                | `{ pkg = str, include = str, libraries = str\| None, library_dirs = str \| None , required_call = str \| None }` <br/> where all fields, but `pkg`, are attributes of `pkg` in the type of `callable() -> list[str] \| str` \| `list[str] \| str`. `pkg` is a module, or loadable module object, which may be imported through `import x.y.z`.                                                      |
-| includes_numpy \| includes_pyarrow | bool<br/> 3rd party named imports. must have the respective opt in `dependencies`                                                                                                                                                                                                                                                                                                                   |
-| retain_intermediate_artifacts      | bool = False <br/> whether to keep `.c` \| `.cpp` files                                                                                                                                                                                                                                                                                                                                             |
-| parallel                           | bool = False <br/>if parallel, add openmp headers<br/> important: if using macos, you need the *homebrew* llvm vs _apple's_ llvm in order to pass `-fopenmp` to clang compiler                                                                                                                                                                                                                      |
-| compiler                           | compiler used at build-time. if `msvc` (Microsoft Visual Studio), `/openmp` is used as argument to compile instead of `-fopenmp`  when `parallel = true`                                                                                                                                                                                                                                            |
+| includes\_{package}                | `{ pkg = str, include = str, libraries = str\| None, library_dirs = str \| None , required_call = str \| None }` <br/>where all fields, but `pkg`, are attributes of `pkg` in the type of `callable() -> list[str] \| str` \| `list[str] \| str`. `pkg` is a module, or loadable module object, which may be imported through `import x.y.z`.                                                       |
+| includes_numpy \| includes_pyarrow | bool<br/>3rd party named imports. must have the respective opt in `dependencies`                                                                                                                                                                                                                                                                                                                    |
+| retain_intermediate_artifacts      | bool = False <br/>whether to keep `.c` \| `.cpp` files                                                                                                                                                                                                                                                                                                                                              |
+| parallel                           | bool = False <br/>if parallel, add openmp headers<br/>important: if using macos, you need the *homebrew* llvm vs _apple's_ llvm in order to pass `-fopenmp` to clang compiler                                                                                                                                                                                                                       |
+| compiler                           | compiler used at build-time. if `msvc` (Microsoft Visual Studio), `/openmp` is used as argument to compile instead of `-fopenmp`  when `parallel = true`. `default = false`                                                                                                                                                                                                                         |
+| compile_py                         | whether to include `.py` files when building cython exts. note, this can be enabled & you can do per file / matched file ignores as below. `default = true`                                                                                                                                                                                                                                         |
 | \*\* kwargs                        | keyword = value pair arguments to pass to the extension module when building                                                                                                                                                                                                                                                                                                                        |
 
 ### Files
@@ -100,11 +101,14 @@ include_somelib = { pkg = "pyarrow", include="get_include", libraries="get_libra
 [build.targets.wheel.hooks.cython.options.files]
 exclude = [
     # anything matching no_compile is ignored by cython
-    "*/no_compile/*"
+    "*/no_compile/*",
+    # note - anything "*" is escaped to "([^\s]*)" (non whitespace).
+    # if you need an actual * for python regex, use as below:
+    # this excludes all pyd or pytempl extensions
+    "([^.]\\*).(pyd$|pytempl$)"
 ]
+aliases = {"abclib._filewithoutsuffix" = "abclib.importalias"}
 ```
-
-
 
 ## License
 

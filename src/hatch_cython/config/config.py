@@ -1,46 +1,26 @@
-import platform
-from collections.abc import Generator, Hashable
+from collections.abc import Generator
 from dataclasses import asdict, dataclass, field
 from importlib import import_module
-from os import environ, path
-from typing import ClassVar, Optional
+from os import path
+from typing import Optional
 
 from hatch.utils.ci import running_in_ci
 from hatchling.builders.hooks.plugin.interface import BuildHookInterface
-from packaging.markers import Marker
 
-from hatch_cython.types import CorePlatforms, ListStr, callable_t, dict_t, list_t, union_t
-from hatch_cython.utils import memo
-
-EXIST_TRIM = 2
-
-ANON = "anon"
-INCLUDE = "include_"
-OPTIMIZE = "-O2"
-DIRECTIVES = {
-    "binding": True,
-    "language_level": 3,
-}
-LTPY311 = "python_version < '3.11'"
-MUST_UNIQUE = ["-O", "-arch", "-march"]
-POSIX_CORE: list_t[CorePlatforms] = ["darwin", "linux"]
-
-
-@memo
-def plat():
-    return platform.system().lower()
-
-
-@memo
-def aarch():
-    return platform.machine().lower()
-
+from hatch_cython.config.autoimport import Autoimport, __packages__
+from hatch_cython.config.defaults import get_default_compile, get_default_link
+from hatch_cython.config.files import FileArgs
+from hatch_cython.config.flags import EnvFlag, EnvFlags, parse_env_args
+from hatch_cython.config.platform import ListedArgs, PlatformArgs, parse_platform_args
+from hatch_cython.constants import DIRECTIVES, EXIST_TRIM, INCLUDE, LTPY311, MUST_UNIQUE
+from hatch_cython.types import CallableT, ListStr
 
 # fields tracked by this plugin
 __known__ = (
     "src",
     "env",
     "files",
+    "compile_py",
     "includes",
     "libraries",
     "library_dirs",
@@ -50,224 +30,6 @@ __known__ = (
     "extra_link_args",
     "retain_intermediate_artifacts",
 )
-
-
-@dataclass
-class Autoimport:
-    pkg: str
-
-    include: str
-    libraries: str = field(default=None)
-    library_dirs: str = field(default=None)
-    required_call: str = field(default=None)
-
-
-__packages__ = {
-    a.pkg: a
-    for a in (
-        Autoimport("numpy", "get_include"),
-        Autoimport(
-            "pyarrow",
-            include="get_include",
-            libraries="get_libraries",
-            library_dirs="get_library_dirs",
-            required_call="create_library_symlinks",
-        ),
-    )
-}
-
-
-@dataclass
-class PlatformBase(Hashable):
-    platforms: union_t[ListStr, str] = "*"
-    arch: union_t[ListStr, str] = "*"
-    depends_path: bool = False
-    marker: str = None
-    apply_to_marker: callable_t[[], bool] = None
-
-    def __post_init__(self):
-        self.do_rewrite("platforms")
-        self.do_rewrite("arch")
-
-    def do_rewrite(self, attr: str):
-        att = getattr(self, attr)
-        if isinstance(att, list):
-            setattr(self, attr, [p.lower() for p in att])
-        elif isinstance(att, str):
-            setattr(self, attr, att.lower())
-
-    def check_marker(self):
-        do = True
-        if self.apply_to_marker:
-            do = self.apply_to_marker()
-        if do:
-            marker = Marker(self.marker)
-            return marker.evaluate()
-        return False
-
-    def _applies_impl(self, attr: str, defn: str):
-        if self.marker:
-            ok = self.check_marker()
-            if not ok:
-                return False
-
-        att = getattr(self, attr)
-        if isinstance(att, list):
-            # https://docs.python.org/3/library/platform.html#platform.machine
-            # "" is a possible value so we have to add conditions for anon
-            _anon = ANON in att and defn == ""
-            return defn in att or "*" in att or _anon
-        _anon = ANON == att and defn == ""
-        return (att in (defn, "*")) or _anon
-
-    def applies(self):
-        _isplatform = self._applies_impl("platforms", plat())
-        _isarch = self._applies_impl("arch", aarch())
-        return _isplatform and _isarch
-
-    def is_exist(self, trim: int = 0):
-        if self.depends_path:
-            return path.exists(self.arg[trim:])
-        return True
-
-
-@dataclass
-class PlatformArgs(PlatformBase):
-    arg: str = None
-
-    def __hash__(self) -> int:
-        return hash(self.arg)
-
-
-@dataclass
-class EnvFlag(PlatformArgs):
-    env: str = field(default="")
-    merges: bool = field(default=False)
-
-    def __hash__(self) -> int:
-        return hash(self.field)
-
-
-__flags__ = (
-    EnvFlag(env="CC", merges=False),
-    EnvFlag(env="CPP", merges=False),
-    EnvFlag(env="CXX", merges=False),
-    EnvFlag(env="CFLAGS", merges=True),
-    EnvFlag(env="CCSHARED", merges=True),
-    EnvFlag(env="CPPFLAGS", merges=True),
-    EnvFlag(env="LDFLAGS", merges=True),
-    EnvFlag(env="LDSHARED", merges=True),
-    EnvFlag(env="SHLIB_SUFFIX", merges=False),
-    EnvFlag(env="AR", merges=False),
-    EnvFlag(env="ARFLAGS", merges=True),
-)
-
-
-@dataclass
-class EnvFlags:
-    CC: PlatformArgs = None
-    CPP: PlatformArgs = None
-    CXX: PlatformArgs = None
-
-    CFLAGS: PlatformArgs = None
-    CCSHARED: PlatformArgs = None
-
-    CPPFLAGS: PlatformArgs = None
-
-    LDFLAGS: PlatformArgs = None
-    LDSHARED: PlatformArgs = None
-
-    SHLIB_SUFFIX: PlatformArgs = None
-
-    AR: PlatformArgs = None
-    ARFLAGS: PlatformArgs = None
-
-    custom: dict_t[str, PlatformArgs] = field(default_factory=dict)
-    env: dict = field(default_factory=environ.copy)
-
-    __known__: ClassVar[dict_t[str, EnvFlag]] = {e.env: e for e in __flags__}
-
-    def __post_init__(self):
-        for flag in __flags__:
-            self.merge_to_env(flag, self.get_from_self)
-        for flag in self.custom.values():
-            self.merge_to_env(flag, self.get_from_custom)
-
-    def merge_to_env(self, flag: EnvFlag, get: callable_t[[str], EnvFlag]):
-        var = environ.get(flag.env)
-        override: EnvFlag = get(flag.env)
-        if override and flag.merges:
-            add = var + " " if var else ""
-            self.env[flag.env] = add + override.arg
-        elif override:
-            self.env[flag.env] = override.arg
-
-    def get_from_self(self, attr):
-        return getattr(self, attr)
-
-    def get_from_custom(self, attr):
-        return self.custom.get(attr)
-
-
-ListedArgs = list_t[union_t[PlatformArgs, str]]
-"""
-List[str | PlatformArgs]
-"""
-
-
-@dataclass
-class FileArgs:
-    exclude: ListStr = field(default_factory=list)
-
-
-def get_default_link():
-    return [
-        PlatformArgs(arg="-L/opt/homebrew/lib", platforms=POSIX_CORE, depends_path=True),
-        PlatformArgs(arg="-L/usr/local/lib", platforms=POSIX_CORE, depends_path=True),
-        PlatformArgs(arg="-L/usr/local/opt", platforms=POSIX_CORE, depends_path=True),
-    ]
-
-
-def get_default_compile():
-    return [
-        PlatformArgs(arg="-O2"),
-        PlatformArgs(arg="-I/opt/homebrew/include", platforms=POSIX_CORE, depends_path=True),
-        PlatformArgs(arg="-I/usr/local/include", platforms=POSIX_CORE, depends_path=True),
-    ]
-
-
-def parse_to_plat(cls, arg, args: union_t[list, dict], key: union_t[int, str], require_argform: bool, **kwargs):
-    if isinstance(arg, dict):
-        args[key] = cls(**arg, **kwargs)
-    elif require_argform:
-        msg = f"arg {key} is invalid. must be of type ({{ flag = ... , platform = '*' }}) given {arg} ({type(arg)})"
-        raise ValueError(msg)
-
-
-def parse_platform_args(
-    kwargs: dict,
-    name: str,
-    default: callable_t[[], list_t[PlatformArgs]],
-) -> list_t[union_t[str, PlatformArgs]]:
-    try:
-        args = [*default(), *kwargs.pop(name)]
-        for i, arg in enumerate(args):
-            parse_to_plat(PlatformArgs, arg, args, i, require_argform=False)
-    except KeyError:
-        args = default()
-    return args
-
-
-def parse_env_args(
-    kwargs: dict,
-):
-    try:
-        args: list = kwargs.pop("env")
-        for i, arg in enumerate(args):
-            parse_to_plat(EnvFlag, arg, args, i, require_argform=True)
-    except KeyError:
-        args = []
-    return args
 
 
 def parse_from_dict(cls: BuildHookInterface):
@@ -359,6 +121,7 @@ class Config:
     extra_link_args: ListedArgs = field(default_factory=get_default_link)
     retain_intermediate_artifacts: bool = field(default=False)
     envflags: EnvFlags = field(default_factory=EnvFlags)
+    compile_py: bool = field(default=True)
 
     def __post_init__(self):
         self.directives = {**DIRECTIVES, **self.directives}
@@ -377,8 +140,8 @@ class Config:
         im: Autoimport,
         att: str,
         mod: any,
-        extend: callable_t[[ListStr], None],
-        append: callable_t[[str], None],
+        extend: CallableT[[ListStr], None],
+        append: CallableT[[str], None],
     ):
         attr = getattr(im, att)
         if attr is not None:

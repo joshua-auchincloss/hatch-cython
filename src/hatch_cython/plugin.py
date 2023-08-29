@@ -9,71 +9,16 @@ from typing import ClassVar
 
 from hatchling.builders.hooks.plugin.interface import BuildHookInterface
 
-from hatch_cython.config import Config, parse_from_dict, plat
+from hatch_cython.config import parse_from_dict
+from hatch_cython.temp import ExtensionArg, setup_py
 from hatch_cython.types import ListStr, P, list_t
-
-
-def options_kws(kwds: dict):
-    return ",\n\t".join((f"{k}={v!r}" for k, v in kwds.items()))
-
-
-def setup_py(
-    *files: list_t[ListStr],
-    options: Config,
-):
-    code = """
-from setuptools import Extension, setup
-from Cython.Build import cythonize
-
-COMPILEARGS = {compile_args}
-DIRECTIVES = {directives}
-INCLUDES = {includes}
-LIBRARIES = {libs}
-LIBRARY_DIRS = {lib_dirs}
-EXTENSIONS = [{ext_files}]
-LINKARGS = {extra_link_args}
-
-if __name__ == "__main__":
-    exts = [
-        Extension("*",
-                    ex,
-                    extra_compile_args=COMPILEARGS,
-                    extra_link_args=LINKARGS,
-                    include_dirs=INCLUDES,
-                    libraries=LIBRARIES,
-                    library_dirs=LIBRARY_DIRS,
-                    {keywords}
-        ) for ex in EXTENSIONS
-    ]
-    ext_modules = cythonize(
-            exts,
-            compiler_directives=DIRECTIVES,
-            include_path=INCLUDES,
-            {cython}
-    )
-    setup(ext_modules=ext_modules)
-"""
-    ext_files = ",".join([repr(lf) for lf in files])
-    kwds = options_kws(options.compile_kwargs)
-    cython = options_kws(options.cythonize_kwargs)
-    return code.format(
-        compile_args=repr(options.compile_args_for_platform),
-        extra_link_args=repr(options.compile_links_for_platform),
-        directives=repr(options.directives),
-        ext_files=ext_files,
-        keywords=kwds,
-        cython=cython,
-        includes=repr(options.includes),
-        libs=repr(options.libraries),
-        lib_dirs=repr(options.library_dirs),
-    ).strip()
+from hatch_cython.utils import memo, parse_user_glob, plat
 
 
 class CythonBuildHook(BuildHookInterface):
     PLUGIN_NAME = "cython"
 
     precompiled_extension: ClassVar[list] = [
-        ".py",
         ".pyx",
         ".pxd",
     ]
@@ -89,27 +34,11 @@ class CythonBuildHook(BuildHookInterface):
         ".pyd",
     ]
 
-    _config: Config
-    _dir: str
-    _included: ListStr
-    _artifact_patterns: ListStr
-    _artifact_globs: ListStr
-    _norm_included_files: ListStr
-    _norm_artifact_patterns: ListStr
-    _grouped_norm: list_t[ListStr]
-
     def __init__(self, *args: P.args, **kwargs: P.kwargs):
         super().__init__(*args, **kwargs)
-        self._included = None
-        self._norm_included_files = None
-        self._artifact_patterns = None
-        self._artifact_globs = None
-        self._norm_artifact_patterns = None
-        self._config = None
-        self._dir = None
-        self._grouped_norm = None
 
     @property
+    @memo
     def is_src(self):
         return os.path.exists(os.path.join(self.root, "src"))
 
@@ -126,100 +55,110 @@ class CythonBuildHook(BuildHookInterface):
         return pattern.replace("\\", "/")
 
     @property
+    @memo
     def dir_name(self):
         return self.options.src if self.options.src is not None else self.metadata.name
 
     @property
+    @memo
     def project_dir(self):
-        if self._dir is None:
-            if self.is_src:
-                src = f"./src/{self.dir_name}"
-            else:
-                src = f"./{self.dir_name}"
-            self._dir = src
-        return self._dir
+        if self.is_src:
+            src = f"./src/{self.dir_name}"
+        else:
+            src = f"./{self.dir_name}"
+        return src
 
     @property
     def precompiled_globs(self):
         _globs = []
         for ex in self.precompiled_extension:
             _globs.extend((f"{self.project_dir}/*{ex}", f"{self.project_dir}/**/*{ex}"))
-        return _globs
+        return list(set(_globs))
 
     @property
+    @memo
+    def options_exclude(self):
+        return [parse_user_glob(e) for e in self.options.files.exclude]
+
+    def filter_ensure_wanted(self, tgts: ListStr):
+        matched = list(
+            filter(
+                lambda s: not any(re.match(e, self.normalize_glob(s), re.IGNORECASE) for e in self.options_exclude),
+                tgts,
+            )
+        )
+        return matched
+
+    @property
+    @memo
     def included_files(self):
-        if self._included is None:
-            self._included = []
-            for patt in self.precompiled_globs:
-                globbed = glob(patt)
-                matched = list(
-                    filter(
-                        lambda s: not any(
-                            re.match(
-                                self.normalize_glob(e).replace("*", r"([^\s]*)"), self.normalize_glob(s), re.IGNORECASE
-                            )
-                            for e in self.options.files.exclude
-                        ),
-                        globbed,
-                    )
-                )
-                self._included.extend(matched)
-        return self._included
+        included = []
+        _normu = [self.normalize_glob(parse_user_glob(e)) for e in self.options.files.exclude]
+        self.app.display_debug("user globs")
+        self.app.display_debug(_normu)
+        for patt in self.precompiled_globs:
+            globbed = glob(patt, recursive=True)
+            if len(globbed) == 0:
+                continue
+            matched = self.filter_ensure_wanted(globbed)
+            included.extend(matched)
+        return included
 
     @property
+    @memo
     def normalized_included_files(self):
         """
         Produces files in posix format
         """
-        if self._norm_included_files is None:
-            self._norm_included_files = [self.normalize_glob(f) for f in self.included_files]
-        return self._norm_included_files
+        return [self.normalize_glob(f) for f in self.included_files]
 
     @property
-    def grouped_included_files(self) -> list_t[ListStr]:
-        if self._grouped_norm is None:
-            grouped = {}
-            for norm in self.normalized_included_files:
-                root, ext = os.path.splitext(norm)
-                ok = True
-                if ext == ".pxd":
-                    pyfile = norm.replace(".pxd", ".py")
-                    if os.path.exists(pyfile):
-                        norm = pyfile  # noqa: PLW2901
-                    else:
-                        ok = False
-                        self.app.display_warning(f"attempted to use .pxd file without .py file ({norm})")
-                if grouped.get(root) and ok:
-                    grouped[root].append(norm)
-                elif ok:
-                    grouped[root] = [norm]
-            self._grouped_norm = list(grouped.values())
-        return self._grouped_norm
+    @memo
+    def grouped_included_files(self) -> list_t[ExtensionArg]:
+        grouped = {}
+        for norm in self.normalized_included_files:
+            root, ext = os.path.splitext(norm)
+            ok = True
+            if ext == ".pxd":
+                pyfile = norm.replace(".pxd", ".py")
+                if os.path.exists(pyfile):
+                    norm = pyfile  # noqa: PLW2901
+                else:
+                    ok = False
+                    self.app.display_warning(f"attempted to use .pxd file without .py file ({norm})")
+            if self.is_src:
+                root = root.replace("./src/", "")
+            root = root.replace("/", ".")
+            alias = self.options.files.matches_alias(root)
+            if alias:
+                root = alias
+            if grouped.get(root) and ok:
+                grouped[root].append(norm)
+            elif ok:
+                grouped[root] = [norm]
+        return [ExtensionArg(name=key, files=files) for key, files in grouped.items()]
 
     @property
+    @memo
     def artifact_globs(self):
-        if self._artifact_globs is None:
-            artifact_globs = []
-            for included_file in self.normalized_included_files:
-                root, _ = os.path.splitext(included_file)
-                artifact_globs.extend(f"{root}.*{ext}" for ext in self.precompiled_extension)
-            self._artifact_globs = artifact_globs
-        return self._artifact_globs
+        artifact_globs = []
+        for included_file in self.normalized_included_files:
+            root, _ = os.path.splitext(included_file)
+            artifact_globs.extend(f"{root}.*{ext}" for ext in self.precompiled_extension)
+        return artifact_globs
 
     @property
+    @memo
     def normalized_artifact_globs(self):
         """
         Produces files in platform native format (e.g. a/b vs a\\b)
         """
-        if self._norm_artifact_patterns is None:
-            self._norm_artifact_patterns = [self.normalize_glob(f) for f in self.artifact_globs]
-        return self._norm_artifact_patterns
+        return [self.normalize_glob(f) for f in self.artifact_globs]
 
     @property
+    @memo
     def artifact_patterns(self):
-        if self._artifact_patterns is None:
-            self._artifact_patterns = [f"/{artifact_glob}" for artifact_glob in self.normalized_artifact_globs]
-        return self._artifact_patterns
+        return [f"/{artifact_glob}" for artifact_glob in self.normalized_artifact_globs]
 
     @contextmanager
     def get_build_dirs(self):
@@ -233,7 +172,7 @@ class CythonBuildHook(BuildHookInterface):
         ]
         globbed = []
         for g in globs:
-            globbed += [self.normalize_path(f) for f in glob(g)]
+            globbed += [self.normalize_path(f) for f in glob(g, recursive=True)]
         return list(set(globbed))
 
     @property
@@ -266,10 +205,12 @@ class CythonBuildHook(BuildHookInterface):
         self.clean_compiled()
 
     @property
+    @memo
     def options(self):
-        if self._config is None:
-            self._config = parse_from_dict(self)
-        return self._config
+        config = parse_from_dict(self)
+        if config.compile_py:
+            self.precompiled_extension.append(".py")
+        return config
 
     def initialize(self, version: str, build_data: dict):
         self.app.display_mini_header(self.PLUGIN_NAME)
@@ -321,7 +262,7 @@ class CythonBuildHook(BuildHookInterface):
             self.app.display_info(process.stdout.decode("utf-8"))
 
             self.app.display_success("Post-build artifacts")
-            self.app.display_info(glob(f"{self.project_dir}/*/**"))
+            self.app.display_info(glob(f"{self.project_dir}/*/**", recursive=True))
 
         if not self.options.retain_intermediate_artifacts:
             self.clean_intermediate()
