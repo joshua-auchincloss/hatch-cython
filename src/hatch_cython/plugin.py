@@ -97,7 +97,7 @@ class CythonBuildHook(BuildHookInterface):
         self.app.display_debug("user globs")
         self.app.display_debug(_normu)
         for patt in self.precompiled_globs:
-            globbed = glob(patt)
+            globbed = glob(patt, recursive=True)
             if len(globbed) == 0:
                 continue
             matched = self.filter_ensure_wanted(globbed)
@@ -129,6 +129,9 @@ class CythonBuildHook(BuildHookInterface):
             if self.is_src:
                 root = root.replace("./src/", "")
             root = root.replace("/", ".")
+            alias = self.options.files.matches_alias(root)
+            if alias:
+                root = alias
             if grouped.get(root) and ok:
                 grouped[root].append(norm)
             elif ok:
@@ -169,7 +172,7 @@ class CythonBuildHook(BuildHookInterface):
         ]
         globbed = []
         for g in globs:
-            globbed += [self.normalize_path(f) for f in glob(g)]
+            globbed += [self.normalize_path(f) for f in glob(g, recursive=True)]
         return list(set(globbed))
 
     @property
@@ -259,7 +262,7 @@ class CythonBuildHook(BuildHookInterface):
             self.app.display_info(process.stdout.decode("utf-8"))
 
             self.app.display_success("Post-build artifacts")
-            self.app.display_info(glob(f"{self.project_dir}/*/**"))
+            self.app.display_info(glob(f"{self.project_dir}/*/**", recursive=True))
 
         if not self.options.retain_intermediate_artifacts:
             self.clean_intermediate()
