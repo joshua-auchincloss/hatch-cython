@@ -1,7 +1,5 @@
 # distutils: language=c++
 
-#define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
-
 cimport numpy as cnp
 
 from cython.parallel import parallel, prange

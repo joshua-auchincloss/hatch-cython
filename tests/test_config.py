@@ -34,11 +34,15 @@ def test_config_parser():
         { arch = ["arm64"], arg = "-L/usr/include/cpu/simd.h" },
     ]
 
+    define_macros = [
+        ["NPY_NO_DEPRECATED_API", "NPY_1_7_API_VERSION"],
+        ["ABC_DEF"],
+        ["GHI_JKL"],
+    ]
     directives = { boundscheck = false, nonecheck = false, language_level = 3, binding = true }
 
     abc_compile_kwarg = "test"
     """  # noqa: E501
-    parsed = loads(dedent(data))
 
     def gets_include():
         return "abc"
@@ -64,6 +68,7 @@ def test_config_parser():
         ):
 
             def getcfg():
+                parsed = loads(dedent(data))
                 return parse_from_dict(SimpleNamespace(config=parsed))
 
             cfg = getcfg()

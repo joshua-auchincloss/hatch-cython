@@ -34,3 +34,10 @@ def options_kws(kwds: dict):
 
 def parse_user_glob(uglob: str):
     return uglob.replace("\\*", UAST).replace("*", NORM_GLOB).replace(UAST, "*")
+
+
+@memo
+def path_delim() -> str:
+    if plat() == "windows":
+        return ";"
+    return ":"
