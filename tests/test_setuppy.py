@@ -1,4 +1,5 @@
 import ast
+from collections.abc import Generator
 from unittest.mock import patch
 
 from hatch_cython.config import Config, PlatformArgs
@@ -15,29 +16,25 @@ EXPECT = """
 from setuptools import Extension, setup
 from Cython.Build import cythonize
 
-COMPILEARGS = ['-O2']
-DIRECTIVES = {'binding': True, 'language_level': 3}
 INCLUDES = ['/123']
-LIBRARIES = ['/abc']
-LIBRARY_DIRS = ['/def']
-EXTENSIONS = [{'name': 'abc.def', 'files': ['./abc/def.pyx']},{'name': 'abc.depb', 'files': ['./abc/depb.py']}]
-LINKARGS = ['-I/etc/abc/linka.h']
+EXTENSIONS = ({'name': 'abc.def', 'files': ['./abc/def.pyx']}, {'name': 'abc.depb', 'files': ['./abc/depb.py']})
 
 if __name__ == "__main__":
     exts = [
         Extension(  ex.get("name"),
                     ex.get("files"),
-                    extra_compile_args=COMPILEARGS,
-                    extra_link_args=LINKARGS,
+                    extra_compile_args=['-O2'],
+                    extra_link_args=['-I/etc/abc/linka.h'],
                     include_dirs=INCLUDES,
-                    libraries=LIBRARIES,
-                    library_dirs=LIBRARY_DIRS,
+                    libraries=['/abc'],
+                    library_dirs=['/def'],
+                    define_macros=[],
 
         ) for ex in EXTENSIONS
     ]
     ext_modules = cythonize(
             exts,
-            compiler_directives=DIRECTIVES,
+            compiler_directives={'binding': True, 'language_level': 3},
             include_path=INCLUDES,
             abc='def'
     )
@@ -83,7 +80,7 @@ def test_solo_ext_type_validations():
         if ln.startswith(exteq):
             tested = True
             ext = ast.literal_eval(ln.replace(exteq, "").strip())
-            assert isinstance(ext, list)
+            assert isinstance(ext, (list, tuple, Generator))  # noqa: UP038
             for ex in ext:
                 assert isinstance(ex, dict)
                 assert isinstance(ex.get("name"), str)

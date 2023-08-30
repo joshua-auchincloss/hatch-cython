@@ -45,6 +45,9 @@ env = [
 ]
 
 cythonize_kwargs = { annotate = true, nthreads = 4 }
+define_macros = [
+    ["NPY_NO_DEPRECATED_API", "NPY_1_7_API_VERSION"],
+]
 
 [build.targets.wheel.hooks.custom.options.files]
 exclude = [

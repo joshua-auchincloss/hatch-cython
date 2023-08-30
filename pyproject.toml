@@ -160,6 +160,7 @@ branch = true
 parallel = true
 omit = [
   "src/hatch_cython/__about__.py",
+  "src/hatch_cython/types.py",
 ]
 
 [tool.coverage.paths]
