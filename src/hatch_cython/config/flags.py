@@ -3,13 +3,15 @@ from os import environ
 from typing import ClassVar
 
 from hatch_cython.config.platform import PlatformArgs, parse_to_plat
-from hatch_cython.types import CallableT, dict_t
+from hatch_cython.types import CallableT, DictT
+from hatch_cython.utils import path_delim
 
 
 @dataclass
 class EnvFlag(PlatformArgs):
     env: str = field(default="")
     merges: bool = field(default=False)
+    sep: str = field(default=" ")
 
     def __hash__(self) -> int:
         return hash(self.field)
@@ -27,6 +29,7 @@ __flags__ = (
     EnvFlag(env="SHLIB_SUFFIX", merges=False),
     EnvFlag(env="AR", merges=False),
     EnvFlag(env="ARFLAGS", merges=True),
+    EnvFlag(env="PATH", merges=True, sep=path_delim()),
 )
 
 
@@ -49,10 +52,12 @@ class EnvFlags:
     AR: PlatformArgs = None
     ARFLAGS: PlatformArgs = None
 
-    custom: dict_t[str, PlatformArgs] = field(default_factory=dict)
+    PATH: PlatformArgs = None
+
+    custom: DictT[str, PlatformArgs] = field(default_factory=dict)
     env: dict = field(default_factory=environ.copy)
 
-    __known__: ClassVar[dict_t[str, EnvFlag]] = {e.env: e for e in __flags__}
+    __known__: ClassVar[DictT[str, EnvFlag]] = {e.env: e for e in __flags__}
 
     def __post_init__(self):
         for flag in __flags__:
@@ -64,7 +69,7 @@ class EnvFlags:
         var = environ.get(flag.env)
         override: EnvFlag = get(flag.env)
         if override and flag.merges:
-            add = var + " " if var else ""
+            add = var + flag.sep if var else ""
             self.env[flag.env] = add + override.arg
         elif override:
             self.env[flag.env] = override.arg
@@ -75,14 +80,32 @@ class EnvFlags:
     def get_from_custom(self, attr):
         return self.custom.get(attr)
 
+    def masked_environ(self) -> dict:
+        out = {}
+        for k, v in self.env.items():
+            if k not in self.__known__:
+                out[k] = "*" * len(v)
+            else:
+                out[k] = v
+        return out
+
 
 def parse_env_args(
     kwargs: dict,
-):
+) -> EnvFlags:
     try:
         args: list = kwargs.pop("env")
         for i, arg in enumerate(args):
             parse_to_plat(EnvFlag, arg, args, i, require_argform=True)
     except KeyError:
         args = []
-    return args
+    kw = {"custom": {}}
+    for arg in args:
+        arg: EnvFlag
+        if arg.applies():
+            if arg.env in EnvFlags.__known__:
+                kw[arg.env] = arg
+            else:
+                kw["custom"][arg.env] = arg
+    envflags = EnvFlags(**kw)
+    return envflags

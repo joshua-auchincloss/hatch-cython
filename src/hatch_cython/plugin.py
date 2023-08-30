@@ -11,7 +11,7 @@ from hatchling.builders.hooks.plugin.interface import BuildHookInterface
 
 from hatch_cython.config import parse_from_dict
 from hatch_cython.temp import ExtensionArg, setup_py
-from hatch_cython.types import ListStr, P, list_t
+from hatch_cython.types import ListStr, ListT, P
 from hatch_cython.utils import memo, parse_user_glob, plat
 
 
@@ -81,13 +81,12 @@ class CythonBuildHook(BuildHookInterface):
         return [parse_user_glob(e) for e in self.options.files.exclude]
 
     def filter_ensure_wanted(self, tgts: ListStr):
-        matched = list(
+        return list(
             filter(
                 lambda s: not any(re.match(e, self.normalize_glob(s), re.IGNORECASE) for e in self.options_exclude),
                 tgts,
             )
         )
-        return matched
 
     @property
     @memo
@@ -114,7 +113,7 @@ class CythonBuildHook(BuildHookInterface):
 
     @property
     @memo
-    def grouped_included_files(self) -> list_t[ExtensionArg]:
+    def grouped_included_files(self) -> ListT[ExtensionArg]:
         grouped = {}
         for norm in self.normalized_included_files:
             root, ext = os.path.splitext(norm)
@@ -188,9 +187,13 @@ class CythonBuildHook(BuildHookInterface):
         include = {}
         for compl in self.compiled:
             include[compl] = compl
+        self.app.display_debug("Derived inclusion map")
+        self.app.display_debug(include)
         return include
 
     def rm_recurse(self, li: ListStr):
+        self.app.display_debug("Removing by match")
+        self.app.display_debug(li)
         for f in li:
             os.remove(f)
 
@@ -212,11 +215,10 @@ class CythonBuildHook(BuildHookInterface):
             self.precompiled_extension.append(".py")
         return config
 
-    def initialize(self, version: str, build_data: dict):
+    def initialize(self, _: str, build_data: dict):
         self.app.display_mini_header(self.PLUGIN_NAME)
         self.app.display_debug("Options")
         self.app.display_debug(self.options.asdict(), level=1)
-
         self.app.display_waiting("Pre-build artifacts")
         self.app.display_info("Building c/c++ extensions...")
         self.app.display_info(self.normalized_included_files)
@@ -225,7 +227,6 @@ class CythonBuildHook(BuildHookInterface):
             temp_build_dir = os.path.join(temp, "tmp")
             os.mkdir(shared_temp_build_dir)
             os.mkdir(temp_build_dir)
-            self.clean([version])
             setup_file = os.path.join(temp, "setup.py")
             with open(setup_file, "w") as f:
                 setup = setup_py(
@@ -253,13 +254,14 @@ class CythonBuildHook(BuildHookInterface):
                 stderr=subprocess.STDOUT,
                 env=self.options.envflags.env,
             )
+            stdout = process.stdout.decode("utf-8")
             if process.returncode:
                 self.app.display_error(f"cythonize exited non null status {process.returncode}")
-                self.app.display_error(process.stdout.decode("utf-8"))
+                self.app.display_error(stdout)
                 msg = "failed compilation"
                 raise Exception(msg)
-
-            self.app.display_info(process.stdout.decode("utf-8"))
+            else:
+                self.app.display_info(stdout)
 
             self.app.display_success("Post-build artifacts")
             self.app.display_info(glob(f"{self.project_dir}/*/**", recursive=True))

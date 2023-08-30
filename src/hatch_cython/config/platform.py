@@ -5,7 +5,7 @@ from os import path
 from packaging.markers import Marker
 
 from hatch_cython.constants import ANON
-from hatch_cython.types import CallableT, ListStr, UnionT, list_t
+from hatch_cython.types import CallableT, ListStr, ListT, UnionT
 from hatch_cython.utils import aarch, plat
 
 
@@ -82,8 +82,8 @@ def parse_to_plat(cls, arg, args: UnionT[list, dict], key: UnionT[int, str], req
 def parse_platform_args(
     kwargs: dict,
     name: str,
-    default: CallableT[[], list_t[PlatformArgs]],
-) -> list_t[UnionT[str, PlatformArgs]]:
+    default: CallableT[[], ListT[PlatformArgs]],
+) -> ListT[UnionT[str, PlatformArgs]]:
     try:
         args = [*default(), *kwargs.pop(name)]
         for i, arg in enumerate(args):
@@ -93,7 +93,7 @@ def parse_platform_args(
     return args
 
 
-ListedArgs = list_t[UnionT[PlatformArgs, str]]
+ListedArgs = ListT[UnionT[PlatformArgs, str]]
 """
 List[str | PlatformArgs]
 """

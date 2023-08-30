@@ -7,10 +7,12 @@ from typing import Optional
 from hatch.utils.ci import running_in_ci
 from hatchling.builders.hooks.plugin.interface import BuildHookInterface
 
-from hatch_cython.config.autoimport import Autoimport, __packages__
+from hatch_cython.config.autoimport import Autoimport
 from hatch_cython.config.defaults import get_default_compile, get_default_link
 from hatch_cython.config.files import FileArgs
-from hatch_cython.config.flags import EnvFlag, EnvFlags, parse_env_args
+from hatch_cython.config.flags import EnvFlags, parse_env_args
+from hatch_cython.config.includes import parse_includes
+from hatch_cython.config.macros import DefineMacros, parse_macros
 from hatch_cython.config.platform import ListedArgs, PlatformArgs, parse_platform_args
 from hatch_cython.constants import DIRECTIVES, EXIST_TRIM, INCLUDE, LTPY311, MUST_UNIQUE
 from hatch_cython.types import CallableT, ListStr
@@ -24,6 +26,7 @@ __known__ = (
     "includes",
     "libraries",
     "library_dirs",
+    "define_macros",
     "directives",
     "compile_args",
     "cythonize_kwargs",
@@ -38,70 +41,52 @@ def parse_from_dict(cls: BuildHookInterface):
     kwargs = {}
     for kw, val in given.items():
         if kw in __known__:
+            parsed: any
             if kw == "files":
-                val = FileArgs(**val)  # noqa: PLW2901
-            kwargs[kw] = val
+                val: dict
+                parsed: FileArgs = FileArgs(**val)
+            elif kw == "define_macros":
+                val: list
+                parsed: DefineMacros = parse_macros(val)
+            else:
+                val: any
+                parsed: any = val
+            kwargs[kw] = parsed
             passed.pop(kw)
             continue
 
     compile_args = parse_platform_args(kwargs, "compile_args", get_default_compile)
     link_args = parse_platform_args(kwargs, "extra_link_args", get_default_link)
-    env = parse_env_args(kwargs)
-
-    kw = {"custom": {}}
-    for arg in env:
-        arg: EnvFlag
-        if arg.applies():
-            if arg.env in EnvFlags.__known__:
-                kw[arg.env] = arg
-            else:
-                kw["custom"][arg.env] = arg
-    envflags = EnvFlags(**kw)
+    envflags = parse_env_args(kwargs)
     cfg = Config(**kwargs, compile_args=compile_args, extra_link_args=link_args, envflags=envflags)
+
     for kw, val in passed.copy().items():
         is_include = kw.startswith(INCLUDE)
         if is_include and val:
-            import_p = __packages__.get(kw.replace(INCLUDE, ""))
-            if import_p is None:
-                if isinstance(val, str):
-                    import_p = Autoimport(pkg=kw, include=val)
-                elif isinstance(val, dict):
-                    if "pkg" not in val:
-                        val["pkg"] = kw
-                    import_p = Autoimport(**val)
-                else:
-                    msg = " ".join(
-                        (
-                            "%s (%s) is invalid, either provide a known package or",
-                            "a path in the format of module.get_xxx where get_xxx is",
-                            "the directory to be included",
-                        )
-                    ).format(val, type(val))
-                    raise ValueError(msg)
-
             cfg.resolve_pkg(
                 cls,
-                import_p,
+                parse_includes(kw, val),
             )
             passed.pop(kw)
+            continue
         elif is_include:
             passed.pop(kw)
-
-    if "parallel" in passed and passed.get("parallel"):
-        passed.pop("parallel")
-        comp = [
-            PlatformArgs(arg="/openmp", platforms="windows"),
-            PlatformArgs(arg="-fopenmp", platforms=["linux"]),
-        ]
-        link = [
-            PlatformArgs(arg="/openmp", platforms="windows"),
-            PlatformArgs(arg="-fopenmp", platforms="linux"),
-            PlatformArgs(arg="-lomp", platforms="darwin", marker=LTPY311, apply_to_marker=running_in_ci),
-        ]
-        cma = ({*cfg.compile_args}).union({*comp})
-        cfg.compile_args = list(cma)
-        seb = ({*cfg.extra_link_args}).union({*link})
-        cfg.extra_link_args = list(seb)
+            continue
+        elif kw == "parallel" and passed.get(kw):
+            comp = [
+                PlatformArgs(arg="/openmp", platforms="windows"),
+                PlatformArgs(arg="-fopenmp", platforms=["linux"]),
+            ]
+            link = [
+                PlatformArgs(arg="/openmp", platforms="windows"),
+                PlatformArgs(arg="-fopenmp", platforms="linux"),
+                PlatformArgs(arg="-lomp", platforms="darwin", marker=LTPY311, apply_to_marker=running_in_ci),
+            ]
+            cma = ({*cfg.compile_args}).union({*comp})
+            cfg.compile_args = list(cma)
+            seb = ({*cfg.extra_link_args}).union({*link})
+            cfg.extra_link_args = list(seb)
+            passed.pop(kw)
 
     cfg.compile_kwargs = passed
     return cfg
@@ -112,6 +97,7 @@ class Config:
     src: Optional[str] = field(default=None)  # noqa: UP007
     files: FileArgs = field(default_factory=FileArgs)
     includes: ListStr = field(default_factory=list)
+    define_macros: DefineMacros = field(default_factory=list)
     libraries: ListStr = field(default_factory=list)
     library_dirs: ListStr = field(default_factory=list)
     directives: dict = field(default_factory=lambda: DIRECTIVES)
@@ -231,7 +217,9 @@ class Config:
         return flat
 
     def asdict(self):
-        return asdict(self)
+        d = asdict(self)
+        d["envflags"]["env"] = self.envflags.masked_environ()
+        return d
 
     def validate_include_opts(self):
         for opt in self.includes:

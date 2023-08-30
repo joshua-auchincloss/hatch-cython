@@ -1,14 +1,14 @@
 import re
 from dataclasses import dataclass, field
 
-from hatch_cython.types import ListStr, UnionT, dict_t
+from hatch_cython.types import DictT, ListStr, UnionT
 from hatch_cython.utils import parse_user_glob
 
 
 @dataclass
 class FileArgs:
     exclude: ListStr = field(default_factory=list)
-    aliases: dict_t[str, str] = field(default_factory=dict)
+    aliases: DictT[str, str] = field(default_factory=dict)
 
     def __post_init__(self):
         rep = {}

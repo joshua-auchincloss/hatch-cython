@@ -8,24 +8,24 @@ if vmaj >= (3, 10):
     from collections.abc import Callable
     from typing import ParamSpec
 
-    dict_t = dict
-    list_t = list
-    ListStr = list[str]
+    TupleT = tuple
+    DictT = dict
+    ListT = list
 else:
-    from typing import Callable, Dict, List  # noqa: UP035
+    from typing import Callable, Dict, List, Tuple  # noqa: UP035
 
     from typing_extensions import ParamSpec
 
-    dict_t = Dict  # noqa: UP006
-    list_t = List  # noqa: UP006
+    TupleT = Tuple  # noqa: UP006
+    DictT = Dict  # noqa: UP006
+    ListT = List  # noqa: UP006
 
 P = ParamSpec("P")
-ListStr = list_t[str]
+ListStr = ListT[str]
 UnionT = Union
 CorePlatforms = Literal[
     "darwin",
     "linux",
     "windows",
 ]
-
 CallableT = Callable

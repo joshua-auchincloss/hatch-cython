@@ -1,4 +1,4 @@
-from hatch_cython.types import CorePlatforms, list_t
+from hatch_cython.types import CorePlatforms, ListT
 
 NORM_GLOB = r"([^\s]*)"
 UAST = "${U_AST}"
@@ -12,4 +12,4 @@ DIRECTIVES = {
 }
 LTPY311 = "python_version < '3.11'"
 MUST_UNIQUE = ["-O", "-arch", "-march"]
-POSIX_CORE: list_t[CorePlatforms] = ["darwin", "linux"]
+POSIX_CORE: ListT[CorePlatforms] = ["darwin", "linux"]
