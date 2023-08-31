@@ -14,6 +14,8 @@
 
 - [Usage](#usage)
 - [Configuration Options](#configuration-options)
+- [Notes](#notes)
+  - [Templating (Tempita)](#templating-tempita)
 - [License](#license)
 
 ## Usage
@@ -85,7 +87,7 @@ define_macros = [
 | Field                              | Type                                                                                                                                                                                                                                                                                                                                                                                                |
 | ---------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | src                                | `str \| None` <br/> directory within `src` dir or `.`  which aliases the package being built. e.g. `package_a` -> `src/package_a_lib` <br/> `src = "package_a"`                                                                                                                                                                                                                                     |
-| directives                         | directives to cython (see [compiler directives])                                                                                                                                                                                                                                                                                                                                                    |
+| directives                         | directives to cython (see [compiler-directives])                                                                                                                                                                                                                                                                                                                                                    |
 | compile_args                       | str or `{ platforms = ["*"] \| "*", arg = str }`. see [extensions] for what args may be relevant                                                                                                                                                                                                                                                                                                    |
 | extra_link_args                    | str or `{ platforms = ["*"] \| "*", arg = str }`. see [extensions] for what args may be relevant                                                                                                                                                                                                                                                                                                    |
 | env                                | `{ env = "VAR1", arg = "VALUE", platforms = ["*"], arch = ["*"] }`<br/> if flag is one of:<br/> - ARFLAGS<br/> - LDSHARED <br/> - LDFLAGS<br/> - CPPFLAGS <br/> - CFLAGS <br/> - CCSHARED<br/>the current env vars will be merged with the value (provided platform & arch applies), separated by a space. This can be enabled by adding `{ env = "MYVAR" ... , merges = true }` to the definition. |
@@ -116,7 +118,7 @@ aliases = {"abclib._filewithoutsuffix" = "abclib.importalias"}
 
 ## Notes
 
-### Templating
+### Templating (Tempita)
 
 Tempita is supported for any files suffixed with `.in`, where the extension output is:
 
@@ -144,4 +146,4 @@ An example of this is included in:
 `hatch-cython` is distributed under the terms of the [MIT](https://spdx.org/licenses/MIT.html) license.
 
 [extensions]: (https://docs.python.org/3/distutils/apiref.html#distutils.core.Extension)
-[compiler directives]: (https://cython.readthedocs.io/en/latest/src/userguide/source_files_and_compilation.html#compiler-directives))
+[compiler-directives]: (https://cython.readthedocs.io/en/latest/src/userguide/source_files_and_compilation.html#compiler-directives)
