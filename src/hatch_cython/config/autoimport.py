@@ -22,5 +22,6 @@ __packages__ = {
             library_dirs="get_library_dirs",
             required_call="create_library_symlinks",
         ),
+        Autoimport("pythran", "get_include"),
     )
 }
