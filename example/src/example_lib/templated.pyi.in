@@ -1,0 +1,28 @@
+{{py:
+def supported():
+    return ["int", "float"]
+}}
+
+{{for typ in supported()}}
+
+# {{typ}} C adder ({{typ}})
+def c{{typ[:1]}}add(a: {{typ}}, b: {{typ}}) -> {{typ}}:
+    """
+    Takes `a` `{{typ}}` plus `b` `{{typ}}`
+    """
+    ...
+
+# {{typ}} C mul ({{typ}})
+def c{{typ[:1]}}mul(a: {{typ}}, b: {{typ}}) -> {{typ}}:
+    """
+    Takes `a` `{{typ}}` times `b` `{{typ}}`
+    """
+    ...
+
+def c{{typ[:1]}}pow(a: {{typ}}, b: {{typ}}) -> {{typ}}:
+    """
+    Takes `a` `{{typ}}` to the power of `b` `{{typ}}`
+    """
+    ...
+
+{{endfor}}

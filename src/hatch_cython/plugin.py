@@ -7,21 +7,24 @@ from glob import glob
 from tempfile import TemporaryDirectory
 from typing import ClassVar
 
+from Cython.Tempita import sub as render_template
 from hatchling.builders.hooks.plugin.interface import BuildHookInterface
 
 from hatch_cython.config import parse_from_dict
 from hatch_cython.temp import ExtensionArg, setup_py
-from hatch_cython.types import ListStr, ListT, P
+from hatch_cython.types import CallableT, ListStr, ListT, P
 from hatch_cython.utils import memo, parse_user_glob, plat
 
 
 class CythonBuildHook(BuildHookInterface):
     PLUGIN_NAME = "cython"
 
-    precompiled_extension: ClassVar[list] = [
+    precompiled_extensions: ClassVar[list] = [
+        # py is left out as we have it optional / runtime value
         ".pyx",
         ".pxd",
     ]
+    templated_extensions: ClassVar[list] = [f"{f}.in" for f in (".pyi", *precompiled_extensions)]
     intermediate_extensions: ClassVar[list] = [
         ".c",
         ".cpp",
@@ -68,10 +71,19 @@ class CythonBuildHook(BuildHookInterface):
             src = f"./{self.dir_name}"
         return src
 
+    def render_templates(self):
+        for pxifile in self.templated_globs:
+            outfile = pxifile[:-3]
+            with open(pxifile, encoding="utf-8") as f:
+                tmpl = f.read()
+            data = render_template(tmpl)
+            with open(outfile, "w", encoding="utf-8") as f:
+                f.write(data)
+
     @property
     def precompiled_globs(self):
         _globs = []
-        for ex in self.precompiled_extension:
+        for ex in self.precompiled_extensions:
             _globs.extend((f"{self.project_dir}/*{ex}", f"{self.project_dir}/**/*{ex}"))
         return list(set(_globs))
 
@@ -143,8 +155,13 @@ class CythonBuildHook(BuildHookInterface):
         artifact_globs = []
         for included_file in self.normalized_included_files:
             root, _ = os.path.splitext(included_file)
-            artifact_globs.extend(f"{root}.*{ext}" for ext in self.precompiled_extension)
+            artifact_globs.extend(f"{root}.*{ext}" for ext in self.precompiled_extensions)
         return artifact_globs
+
+    @property
+    @memo
+    def templated_globs(self):
+        return self._globs(self.templated_extensions)
 
     @property
     @memo
@@ -164,23 +181,29 @@ class CythonBuildHook(BuildHookInterface):
         with TemporaryDirectory() as temp_dir:
             yield os.path.realpath(temp_dir)
 
-    def _globs(self, exts: ListStr):
+    def _globs(self, exts: ListStr, normalize: CallableT[[str], str] = None):
+        if normalize is None:
+            normalize = self.normalize_glob
         globs = [
             *(f"{self.project_dir}/**/*{ext}" for ext in exts),
             *(f"{self.project_dir}/*{ext}" for ext in exts),
         ]
         globbed = []
         for g in globs:
-            globbed += [self.normalize_path(f) for f in glob(g, recursive=True)]
+            globbed += [normalize(f) for f in glob(g, recursive=True)]
         return list(set(globbed))
 
     @property
+    def precompiled(self):
+        return self._globs(self.precompiled_extensions, self.normalize_glob)
+
+    @property
     def intermediate(self):
-        return self._globs(self.intermediate_extensions)
+        return self._globs(self.intermediate_extensions, self.normalize_path)
 
     @property
     def compiled(self):
-        return self._globs(self.compiled_extensions)
+        return self._globs(self.compiled_extensions, self.normalize_path)
 
     @property
     def inclusion_map(self):
@@ -212,7 +235,7 @@ class CythonBuildHook(BuildHookInterface):
     def options(self):
         config = parse_from_dict(self)
         if config.compile_py:
-            self.precompiled_extension.append(".py")
+            self.precompiled_extensions.append(".py")
         return config
 
     def initialize(self, _: str, build_data: dict):
@@ -220,13 +243,17 @@ class CythonBuildHook(BuildHookInterface):
         self.app.display_debug("Options")
         self.app.display_debug(self.options.asdict(), level=1)
         self.app.display_waiting("Pre-build artifacts")
-        self.app.display_info("Building c/c++ extensions...")
-        self.app.display_info(self.normalized_included_files)
         with self.get_build_dirs() as temp:
+            self.render_templates()
+
             shared_temp_build_dir = os.path.join(temp, "build")
             temp_build_dir = os.path.join(temp, "tmp")
+
             os.mkdir(shared_temp_build_dir)
             os.mkdir(temp_build_dir)
+
+            self.app.display_info("Building c/c++ extensions...")
+            self.app.display_info(self.normalized_included_files)
             setup_file = os.path.join(temp, "setup.py")
             with open(setup_file, "w") as f:
                 setup = setup_py(

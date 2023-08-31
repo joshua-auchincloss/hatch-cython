@@ -1,0 +1,20 @@
+{{py:
+def supported():
+    return ["int", "float"]
+}}
+
+{{for typ in supported()}}
+
+# {{typ}} C adder ({{typ}})
+cpdef {{typ}} c{{typ[:1]}}add({{typ}} a, {{typ}} b):
+    return a + b
+
+# {{typ}} C mul ({{typ}})
+cpdef {{typ}} c{{typ[:1]}}mul({{typ}} a, {{typ}} b):
+    return a * b
+
+# {{typ}} C pow ({{typ}})
+cpdef {{typ}} c{{typ[:1]}}pow({{typ}} a, int b):
+    return a ** b
+
+{{endfor}}

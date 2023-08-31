@@ -13,7 +13,7 @@
 | src/hatch\_cython/constants.py           |       11 |        0 |        0 |        0 |    100% |
 | src/hatch\_cython/devel.py               |        5 |        0 |        0 |        0 |    100% |
 | src/hatch\_cython/hooks.py               |        5 |        1 |        2 |        0 |     86% |
-| src/hatch\_cython/plugin.py              |      192 |        9 |      142 |        8 |     95% |
+| src/hatch\_cython/plugin.py              |      212 |        7 |      160 |        8 |     96% |
 | src/hatch\_cython/temp.py                |       11 |        0 |        0 |        0 |    100% |
 | src/hatch\_cython/utils.py               |       27 |        1 |       12 |        1 |     95% |
-|                                **TOTAL** |  **598** |   **28** |  **299** |   **21** | **94%** |
+|                                **TOTAL** |  **618** |   **26** |  **317** |   **21** | **95%** |

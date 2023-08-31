@@ -86,6 +86,8 @@ def test_build_hook(new_proj):
                 "./src/example_lib/mod_a/some_defn.py",
                 "./src/example_lib/normal.py",
                 "./src/example_lib/normal.py",
+                "./src/example_lib/templated.pyx",
+                "./src/example_lib/templated.pyx",
                 "./src/example_lib/test.pyx",
                 "./src/example_lib/test.pyx",
             ]
@@ -112,6 +114,10 @@ def test_build_hook(new_proj):
                 "files": ["./src/example_lib/mod_a/some_defn.py", "./src/example_lib/mod_a/some_defn.py"],
             },
             {"name": "example_lib.normal", "files": ["./src/example_lib/normal.py", "./src/example_lib/normal.py"]},
+            {
+                "files": ["./src/example_lib/templated.pyx", "./src/example_lib/templated.pyx"],
+                "name": "example_lib.templated",
+            },
             {"name": "example_lib.test", "files": ["./src/example_lib/test.pyx", "./src/example_lib/test.pyx"]},
         ]
 
@@ -156,6 +162,12 @@ def test_build_hook(new_proj):
                 "./src/example_lib/normal.*.py",
                 "./src/example_lib/normal.*.pyx",
                 "./src/example_lib/normal.*.pyx",
+                "./src/example_lib/templated.*.pxd",
+                "./src/example_lib/templated.*.pxd",
+                "./src/example_lib/templated.*.py",
+                "./src/example_lib/templated.*.py",
+                "./src/example_lib/templated.*.pyx",
+                "./src/example_lib/templated.*.pyx",
                 "./src/example_lib/test.*.pxd",
                 "./src/example_lib/test.*.pxd",
                 "./src/example_lib/test.*.py",
@@ -179,4 +191,4 @@ def test_build_hook(new_proj):
         assert build_data.get("infer_tag")
         assert not build_data.get("pure_python")
         assert sorted(build_data.get("artifacts")) == sorted([f"/{f}" for f in rf])
-        assert len(build_data.get("force_include")) == 9
+        assert len(build_data.get("force_include")) == 10

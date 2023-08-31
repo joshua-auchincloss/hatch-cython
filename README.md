@@ -114,10 +114,34 @@ exclude = [
 aliases = {"abclib._filewithoutsuffix" = "abclib.importalias"}
 ```
 
+## Notes
+
+### Templating
+
+Tempita is supported for any files suffixed with `.in`, where the extension output is:
+
+- `.pyx.in`
+- `.pyd.in`
+- `.pyi.in`
+  For these files, you may expect the output `.pyx.in` -> `.pyx`. Thus, with aliasing this would look like:
+
+```toml
+[build.targets.wheel.hooks.cython.options.files]
+aliases = {"abclib._somemod" = "abclib.somemod"}
+```
+
+- 1. Source files `somemod.pyi.in`, `_somemod.pyx.in`
+- 2. Processed templates `somemod.pyi`, `_somemod.pyx`
+- 3. Compiled module `abclib.somemod{.pyi,.pyx}`
+
+An example of this is included in:
+
+- [pyi stub file](./example/src/example_lib/templated.pyi.in)
+- [pyx cython source file](./example/src/example_lib/templated.pyx.in)
+
 ## License
 
 `hatch-cython` is distributed under the terms of the [MIT](https://spdx.org/licenses/MIT.html) license.
 
 [extensions]: (https://docs.python.org/3/distutils/apiref.html#distutils.core.Extension)
-
-[compiler directives]:(https://cython.readthedocs.io/en/latest/src/userguide/source_files_and_compilation.html#compiler-directives))
+[compiler directives]: (https://cython.readthedocs.io/en/latest/src/userguide/source_files_and_compilation.html#compiler-directives))
