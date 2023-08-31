@@ -71,6 +71,12 @@ def test_build_hook(new_proj):
     )
 
     with override_dir(new_proj):
+        hook.clean([])
+        build_data = {
+            "artifacts": [],
+            "force_include": {},
+        }
+        hook.initialize("0.1.0", build_data)
         assert sorted(hook.normalized_included_files) == sorted(
             [
                 "./src/example_lib/__about__.py",
@@ -179,14 +185,6 @@ def test_build_hook(new_proj):
         assert sorted(hook.normalized_artifact_globs) == rf
 
         assert sorted(hook.artifact_patterns) == [f"/{f}" for f in rf]
-
-        hook.clean([])
-
-        build_data = {
-            "artifacts": [],
-            "force_include": {},
-        }
-        hook.initialize("0.1.0", build_data)
 
         assert build_data.get("infer_tag")
         assert not build_data.get("pure_python")
