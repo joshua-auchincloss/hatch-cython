@@ -49,9 +49,22 @@ define_macros = [
     ["NPY_NO_DEPRECATED_API", "NPY_1_7_API_VERSION"],
 ]
 
+[build.targets.wheel.hooks.custom.options.templates]
+index = [
+  {keyword = "global", matches = "*" },
+  {keyword = "templated_mac", matches = "templated.*.in",  platforms = ["darwin"] },
+  {keyword = "templated_win", matches = "templated.*.in",  platforms = ["windows"] },
+]
+
+global = { supported = ["int"] }
+templated_mac = { supported = ["int", "float"] }
+templated_win = { supported = ["int", "float", "complex"] }
+
+
 [build.targets.wheel.hooks.custom.options.files]
 exclude = [
-    "*/no_compile/*"
+    "*/no_compile/*",
+    "*_sample*",
 ]
 aliases = {"example_lib._alias" = "example_lib.aliased"}
 

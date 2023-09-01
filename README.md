@@ -116,11 +116,9 @@ exclude = [
 aliases = {"abclib._filewithoutsuffix" = "abclib.importalias"}
 ```
 
-## Notes
+## Templating
 
-### Templating (Tempita)
-
-Tempita is supported for any files suffixed with `.in`, where the extension output is:
+Cython tempita is supported for any files suffixed with `.in`, where the extension output is:
 
 - `.pyx.in`
 - `.pyd.in`
@@ -139,7 +137,42 @@ aliases = {"abclib._somemod" = "abclib.somemod"}
 An example of this is included in:
 
 - [pyi stub file](./example/src/example_lib/templated.pyi.in)
-- [pyx cython source file](./example/src/example_lib/templated.pyx.in)
+- [pyx cython source file](./example/src/example_lib/templated_maxosx_sample.pyx.in)
+- [pyi stub (rendered)](./example/src/example_lib/templated.pyi)
+- [pyx cython source (rendered)](./example/src/example_lib/templated_maxosx_sample.pyi)
+
+### Template Arguments
+
+You may also supply arguments for per-file matched namespaces. This follows the above `platforms`, `arch`, & `marker` formats, where if any supplied the value will only be passed if the condition passes.
+
+You supply an `index` value, and all other kwargs to templates are `keywords` for each index value. Follows FIFO priority for all keys except global, which is evaluated first and overriden if there are other matching index directives.
+
+In hatch.toml:
+
+```toml
+[build.targets.wheel.hooks.cython.options.templates]
+index = [
+  {keyword = "global", matches = "*" },
+  {keyword = "templated_mac", matches = "templated.*.in",  platforms = ["darwin"] },
+  {keyword = "templated_mac_py38", matches = "templated.*.in",  platforms = ["darwin"], marker = "python == '3.8'" },
+  {keyword = "templated_win", matches = "templated.*.in",  platforms = ["windows"] },
+  {keyword = "templated_win_x86_64", matches = "templated.*.in",  platforms = ["windows"], arch = ["x86_64"] },
+
+]
+
+<!-- these are passed as arguments for templating -->
+
+<!-- 'global' is a special directive reserved & overriden by all other matched values -->
+global = { supported = ["int"] }
+
+templated_mac = { supported = ["int", "float"] }
+templated_mac_py38 = { supported = ["int", "float"] }
+
+templated_win = { supported = ["int", "float", "complex"] }
+
+<!-- assuming numpy is cimported in the template -->
+templated_win_x86_64 = { supported = ["int", "float", "np.double"]}
+```
 
 ## License
 
