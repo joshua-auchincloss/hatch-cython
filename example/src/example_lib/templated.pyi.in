@@ -1,9 +1,4 @@
-{{py:
-def supported():
-    return ["int", "float"]
-}}
-
-{{for typ in supported()}}
+{{for typ in supported}}
 
 # {{typ}} C adder ({{typ}})
 def c{{typ[:1]}}add(a: {{typ}}, b: {{typ}}) -> {{typ}}:

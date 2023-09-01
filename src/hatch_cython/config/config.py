@@ -14,6 +14,7 @@ from hatch_cython.config.flags import EnvFlags, parse_env_args
 from hatch_cython.config.includes import parse_includes
 from hatch_cython.config.macros import DefineMacros, parse_macros
 from hatch_cython.config.platform import ListedArgs, PlatformArgs, parse_platform_args
+from hatch_cython.config.templates import Templates, parse_template_kwds
 from hatch_cython.constants import DIRECTIVES, EXIST_TRIM, INCLUDE, LTPY311, MUST_UNIQUE
 from hatch_cython.types import CallableT, ListStr
 
@@ -22,21 +23,23 @@ __known__ = (
     "src",
     "env",
     "files",
-    "compile_py",
     "includes",
     "libraries",
-    "library_dirs",
-    "define_macros",
+    "templates",
+    "compile_py",
     "directives",
+    "library_dirs",
     "compile_args",
-    "cythonize_kwargs",
+    "define_macros",
     "extra_link_args",
+    "cythonize_kwargs",
     "retain_intermediate_artifacts",
 )
 
 
 def parse_from_dict(cls: BuildHookInterface):
     given = cls.config.get("options", {})
+
     passed = given.copy()
     kwargs = {}
     for kw, val in given.items():
@@ -48,6 +51,9 @@ def parse_from_dict(cls: BuildHookInterface):
             elif kw == "define_macros":
                 val: list
                 parsed: DefineMacros = parse_macros(val)
+            elif kw == "templates":
+                val: dict
+                parsed: Templates = parse_template_kwds(val)
             else:
                 val: any
                 parsed: any = val
@@ -108,6 +114,7 @@ class Config:
     retain_intermediate_artifacts: bool = field(default=False)
     envflags: EnvFlags = field(default_factory=EnvFlags)
     compile_py: bool = field(default=True)
+    templates: Templates = field(default_factory=Templates)
 
     def __post_init__(self):
         self.directives = {**DIRECTIVES, **self.directives}
@@ -219,6 +226,7 @@ class Config:
     def asdict(self):
         d = asdict(self)
         d["envflags"]["env"] = self.envflags.masked_environ()
+        d["templates"] = self.templates.asdict()
         return d
 
     def validate_include_opts(self):

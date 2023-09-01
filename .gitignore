@@ -9,3 +9,6 @@ dist/
 .coverage*
 .coverage
 *.html
+*.ipynb
+.vscode/settings.json
+.vscode/
