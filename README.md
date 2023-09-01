@@ -68,7 +68,6 @@ compile_kwargs = { }
 dependencies = ["hatch-cython"]
 
 [build.targets.wheel.hooks.cython.options]
-<!-- optional, defaults below -->
 directives = { boundscheck = false, nonecheck = false, language_level = 3, binding = true }
 compile_args = [
     "-O3",
@@ -137,15 +136,28 @@ aliases = {"abclib._somemod" = "abclib.somemod"}
 An example of this is included in:
 
 - [pyi stub file](./example/src/example_lib/templated.pyi.in)
-- [pyx cython source file](./example/src/example_lib/templated_maxosx_sample.pyx.in)
-- [pyi stub (rendered)](./example/src/example_lib/templated.pyi)
+- [pyx cython source file](./example/src/example_lib/templated.pyx.in)
+- [pyi stub (rendered)](./example/src/example_lib/templated_maxosx_sample.pyi)
 - [pyx cython source (rendered)](./example/src/example_lib/templated_maxosx_sample.pyi)
 
 ### Template Arguments
 
-You may also supply arguments for per-file matched namespaces. This follows the above `platforms`, `arch`, & `marker` formats, where if any supplied the value will only be passed if the condition passes.
+You may also supply arguments for per-file matched namespaces. This follows the above `platforms`, `arch`, & `marker` formats, where if supplied & passing the condition the argument is passed to the template as a named series of keyword arguments.
 
-You supply an `index` value, and all other kwargs to templates are `keywords` for each index value. Follows FIFO priority for all keys except global, which is evaluated first and overriden if there are other matching index directives.
+You supply an `index` value, and all other kwargs to templates are `keywords` for each index value. Follows FIFO priority for all keys except global, which is evaluated first and overriden if there are other matching index directives. The engine will attempt to merge the items of the keywords, roughly following:
+
+```py
+args = {
+    "index": [
+        {"keyword": "global", ...},
+        {"keyword": "thisenv", ...},
+    ],
+    "global": {"abc": 1, "other": 2},
+    "thisenv": {"other": 3},
+}
+
+merge(args) -> {"abc": 1, "other": 3}
+```
 
 In hatch.toml:
 
