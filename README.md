@@ -2,7 +2,7 @@
 
 [![PyPI - Version](https://img.shields.io/pypi/v/hatch-cython.svg)](https://pypi.org/project/hatch-cython)
 [![PyPI - Python Version](https://img.shields.io/pypi/pyversions/hatch-cython.svg)](https://pypi.org/project/hatch-cython)
-![PyPI - Downloads](https://img.shields.io/pypi/dw/hatch-cython)
+![PyPI - Downloads](https://img.shields.io/pypi/dm/hatch-cython)
 [![Build](https://github.com/joshua-auchincloss/hatch-cython/actions/workflows/build.yaml/badge.svg)](https://github.com/joshua-auchincloss/hatch-cython/actions)
 [![Tests](https://github.com/joshua-auchincloss/hatch-cython/actions/workflows/test.yml/badge.svg)](https://github.com/joshua-auchincloss/hatch-cython/actions)
 [![codecov](https://codecov.io/gh/joshua-auchincloss/hatch-cython/graph/badge.svg?token=T12ACNLFWV)](https://codecov.io/gh/joshua-auchincloss/hatch-cython)
@@ -35,7 +35,9 @@ includes = []
 include_numpy = false
 include_pyarrow = false
 
+<!-- include_{custom} -->
 include_somelib = {
+    <!-- must be included in build-dependencies -->
     pkg = "somelib",
     <!-- somelib.gets_include() -> str -->
     include = "gets_include",
@@ -48,12 +50,15 @@ include_somelib = {
 }
 
 compile_args = [
-    <!-- single string -->
-    "-std=c++17",
-    <!-- list of platforms + arg -->
-    { platforms = ["nt"], arg = "-std=c++17" },
-    <!-- single platform + arg -->
-    { platforms = "posix", arg = "-I/abc/def" },
+  <!-- single string -->
+  "-v",
+  <!-- by platform -->
+  { platforms = ["linux", "darwin"], arg = "-Wcpp" },
+  <!-- by platform & arch -->
+  { platforms = "darwin", arch = "x86_64", arg = "-arch x86_64" },
+  { platforms = ["darwin"], arch = "arm64", arg = "-arch arm64" },
+  <!-- with pep508 markers -->
+  { platforms = ["darwin"], arch = "x86_64", arg = "-I/usr/local/opt/llvm/include", depends_path = true, marker = "python_version <= '3.10'"  },
 ]
 
 directives = { boundscheck = false, nonecheck = false, language_level = 3, binding = true }
@@ -77,6 +82,7 @@ include_numpy = false
 <!-- equivalent to include_pyarrow = true -->
 include_somelib = { pkg = "pyarrow", include="get_include", libraries="get_libraries", library_dirs="get_library_dirs", required_call="create_library_symlinks" }
 define_macros = [
+    <!-- ["ABC"] -> ["ABC", "FOO"] | ["ABC", "DEF"] -->
     ["NPY_NO_DEPRECATED_API", "NPY_1_7_API_VERSION"],
 ]
 ```

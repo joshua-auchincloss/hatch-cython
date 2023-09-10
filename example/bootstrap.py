@@ -6,7 +6,8 @@ from logging import getLogger
 logger = getLogger()
 
 if __name__ == "__main__":
-    artifact = glob("dist/example*.whl")[0]
+    ext = "whl" if (len(sys.argv) == 1) else sys.argv[1]
+    artifact = glob(f"dist/example*.{ext}")[0]
     proc = subprocess.run(  # noqa: PLW1510
         [sys.executable, "-m", "pip", "install", artifact, "--force-reinstall"],  # noqa: S603
         stdout=subprocess.PIPE,

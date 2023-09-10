@@ -19,21 +19,24 @@ from hatch_cython.constants import DIRECTIVES, EXIST_TRIM, INCLUDE, LTPY311, MUS
 from hatch_cython.types import CallableT, ListStr
 
 # fields tracked by this plugin
-__known__ = (
-    "src",
-    "env",
-    "files",
-    "includes",
-    "libraries",
-    "templates",
-    "compile_py",
-    "directives",
-    "library_dirs",
-    "compile_args",
-    "define_macros",
-    "extra_link_args",
-    "cythonize_kwargs",
-    "retain_intermediate_artifacts",
+__known__ = frozenset(
+    (
+        "src",
+        "env",
+        "sdist",
+        "files",
+        "includes",
+        "libraries",
+        "templates",
+        "compile_py",
+        "directives",
+        "library_dirs",
+        "compile_args",
+        "define_macros",
+        "extra_link_args",
+        "cythonize_kwargs",
+        "retain_intermediate_artifacts",
+    )
 )
 
 

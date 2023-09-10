@@ -182,7 +182,7 @@ def test_build_hook(new_proj):
                 "./src/example_lib/test.*.pyx",
             ]
         )
-        assert sorted(hook.normalized_artifact_globs) == rf
+        assert sorted(hook.normalized_dist_globs) == rf
 
         assert sorted(hook.artifact_patterns) == [f"/{f}" for f in rf]
 

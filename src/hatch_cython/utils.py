@@ -1,3 +1,4 @@
+import os
 import platform
 from textwrap import dedent
 
@@ -6,6 +7,12 @@ from Cython import __version__ as __cythonversion__
 from hatch_cython.__about__ import __version__
 from hatch_cython.constants import NORM_GLOB, UAST
 from hatch_cython.types import CallableT, P, T, UnionT
+
+
+def stale(src: str, dest: str):
+    if not os.path.exists(src) and os.path.exists(dest):
+        return True
+    return os.path.getmtime(src) > os.path.getmtime(dest)
 
 
 def memo(func: CallableT[P, T]) -> CallableT[P, T]:

@@ -13,6 +13,7 @@ class ExtensionArg(TypedDict):
 def setup_py(
     *files: ListT[ListStr],
     options: Config,
+    sdist: bool,
 ):
     code = """
 from setuptools import Extension, setup
@@ -40,8 +41,13 @@ if __name__ == "__main__":
             include_path=INCLUDES,
             {cython}
     )
-    setup(ext_modules=ext_modules)
+
 """
+    if not sdist:
+        code += """
+    setup(ext_modules=ext_modules)
+        """
+
     kwds = options_kws(options.compile_kwargs)
     cython = options_kws(options.cythonize_kwargs)
     return code.format(
