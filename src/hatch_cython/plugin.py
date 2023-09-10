@@ -170,18 +170,7 @@ class CythonBuildHook(BuildHookInterface):
     @property
     @memo
     def normalized_dist_globs(self):
-        """
-        Produces files in platform native format (e.g. a/b vs a\\b)
-        """
-        return [self.normalize_glob(f) for f in self.artifact_globs]
-
-    @property
-    @memo
-    def normalized_intermediate_globs(self):
-        """
-        Produces files in platform native format (e.g. a/b vs a\\b)
-        """
-        return [self.normalize_glob(f) for f in self.intermediate]
+        return list(map(self.normalize_glob, self.artifact_globs))
 
     def artifact_patterns(self, source: ListStr):
         return [f"/{artifact_glob}" for artifact_glob in source]
@@ -191,7 +180,7 @@ class CythonBuildHook(BuildHookInterface):
         return (
             self.artifact_patterns(self.normalized_dist_globs)
             if not self.sdist
-            else self.artifact_patterns(self.normalized_intermediate_globs)
+            else self.artifact_patterns(self.intermediate)
         )
 
     @contextmanager
@@ -208,7 +197,7 @@ class CythonBuildHook(BuildHookInterface):
         ]
         globbed = []
         for g in globs:
-            globbed += [normalize(f) for f in glob(g, recursive=True)]
+            globbed += list(map(normalize, glob(g, recursive=True)))
         return list(set(globbed))
 
     @property
@@ -327,8 +316,8 @@ class CythonBuildHook(BuildHookInterface):
             self.build_ext()
             self.app.display_info(glob(f"{self.project_dir}/*/**", recursive=True))
 
-        # if ~self.options.retain_intermediate_artifacts & ~self.sdist:
-        #     self.clean_intermediate()
+        if not self.options.retain_intermediate_artifacts and not self.sdist:
+            self.clean_intermediate()
 
         build_data["infer_tag"] = True
         build_data["artifacts"].extend(self.artifacts)
