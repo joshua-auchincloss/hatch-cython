@@ -64,18 +64,13 @@ templated_win = { supported = ["int", "float", "complex"] }
 exclude = [
     "*/no_compile/*",
     "*_sample*",
+    { matches = "*/windows", platforms = ["linux", "darwin", "freebsd"] },
+    { matches = "*/darwin", platforms = ["linux", "freebsd", "windows"] },
+    { matches = "*/linux", platforms = ["darwin", "freebsd", "windows"] },
+    { matches = "*/freebsd", platforms = ["linux", "darwin", "windows"] },
 ]
+
 aliases = {"example_lib._alias" = "example_lib.aliased"}
-
-[build.hooks.custom.options.sdist]
-
-platforms = [
-  { platform = "linux",   arch = ["x86_64", "x86"] },
-  { platform = "freebsd", arch = ["x86_64"] },
-  { platform = "darwin",  arch = ["arm64", "x86_64"] },
-  { platform = "windows", arch = ["x86_64", "x86"] }
-]
-
 
 # end of cython
 

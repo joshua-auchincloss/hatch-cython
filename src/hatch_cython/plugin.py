@@ -93,7 +93,7 @@ class CythonBuildHook(BuildHookInterface):
     @property
     @memo
     def options_exclude(self):
-        return [parse_user_glob(e) for e in self.options.files.exclude]
+        return [parse_user_glob(e.matches) for e in self.options.files.exclude if e.applies()]
 
     def wanted(self, item: str):
         return not any(re.match(e, self.normalize_glob(item), re.IGNORECASE) for e in self.options_exclude)
@@ -109,7 +109,7 @@ class CythonBuildHook(BuildHookInterface):
     @property
     def included_files(self):
         included = []
-        _normu = [self.normalize_glob(parse_user_glob(e)) for e in self.options.files.exclude]
+        _normu = [self.normalize_glob(parse_user_glob(e.matches)) for e in self.options.files.exclude if e.applies()]
         self.app.display_debug("user globs")
         self.app.display_debug(_normu)
         for patt in self.precompiled_globs:
