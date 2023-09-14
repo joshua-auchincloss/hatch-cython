@@ -1,3 +1,6 @@
+[build]
+ignore-vcs = true
+
 [build.targets.wheel]
 packages = ["src/example_lib"]
 
@@ -64,6 +67,14 @@ exclude = [
 ]
 aliases = {"example_lib._alias" = "example_lib.aliased"}
 
+[build.hooks.custom.options.sdist]
+
+platforms = [
+  { platform = "linux",   arch = ["x86_64", "x86"] },
+  { platform = "freebsd", arch = ["x86_64"] },
+  { platform = "darwin",  arch = ["arm64", "x86_64"] },
+  { platform = "windows", arch = ["x86_64", "x86"] }
+]
 
 
 # end of cython

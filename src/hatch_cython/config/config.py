@@ -14,6 +14,7 @@ from hatch_cython.config.flags import EnvFlags, parse_env_args
 from hatch_cython.config.includes import parse_includes
 from hatch_cython.config.macros import DefineMacros, parse_macros
 from hatch_cython.config.platform import ListedArgs, PlatformArgs, parse_platform_args
+from hatch_cython.config.sdist import SdistConfig, parse_sdist
 from hatch_cython.config.templates import Templates, parse_template_kwds
 from hatch_cython.constants import DIRECTIVES, EXIST_TRIM, INCLUDE, LTPY311, MUST_UNIQUE
 from hatch_cython.types import CallableT, ListStr
@@ -57,6 +58,9 @@ def parse_from_dict(cls: BuildHookInterface):
             elif kw == "templates":
                 val: dict
                 parsed: Templates = parse_template_kwds(val)
+            elif kw == "sdist":
+                val: dict
+                parsed: SdistConfig = parse_sdist(val)
             else:
                 val: any
                 parsed: any = val
@@ -118,6 +122,7 @@ class Config:
     envflags: EnvFlags = field(default_factory=EnvFlags)
     compile_py: bool = field(default=True)
     templates: Templates = field(default_factory=Templates)
+    sdist: SdistConfig = field(default_factory=lambda: parse_sdist({}))
 
     def __post_init__(self):
         self.directives = {**DIRECTIVES, **self.directives}

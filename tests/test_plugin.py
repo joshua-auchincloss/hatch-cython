@@ -77,13 +77,11 @@ def test_wheel_build_hook(new_proj):
             "force_include": {},
         }
         hook.initialize("0.1.0", build_data)
+
         assert sorted(hook.normalized_included_files) == sorted(
             [
                 "./src/example_lib/__about__.py",
-                "./src/example_lib/__about__.py",
                 "./src/example_lib/__init__.py",
-                "./src/example_lib/__init__.py",
-                "./src/example_lib/_alias.pyx",
                 "./src/example_lib/_alias.pyx",
                 "./src/example_lib/mod_a/__init__.py",
                 "./src/example_lib/mod_a/adds.pyx",
@@ -91,10 +89,7 @@ def test_wheel_build_hook(new_proj):
                 "./src/example_lib/mod_a/some_defn.pxd",
                 "./src/example_lib/mod_a/some_defn.py",
                 "./src/example_lib/normal.py",
-                "./src/example_lib/normal.py",
                 "./src/example_lib/templated.pyx",
-                "./src/example_lib/templated.pyx",
-                "./src/example_lib/test.pyx",
                 "./src/example_lib/test.pyx",
             ]
         )
@@ -118,22 +113,13 @@ def test_wheel_build_hook(new_proj):
         rf = sorted(
             [
                 "./src/example_lib/__about__.*.pxd",
-                "./src/example_lib/__about__.*.pxd",
-                "./src/example_lib/__about__.*.py",
                 "./src/example_lib/__about__.*.py",
                 "./src/example_lib/__about__.*.pyx",
-                "./src/example_lib/__about__.*.pyx",
-                "./src/example_lib/__init__.*.pxd",
                 "./src/example_lib/__init__.*.pxd",
                 "./src/example_lib/__init__.*.py",
-                "./src/example_lib/__init__.*.py",
-                "./src/example_lib/__init__.*.pyx",
                 "./src/example_lib/__init__.*.pyx",
                 "./src/example_lib/_alias.*.pxd",
-                "./src/example_lib/_alias.*.pxd",
                 "./src/example_lib/_alias.*.py",
-                "./src/example_lib/_alias.*.py",
-                "./src/example_lib/_alias.*.pyx",
                 "./src/example_lib/_alias.*.pyx",
                 "./src/example_lib/mod_a/__init__.*.pxd",
                 "./src/example_lib/mod_a/__init__.*.py",
@@ -151,22 +137,13 @@ def test_wheel_build_hook(new_proj):
                 "./src/example_lib/mod_a/some_defn.*.pyx",
                 "./src/example_lib/mod_a/some_defn.*.pyx",
                 "./src/example_lib/normal.*.pxd",
-                "./src/example_lib/normal.*.pxd",
-                "./src/example_lib/normal.*.py",
                 "./src/example_lib/normal.*.py",
                 "./src/example_lib/normal.*.pyx",
-                "./src/example_lib/normal.*.pyx",
-                "./src/example_lib/templated.*.pxd",
                 "./src/example_lib/templated.*.pxd",
                 "./src/example_lib/templated.*.py",
-                "./src/example_lib/templated.*.py",
-                "./src/example_lib/templated.*.pyx",
                 "./src/example_lib/templated.*.pyx",
                 "./src/example_lib/test.*.pxd",
-                "./src/example_lib/test.*.pxd",
                 "./src/example_lib/test.*.py",
-                "./src/example_lib/test.*.py",
-                "./src/example_lib/test.*.pyx",
                 "./src/example_lib/test.*.pyx",
             ]
         )
