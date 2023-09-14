@@ -122,7 +122,15 @@ exclude = [
     # note - anything "*" is escaped to "([^\s]*)" (non whitespace).
     # if you need an actual * for python regex, use as below:
     # this excludes all pyd or pytempl extensions
-    "([^.]\\*).(pyd$|pytempl$)"
+    "([^.]\\*).(pyd$|pytempl$)",
+    # only windows
+    { matches = "*/windows", platforms = ["linux", "darwin", "freebsd"] },
+    # only darwin
+    { matches = "*/darwin", platforms = ["linux", "freebsd", "windows"] },
+    # only linux
+    { matches = "*/linux", platforms = ["darwin", "freebsd", "windows"] },
+    # only freebsd
+    { matches = "*/freebsd", platforms = ["linux", "darwin", "windows"] }
 ]
 aliases = {"abclib._filewithoutsuffix" = "abclib.importalias"}
 ```
