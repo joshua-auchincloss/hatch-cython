@@ -1,12 +1,10 @@
 # hatch-cython
 
-[![PyPI - Version](https://img.shields.io/pypi/v/hatch-cython.svg)](https://pypi.org/project/hatch-cython)
-[![PyPI - Python Version](https://img.shields.io/pypi/pyversions/hatch-cython.svg)](https://pypi.org/project/hatch-cython)
-![PyPI - Downloads](https://img.shields.io/pypi/dw/hatch-cython)
-[![Build](https://github.com/joshua-auchincloss/hatch-cython/actions/workflows/build.yaml/badge.svg)](https://github.com/joshua-auchincloss/hatch-cython/actions)
-[![Tests](https://github.com/joshua-auchincloss/hatch-cython/actions/workflows/test.yml/badge.svg)](https://github.com/joshua-auchincloss/hatch-cython/actions)
-[![codecov](https://codecov.io/gh/joshua-auchincloss/hatch-cython/graph/badge.svg?token=T12ACNLFWV)](https://codecov.io/gh/joshua-auchincloss/hatch-cython)
-[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
+|         |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| CI/CD   | [![Build](https://github.com/joshua-auchincloss/hatch-cython/actions/workflows/build.yaml/badge.svg)](https://github.com/joshua-auchincloss/hatch-cython/actions) [![Tests](https://github.com/joshua-auchincloss/hatch-cython/actions/workflows/test.yml/badge.svg)](https://github.com/joshua-auchincloss/hatch-cython/actions)[![codecov](https://codecov.io/gh/joshua-auchincloss/hatch-cython/graph/badge.svg?token=T12ACNLFWV)](https://codecov.io/gh/joshua-auchincloss/hatch-cython) |
+| Package | [![PyPI - Version](https://img.shields.io/pypi/v/hatch-cython.svg?logo=pypi&label=PyPI&logoColor=silver)](https://pypi.org/project/hatch-cython/) [![PyPI - Downloads](https://img.shields.io/pypi/dm/hatch-cython.svg?color=blue&label=Downloads&logo=pypi&logoColor=silver)](https://pypi.org/project/hatch/) [![PyPI - Python Version](https://img.shields.io/pypi/pyversions/hatch-cython.svg?logo=python&label=Python&logoColor=silver)](https://pypi.org/project/hatch-cython/)        |
+| Meta    | [![Hatch project](https://img.shields.io/badge/%F0%9F%A5%9A-Hatch-4051b5.svg)](https://github.com/pypa/hatch) [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)                                                                                                                                                                                                                   |
 
 ---
 
@@ -25,9 +23,13 @@ The build hook name is `cython`.
 - _pyproject.toml_
 
 ```toml
+# [tool.hatch.build.hooks.cython]
+# or
 [tool.hatch.build.targets.wheel.hooks.cython]
 dependencies = ["hatch-cython"]
 
+# [tool.hatch.build.hooks.cython.options]
+# or
 [tool.hatch.build.targets.wheel.hooks.cython.options]
 <!-- include .h or .cpp directories -->
 includes = []
@@ -35,7 +37,9 @@ includes = []
 include_numpy = false
 include_pyarrow = false
 
+<!-- include_{custom} -->
 include_somelib = {
+    <!-- must be included in build-dependencies -->
     pkg = "somelib",
     <!-- somelib.gets_include() -> str -->
     include = "gets_include",
@@ -48,12 +52,15 @@ include_somelib = {
 }
 
 compile_args = [
-    <!-- single string -->
-    "-std=c++17",
-    <!-- list of platforms + arg -->
-    { platforms = ["nt"], arg = "-std=c++17" },
-    <!-- single platform + arg -->
-    { platforms = "posix", arg = "-I/abc/def" },
+  <!-- single string -->
+  "-v",
+  <!-- by platform -->
+  { platforms = ["linux", "darwin"], arg = "-Wcpp" },
+  <!-- by platform & arch -->
+  { platforms = "darwin", arch = "x86_64", arg = "-arch x86_64" },
+  { platforms = ["darwin"], arch = "arm64", arg = "-arch arm64" },
+  <!-- with pep508 markers -->
+  { platforms = ["darwin"], arch = "x86_64", arg = "-I/usr/local/opt/llvm/include", depends_path = true, marker = "python_version <= '3.10'"  },
 ]
 
 directives = { boundscheck = false, nonecheck = false, language_level = 3, binding = true }
@@ -64,9 +71,13 @@ compile_kwargs = { }
 - _hatch.toml_
 
 ```toml
+# [build.hooks.cython]
+# or
 [build.targets.wheel.hooks.cython]
 dependencies = ["hatch-cython"]
 
+# [build.hooks.cython.options]
+# or
 [build.targets.wheel.hooks.cython.options]
 directives = { boundscheck = false, nonecheck = false, language_level = 3, binding = true }
 compile_args = [
@@ -77,6 +88,7 @@ include_numpy = false
 <!-- equivalent to include_pyarrow = true -->
 include_somelib = { pkg = "pyarrow", include="get_include", libraries="get_libraries", library_dirs="get_library_dirs", required_call="create_library_symlinks" }
 define_macros = [
+    <!-- ["ABC"] -> ["ABC", "FOO"] | ["ABC", "DEF"] -->
     ["NPY_NO_DEPRECATED_API", "NPY_1_7_API_VERSION"],
 ]
 ```
@@ -110,10 +122,22 @@ exclude = [
     # note - anything "*" is escaped to "([^\s]*)" (non whitespace).
     # if you need an actual * for python regex, use as below:
     # this excludes all pyd or pytempl extensions
-    "([^.]\\*).(pyd$|pytempl$)"
+    "([^.]\\*).(pyd$|pytempl$)",
+    # only windows
+    { matches = "*/windows", platforms = ["linux", "darwin", "freebsd"] },
+    # only darwin
+    { matches = "*/darwin", platforms = ["linux", "freebsd", "windows"] },
+    # only linux
+    { matches = "*/linux", platforms = ["darwin", "freebsd", "windows"] },
+    # only freebsd
+    { matches = "*/freebsd", platforms = ["linux", "darwin", "windows"] }
 ]
 aliases = {"abclib._filewithoutsuffix" = "abclib.importalias"}
 ```
+
+## sdist
+
+Sdist archives may be generated normally. `hatch` must be defined as the `build-system` build-backend in your `pyproject.toml`. As such, hatch will automatically install `hatch-cython`, and perform the specified e.g. platform-specific adjustments to the compile-time arguments. This allows the full build-process to be respected, and generated following specifications of the developer._Note_: If you specify `hatch-cython` to run outside of simply wheel-step processes, the extension module is skipped. As such, the `.c` & `.cpp`, as well as templated files, may be generated and stored in the sdist should you wish. However, there is currently little purpose to this, as the extension will likely have differed compile arguments.
 
 ## Templating
 

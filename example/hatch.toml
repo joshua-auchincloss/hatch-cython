@@ -1,14 +1,13 @@
 [build]
 ignore-vcs = true
-artifacts = [
-    "*.so",
-    "*.dll",
-]
 
 [build.targets.wheel]
 packages = ["src/example_lib"]
 
-[build.targets.wheel.hooks.custom]
+# custom = cython in context of devel
+
+
+[build.hooks.custom]
 path = "../src/hatch_cython/devel.py"
 dependencies = [
   "Cython",
@@ -19,7 +18,7 @@ dependencies = [
   "typing_extensions; python_version < '3.10'"
 ]
 
-[build.targets.wheel.hooks.custom.options]
+[build.hooks.custom.options]
 src = "example_lib"
 parallel = true
 include_numpy = true
@@ -49,7 +48,7 @@ define_macros = [
     ["NPY_NO_DEPRECATED_API", "NPY_1_7_API_VERSION"],
 ]
 
-[build.targets.wheel.hooks.custom.options.templates]
+[build.hooks.custom.options.templates]
 index = [
   {keyword = "global", matches = "*" },
   {keyword = "templated_mac", matches = "templated.*.in",  platforms = ["darwin"] },
@@ -61,12 +60,20 @@ templated_mac = { supported = ["int", "float"] }
 templated_win = { supported = ["int", "float", "complex"] }
 
 
-[build.targets.wheel.hooks.custom.options.files]
+[build.hooks.custom.options.files]
 exclude = [
-    "*/no_compile/*",
-    "*_sample*",
+    { matches = "*/no_compile/*"},
+    { matches = "*_sample*"},
+    { matches = "*/windows", platforms = ["linux", "darwin", "freebsd"] },
+    { matches = "*/darwin", platforms = ["linux", "freebsd", "windows"] },
+    { matches = "*/linux", platforms = ["darwin", "freebsd", "windows"] },
+    { matches = "*/freebsd", platforms = ["linux", "darwin", "windows"] }
 ]
+
 aliases = {"example_lib._alias" = "example_lib.aliased"}
+
+# end of cython
+
 
 [[envs.all.matrix]]
 python = ["3.8", "3.9", "3.10", "3.11"]

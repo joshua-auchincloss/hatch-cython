@@ -52,9 +52,14 @@ class PlatformBase(Hashable):
         _anon = ANON == att and defn == ""
         return (att in (defn, "*")) or _anon
 
-    def applies(self):
-        _isplatform = self._applies_impl("platforms", plat())
-        _isarch = self._applies_impl("arch", aarch())
+    def applies(self, platform: UnionT[None, str] = None, arch: UnionT[None, str] = None):
+        if platform is None:
+            platform = plat()
+        if arch is None:
+            arch = aarch()
+
+        _isplatform = self._applies_impl("platforms", platform)
+        _isarch = self._applies_impl("arch", arch)
         return _isplatform and _isarch
 
     def is_exist(self, trim: int = 0):

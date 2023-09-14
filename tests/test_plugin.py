@@ -6,6 +6,7 @@ import pytest
 from toml import load
 
 from hatch_cython.plugin import CythonBuildHook
+from hatch_cython.utils import plat
 
 from .utils import arch_platform, override_dir
 
@@ -33,14 +34,14 @@ def new_proj(tmp_path):
     return project_dir
 
 
-def test_build_hook(new_proj):
+def test_wheel_build_hook(new_proj):
     hook = CythonBuildHook(
         new_proj,
-        load(new_proj / "hatch.toml")["build"]["targets"]["wheel"]["hooks"]["custom"],
+        load(new_proj / "hatch.toml")["build"]["hooks"]["custom"],
         {},
         {},
-        new_proj,
-        "abc",
+        directory=new_proj,
+        target_name="wheel",
     )
 
     assert hook.is_src
@@ -77,24 +78,20 @@ def test_build_hook(new_proj):
             "force_include": {},
         }
         hook.initialize("0.1.0", build_data)
+
         assert sorted(hook.normalized_included_files) == sorted(
             [
                 "./src/example_lib/__about__.py",
-                "./src/example_lib/__about__.py",
                 "./src/example_lib/__init__.py",
-                "./src/example_lib/__init__.py",
-                "./src/example_lib/_alias.pyx",
                 "./src/example_lib/_alias.pyx",
                 "./src/example_lib/mod_a/__init__.py",
                 "./src/example_lib/mod_a/adds.pyx",
+                f"./src/example_lib/platform/{plat()}.pyx",
                 "./src/example_lib/mod_a/deep_nest/creates.pyx",
                 "./src/example_lib/mod_a/some_defn.pxd",
                 "./src/example_lib/mod_a/some_defn.py",
                 "./src/example_lib/normal.py",
-                "./src/example_lib/normal.py",
                 "./src/example_lib/templated.pyx",
-                "./src/example_lib/templated.pyx",
-                "./src/example_lib/test.pyx",
                 "./src/example_lib/test.pyx",
             ]
         )
@@ -103,49 +100,29 @@ def test_build_hook(new_proj):
             [{**ls, "files": sorted(ls.get("files"))} for ls in hook.grouped_included_files],
             key=lambda x: x.get("name"),
         ) == [
-            {
-                "name": "example_lib.__about__",
-                "files": ["./src/example_lib/__about__.py", "./src/example_lib/__about__.py"],
-            },
-            {
-                "name": "example_lib.__init__",
-                "files": ["./src/example_lib/__init__.py", "./src/example_lib/__init__.py"],
-            },
-            {"name": "example_lib.aliased", "files": ["./src/example_lib/_alias.pyx", "./src/example_lib/_alias.pyx"]},
+            {"name": "example_lib.__about__", "files": ["./src/example_lib/__about__.py"]},
+            {"name": "example_lib.__init__", "files": ["./src/example_lib/__init__.py"]},
+            {"name": "example_lib.aliased", "files": ["./src/example_lib/_alias.pyx"]},
             {"name": "example_lib.mod_a.__init__", "files": ["./src/example_lib/mod_a/__init__.py"]},
             {"name": "example_lib.mod_a.adds", "files": ["./src/example_lib/mod_a/adds.pyx"]},
             {"name": "example_lib.mod_a.deep_nest.creates", "files": ["./src/example_lib/mod_a/deep_nest/creates.pyx"]},
-            {
-                "name": "example_lib.mod_a.some_defn",
-                "files": ["./src/example_lib/mod_a/some_defn.py", "./src/example_lib/mod_a/some_defn.py"],
-            },
-            {"name": "example_lib.normal", "files": ["./src/example_lib/normal.py", "./src/example_lib/normal.py"]},
-            {
-                "files": ["./src/example_lib/templated.pyx", "./src/example_lib/templated.pyx"],
-                "name": "example_lib.templated",
-            },
-            {"name": "example_lib.test", "files": ["./src/example_lib/test.pyx", "./src/example_lib/test.pyx"]},
+            {"name": "example_lib.mod_a.some_defn", "files": ["./src/example_lib/mod_a/some_defn.py"]},
+            {"name": "example_lib.normal", "files": ["./src/example_lib/normal.py"]},
+            {"name": f"example_lib.platform.{plat()}", "files": [f"./src/example_lib/platform/{plat()}.pyx"]},
+            {"name": "example_lib.templated", "files": ["./src/example_lib/templated.pyx"]},
+            {"name": "example_lib.test", "files": ["./src/example_lib/test.pyx"]},
         ]
 
         rf = sorted(
             [
                 "./src/example_lib/__about__.*.pxd",
-                "./src/example_lib/__about__.*.pxd",
-                "./src/example_lib/__about__.*.py",
                 "./src/example_lib/__about__.*.py",
                 "./src/example_lib/__about__.*.pyx",
-                "./src/example_lib/__about__.*.pyx",
-                "./src/example_lib/__init__.*.pxd",
                 "./src/example_lib/__init__.*.pxd",
                 "./src/example_lib/__init__.*.py",
-                "./src/example_lib/__init__.*.py",
-                "./src/example_lib/__init__.*.pyx",
                 "./src/example_lib/__init__.*.pyx",
                 "./src/example_lib/_alias.*.pxd",
-                "./src/example_lib/_alias.*.pxd",
                 "./src/example_lib/_alias.*.py",
-                "./src/example_lib/_alias.*.py",
-                "./src/example_lib/_alias.*.pyx",
                 "./src/example_lib/_alias.*.pyx",
                 "./src/example_lib/mod_a/__init__.*.pxd",
                 "./src/example_lib/mod_a/__init__.*.py",
@@ -163,30 +140,21 @@ def test_build_hook(new_proj):
                 "./src/example_lib/mod_a/some_defn.*.pyx",
                 "./src/example_lib/mod_a/some_defn.*.pyx",
                 "./src/example_lib/normal.*.pxd",
-                "./src/example_lib/normal.*.pxd",
-                "./src/example_lib/normal.*.py",
                 "./src/example_lib/normal.*.py",
                 "./src/example_lib/normal.*.pyx",
-                "./src/example_lib/normal.*.pyx",
-                "./src/example_lib/templated.*.pxd",
                 "./src/example_lib/templated.*.pxd",
                 "./src/example_lib/templated.*.py",
-                "./src/example_lib/templated.*.py",
                 "./src/example_lib/templated.*.pyx",
-                "./src/example_lib/templated.*.pyx",
-                "./src/example_lib/test.*.pxd",
+                f"./src/example_lib/platform/{plat()}.*.pxd",
+                f"./src/example_lib/platform/{plat()}.*.py",
+                f"./src/example_lib/platform/{plat()}.*.pyx",
                 "./src/example_lib/test.*.pxd",
                 "./src/example_lib/test.*.py",
-                "./src/example_lib/test.*.py",
-                "./src/example_lib/test.*.pyx",
                 "./src/example_lib/test.*.pyx",
             ]
         )
-        assert sorted(hook.normalized_artifact_globs) == rf
-
-        assert sorted(hook.artifact_patterns) == [f"/{f}" for f in rf]
-
+        assert sorted(hook.normalized_dist_globs) == rf
         assert build_data.get("infer_tag")
         assert not build_data.get("pure_python")
-        assert sorted(build_data.get("artifacts")) == sorted([f"/{f}" for f in rf])
-        assert len(build_data.get("force_include")) == 10
+        assert sorted(hook.artifacts) == sorted(build_data.get("artifacts")) == sorted([f"/{f}" for f in rf])
+        assert len(build_data.get("force_include")) == 11

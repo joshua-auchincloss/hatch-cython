@@ -1,5 +1,6 @@
 import ast
 from collections.abc import Generator
+from textwrap import dedent
 from unittest.mock import patch
 
 from hatch_cython.config import Config, PlatformArgs
@@ -12,7 +13,8 @@ def clean(s: str):
     return "\n".join(v.strip() for v in s.splitlines() if v.strip() != "")
 
 
-EXPECT = """
+EXPECT = dedent(
+    """
 from setuptools import Extension, setup
 from Cython.Build import cythonize
 
@@ -38,8 +40,8 @@ if __name__ == "__main__":
             include_path=INCLUDES,
             abc='def'
     )
-    setup(ext_modules=ext_modules)
-""".strip()
+    setup(ext_modules=ext_modules)"""
+)
 
 
 def test_setup_py():
@@ -50,14 +52,25 @@ def test_setup_py():
         cythonize_kwargs={"abc": "def"},
         extra_link_args=[PlatformArgs(arg="-I/etc/abc/linka.h")],
     )
+    defs = [
+        {"name": "abc.def", "files": ["./abc/def.pyx"]},
+        {"name": "abc.depb", "files": ["./abc/depb.py"]},
+    ]
     with patch("hatch_cython.config.config.path.exists", true_if_eq()):
         with arch_platform("x86_64", ""):
-            setup = setup_py(
-                {"name": "abc.def", "files": ["./abc/def.pyx"]},
-                {"name": "abc.depb", "files": ["./abc/depb.py"]},
+            setup1 = setup_py(
+                *defs,
                 options=cfg,
+                sdist=False,
             )
-    assert clean(setup) == clean(EXPECT)
+            setup2 = setup_py(
+                *defs,
+                options=cfg,
+                sdist=True,
+            )
+
+    assert clean(setup1) == clean(EXPECT)
+    assert clean(setup2) == clean("\n".join(EXPECT.splitlines()[:-1]))
 
 
 def test_solo_ext_type_validations():
@@ -73,6 +86,7 @@ def test_solo_ext_type_validations():
             setup = setup_py(
                 {"name": "abc.def", "files": ["./abc/def.pyx"]},
                 options=cfg,
+                sdist=True,
             )
     tested = False
     exteq = "EXTENSIONS ="
