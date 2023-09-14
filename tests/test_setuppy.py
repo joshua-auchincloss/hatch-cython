@@ -81,6 +81,7 @@ def test_solo_ext_type_validations():
         cythonize_kwargs={"abc": "def"},
         extra_link_args=[PlatformArgs(arg="-I/etc/abc/linka.h")],
     )
+
     with patch("hatch_cython.config.config.path.exists", true_if_eq()):
         with arch_platform("x86_64", ""):
             setup = setup_py(
