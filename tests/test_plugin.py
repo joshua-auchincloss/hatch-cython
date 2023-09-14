@@ -6,6 +6,7 @@ import pytest
 from toml import load
 
 from hatch_cython.plugin import CythonBuildHook
+from hatch_cython.utils import plat
 
 from .utils import arch_platform, override_dir
 
@@ -85,6 +86,7 @@ def test_wheel_build_hook(new_proj):
                 "./src/example_lib/_alias.pyx",
                 "./src/example_lib/mod_a/__init__.py",
                 "./src/example_lib/mod_a/adds.pyx",
+                f"./src/example_lib/platform/{plat()}.pyx",
                 "./src/example_lib/mod_a/deep_nest/creates.pyx",
                 "./src/example_lib/mod_a/some_defn.pxd",
                 "./src/example_lib/mod_a/some_defn.py",
@@ -106,6 +108,7 @@ def test_wheel_build_hook(new_proj):
             {"name": "example_lib.mod_a.deep_nest.creates", "files": ["./src/example_lib/mod_a/deep_nest/creates.pyx"]},
             {"name": "example_lib.mod_a.some_defn", "files": ["./src/example_lib/mod_a/some_defn.py"]},
             {"name": "example_lib.normal", "files": ["./src/example_lib/normal.py"]},
+            {"name": f"example_lib.platform.{plat()}", "files": [f"./src/example_lib/platform/{plat()}.pyx"]},
             {"name": "example_lib.templated", "files": ["./src/example_lib/templated.pyx"]},
             {"name": "example_lib.test", "files": ["./src/example_lib/test.pyx"]},
         ]
@@ -142,6 +145,9 @@ def test_wheel_build_hook(new_proj):
                 "./src/example_lib/templated.*.pxd",
                 "./src/example_lib/templated.*.py",
                 "./src/example_lib/templated.*.pyx",
+                f"./src/example_lib/platform/{plat()}.*.pxd",
+                f"./src/example_lib/platform/{plat()}.*.py",
+                f"./src/example_lib/platform/{plat()}.*.pyx",
                 "./src/example_lib/test.*.pxd",
                 "./src/example_lib/test.*.py",
                 "./src/example_lib/test.*.pyx",
@@ -151,4 +157,4 @@ def test_wheel_build_hook(new_proj):
         assert build_data.get("infer_tag")
         assert not build_data.get("pure_python")
         assert sorted(hook.artifacts) == sorted(build_data.get("artifacts")) == sorted([f"/{f}" for f in rf])
-        assert len(build_data.get("force_include")) == 10
+        assert len(build_data.get("force_include")) == 11

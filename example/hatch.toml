@@ -62,12 +62,12 @@ templated_win = { supported = ["int", "float", "complex"] }
 
 [build.hooks.custom.options.files]
 exclude = [
-    "*/no_compile/*",
-    "*_sample*",
+    { matches = "*/no_compile/*"},
+    { matches = "*_sample*"},
     { matches = "*/windows", platforms = ["linux", "darwin", "freebsd"] },
     { matches = "*/darwin", platforms = ["linux", "freebsd", "windows"] },
     { matches = "*/linux", platforms = ["darwin", "freebsd", "windows"] },
-    { matches = "*/freebsd", platforms = ["linux", "darwin", "windows"] },
+    { matches = "*/freebsd", platforms = ["linux", "darwin", "windows"] }
 ]
 
 aliases = {"example_lib._alias" = "example_lib.aliased"}
