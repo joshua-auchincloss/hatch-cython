@@ -30,9 +30,17 @@ jobs:
       - name: Install
         if: startsWith(matrix.os, 'macos-')
         run: |
-          brew install libomp llvm --force
-          echo $(brew info llvm)
-          echo $(arch)
+          rm -rf /usr/local/bin/2to3*
+          brew prune
+          brew install libomp llvm
+          echo "
+          export PATH=\"/usr/local/opt/llvm/bin:$PATH\"
+          export LDFLAGS=\"-L/usr/local/opt/llvm/lib\"
+          export CPPFLAGS=\"-I/usr/local/opt/llvm/include\"
+          export LD=ld.lld
+          export AR=llvm-ar
+          export RANLIB=llvm-ranlib
+          " >> $HOME/.bash_profile
 
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v4
