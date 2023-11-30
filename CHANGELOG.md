@@ -8,6 +8,7 @@ All notable changes to this project will be documented in this file.
 
 - Version [ci skip]
 - Trigger build
+- Depreciate `retain_intermediate_artifacts`
 
 ### Miscellaneous Tasks
 

@@ -30,9 +30,8 @@ jobs:
       - name: Install
         if: startsWith(matrix.os, 'macos-')
         run: |
-          brew install libomp llvm &&
-          brew link llvm &&
-          echo $(brew info llvm) &&
+          brew install libomp llvm
+          echo $(brew info llvm)
           echo $(arch)
 
       - name: Set up Python ${{ matrix.python-version }}

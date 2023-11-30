@@ -89,6 +89,11 @@ def parse_from_dict(cls: BuildHookInterface):
                 PlatformArgs(arg="/openmp", platforms="windows"),
                 PlatformArgs(arg="-fopenmp", platforms="linux"),
                 PlatformArgs(arg="-lomp", platforms="darwin", marker=LTPY311, apply_to_marker=running_in_ci),
+                PlatformArgs(
+                    arg="-L/usr/local/opt/llvm/lib/c++ -Wl,-rpath,/usr/local/opt/llvm/lib/c++",
+                    platforms=["darwin"],
+                    depends_path=True,
+                ),
             ]
             cma = ({*cfg.compile_args}).union({*comp})
             cfg.compile_args = list(cma)

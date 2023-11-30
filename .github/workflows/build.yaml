@@ -5,10 +5,10 @@ on:
     tags:
       - v*
     branches:
-      - master
+      - main
   pull_request:
     branches:
-      - master
+      - main
 
 permissions:
   contents: read
@@ -37,9 +37,8 @@ jobs:
       - name: Install
         if: startsWith(matrix.os, 'macos-')
         run: |
-          brew install libomp llvm &&
-          brew link llvm &&
-          echo $(brew info llvm) &&
+          brew install libomp llvm
+          echo $(brew info llvm)
           echo $(arch)
 
       - name: Set up Python ${{ matrix.python-version }}
@@ -73,7 +72,7 @@ jobs:
           hatch run test
 
   Build:
-    needs: Validate
+    needs: [Validate]
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/')
     environment:
