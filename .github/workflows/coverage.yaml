@@ -13,6 +13,6 @@ jobs:
       - name: Install dependencies
         run: pip install '.[test]'
       - name: Run tests and collect coverage
-        run: pytest --cov --ignore=example
+        run: pytest --cov --ignore=test_libraries
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v3

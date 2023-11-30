@@ -37,7 +37,7 @@ jobs:
       - name: Install
         if: startsWith(matrix.os, 'macos-')
         run: |
-          brew install libomp llvm
+          brew install libomp llvm --force
           echo $(brew info llvm)
           echo $(arch)
 
