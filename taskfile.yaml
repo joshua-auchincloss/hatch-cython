@@ -31,7 +31,7 @@ tasks:
       - cp -r ../src_structure/tests/* ./tests/
       - task: std-test
         vars:
-          DIR: test_libraries/src_structure
+          DIR: test_libraries/simple_structure
       - rm -rf ./example_lib/*
       - rm -rf ./tests/*
 
@@ -59,6 +59,12 @@ tasks:
       - isort .
       - ruff src --fix
       - ruff . --fix
+
+  precommit:
+    cmds:
+      - task lint
+      - pre-commit run --all-files
+      - git-cliff -o CHANGELOG.md
 
   missed:
     cmds:

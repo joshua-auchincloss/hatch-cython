@@ -32,9 +32,9 @@ __known__ = frozenset(
         "library_dirs",
         "compile_args",
         "define_macros",
+        "compiled_sdist",
         "extra_link_args",
         "cythonize_kwargs",
-        "retain_intermediate_artifacts",
     )
 )
 
@@ -113,7 +113,7 @@ class Config:
     compile_kwargs: dict = field(default_factory=dict)
     cythonize_kwargs: dict = field(default_factory=dict)
     extra_link_args: ListedArgs = field(default_factory=get_default_link)
-    retain_intermediate_artifacts: bool = field(default=False)
+    compiled_sdist: bool = field(default=False)
     envflags: EnvFlags = field(default_factory=EnvFlags)
     compile_py: bool = field(default=True)
     templates: Templates = field(default_factory=Templates)

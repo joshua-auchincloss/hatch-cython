@@ -21,8 +21,8 @@ dependencies = [
 [build.hooks.custom.options]
 src = "example_lib"
 parallel = true
+compiled_sdist = true
 include_numpy = true
-retain_intermediate_artifacts = true
 directives = { language_level = 3, boundscheck = false }
 compile_args = [
   { arg = "-v" },

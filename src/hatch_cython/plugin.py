@@ -127,6 +127,13 @@ class CythonBuildHook(BuildHookInterface):
         """
         return list({self.normalize_glob(f) for f in self.included_files})
 
+    def normalize_aliased_filelike(self, path: str):
+        # sometimes we end up with a case where non src produces
+        # '..example_lib._alias'
+        while ".." in path:
+            path = path.replace("..", "")
+        return path
+
     @property
     def grouped_included_files(self) -> ListT[ExtensionArg]:
         grouped: DictT[str, set] = {}
@@ -142,10 +149,12 @@ class CythonBuildHook(BuildHookInterface):
                     self.app.display_warning(f"attempted to use .pxd file without .py file ({norm})")
             if self.is_src:
                 root = root.replace("./src/", "")
-            root = root.replace("/", ".")
+            root = self.normalize_aliased_filelike(root.replace("/", "."))
             alias = self.options.files.matches_alias(root)
+            self.app.display_debug(f"check alias {ok} {root} -> {norm} -> {alias}")
             if alias:
                 root = alias
+                self.app.display_debug(f"aliased {root} -> {norm}")
             if grouped.get(root) and ok:
                 grouped[root].add(norm)
             elif ok:
@@ -314,8 +323,8 @@ class CythonBuildHook(BuildHookInterface):
             self.build_ext()
             self.app.display_info(glob(f"{self.project_dir}/*/**", recursive=True))
 
-        if not self.options.retain_intermediate_artifacts and not self.sdist:
-            self.clean_intermediate()
+        if self.sdist and not self.options.compiled_sdist:
+            self.clean(None)
 
         build_data["infer_tag"] = True
         build_data["artifacts"].extend(self.artifacts)

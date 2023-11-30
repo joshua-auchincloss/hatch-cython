@@ -21,7 +21,6 @@ dependencies = [
 src = "example_lib"
 parallel = true
 include_numpy = true
-retain_intermediate_artifacts = false
 directives = { language_level = 3, boundscheck = false }
 compile_args = [
   { arg = "-v" },
