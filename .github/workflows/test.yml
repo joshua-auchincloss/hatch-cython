@@ -27,23 +27,25 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      # - name: Install
-      #   if: startsWith(matrix.os, 'macos-')
-      #   run: |
-      #     brew update
-      #     brew cleanup
-      #     rm -rf /usr/local/bin/2to3*
-      #     rm -rf /usr/local/bin/idle3*
-      #     rm -rf /usr/local/bin/pydoc3*
-      #     brew install libomp llvm
-      #     echo "
-      #     export PATH=\"/usr/local/opt/llvm/bin:\$PATH\"
-      #     export LDFLAGS=\"-L/usr/local/opt/llvm/lib\"
-      #     export CPPFLAGS=\"-I/usr/local/opt/llvm/include\"
-      #     export LD=ld.lld
-      #     export AR=llvm-ar
-      #     export RANLIB=llvm-ranlib
-      #     " >> $HOME/.bash_profile
+      - name: Install llvm
+        if: startsWith(matrix.os, 'macos-')
+        run: |
+          brew cleanup
+          brew update -f
+          rm -rf /usr/local/bin/2to3*
+          rm -rf /usr/local/bin/idle3*
+          rm -rf /usr/local/bin/pydoc3*
+          rm -rf /usr/local/bin/python*
+          brew install libomp
+          brew install llvm
+          echo "
+          export PATH=\"/usr/local/opt/llvm/bin:\$PATH\"
+          export LDFLAGS=\"-L/usr/local/opt/llvm/lib\"
+          export CPPFLAGS=\"-I/usr/local/opt/llvm/include\"
+          export LD=ld.lld
+          export AR=llvm-ar
+          export RANLIB=llvm-ranlib
+          " >> $HOME/.bash_profile
 
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v4
