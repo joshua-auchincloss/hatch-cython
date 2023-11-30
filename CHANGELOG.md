@@ -11,10 +11,12 @@ All notable changes to this project will be documented in this file.
 - Depreciate `retain_intermediate_artifacts`
 - Macos linkage
 - Coverage
+- Brew links
 
 ### Miscellaneous Tasks
 
 - Pr #23 from joshua-auchincloss/v0.4.0-patch
+- Changelog
 
 ### Testing
 

@@ -38,10 +38,10 @@ jobs:
         if: startsWith(matrix.os, 'macos-')
         run: |
           rm -rf /usr/local/bin/2to3*
-          brew prune
+          brew cleanup
           brew install libomp llvm
           echo "
-          export PATH=\"/usr/local/opt/llvm/bin:$PATH\"
+          export PATH=\"/usr/local/opt/llvm/bin:\$PATH\"
           export LDFLAGS=\"-L/usr/local/opt/llvm/lib\"
           export CPPFLAGS=\"-I/usr/local/opt/llvm/include\"
           export LD=ld.lld
