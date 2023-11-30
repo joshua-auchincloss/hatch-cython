@@ -105,7 +105,6 @@ define_macros = [
 | includes                                               | list str                                                                                                                                                                                                                                                                                                                                                                                            |
 | includes\_{package}                                    | `{ pkg = str, include = str, libraries = str\| None, library_dirs = str \| None , required_call = str \| None }` <br/>where all fields, but `pkg`, are attributes of `pkg` in the type of `callable() -> list[str] \| str` \| `list[str] \| str`. `pkg` is a module, or loadable module object, which may be imported through `import x.y.z`.                                                       |
 | includes_numpy \| includes_pyarrow \| includes_pythran | bool<br/>3rd party named imports. must have the respective opt in `dependencies`                                                                                                                                                                                                                                                                                                                    |
-| retain_intermediate_artifacts                          | bool = False <br/>whether to keep `.c` \| `.cpp` files                                                                                                                                                                                                                                                                                                                                              |
 | parallel                                               | bool = False <br/>if parallel, add openmp headers<br/>important: if using macos, you need the *homebrew* llvm vs _apple's_ llvm in order to pass `-fopenmp` to clang compiler                                                                                                                                                                                                                       |
 | compiler                                               | compiler used at build-time. if `msvc` (Microsoft Visual Studio), `/openmp` is used as argument to compile instead of `-fopenmp`  when `parallel = true`. `default = false`                                                                                                                                                                                                                         |
 | compile_py                                             | whether to include `.py` files when building cython exts. note, this can be enabled & you can do per file / matched file ignores as below. `default = true`                                                                                                                                                                                                                                         |
@@ -159,10 +158,10 @@ aliases = {"abclib._somemod" = "abclib.somemod"}
 
 An example of this is included in:
 
-- [pyi stub file](./example/src/example_lib/templated.pyi.in)
-- [pyx cython source file](./example/src/example_lib/templated.pyx.in)
-- [pyi stub (rendered)](./example/src/example_lib/templated_maxosx_sample.pyi)
-- [pyx cython source (rendered)](./example/src/example_lib/templated_maxosx_sample.pyi)
+- [pyi stub file](./test_libraries/src_structure/src/example_lib/templated.pyi.in)
+- [pyx cython source file](./test_libraries/src_structure/src/example_lib/templated.pyx.in)
+- [pyi stub (rendered)](./test_libraries/src_structure/src/example_lib/templated_maxosx_sample.pyi)
+- [pyx cython source (rendered)](./test_libraries/src_structure/src/example_lib/templated_maxosx_sample.pyi)
 
 ### Template Arguments
 
@@ -210,9 +209,31 @@ templated_win = { supported = ["int", "float", "complex"] }
 templated_win_x86_64 = { supported = ["int", "float", "np.double"]}
 ```
 
+## Development
+
+### Requirements
+
+- a c / c++ compiler
+- python 3.8-<=3.11
+- [git-cliff] (`pip install git-cliff`)
+- [tasks]
+
+### Scripts
+
+- test: library & coverage
+  - `hatch run cov`
+- test: src structure [example](./test_libraries/src_structure/hatch.toml)
+  - `task example`
+- test: simple structure [example](./test_libraries/simple_structure/hatch.toml)
+  - `task simple-structure`
+- commit: precommitt
+  - `task precommit`
+
 ## License
 
 `hatch-cython` is distributed under the terms of the [MIT](https://spdx.org/licenses/MIT.html) license.
 
 [extensions]: (https://docs.python.org/3/distutils/apiref.html#distutils.core.Extension)
 [compiler-directives]: (https://cython.readthedocs.io/en/latest/src/userguide/source_files_and_compilation.html#compiler-directives)
+[git-cliff]: https://git-cliff.org
+[tasks]: https://taskfile.dev

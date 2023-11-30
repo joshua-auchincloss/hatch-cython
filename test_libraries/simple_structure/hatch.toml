@@ -1,0 +1,115 @@
+[build]
+ignore-vcs = true
+
+[build.hooks.custom]
+dependencies = [
+  "Cython",
+  "setuptools",
+  "numpy",
+  "llvmlite",
+  "hatch",
+  "typing_extensions; python_version < '3.10'"
+]
+path = "../../src/hatch_cython/devel.py"
+
+[build.hooks.custom.options]
+compile_args = [
+  {arg = "-v"},
+  {platforms = ["linux", "darwin"], arg = "-Wcpp"},
+  {platforms = ["darwin"], arch = "x86_64", arg = "-arch x86_64"},
+  {platforms = ["darwin"], arch = "arm64", arg = "-arch arm64"},
+  {platforms = ["darwin"], arch = "x86_64", arg = "-I/usr/local/opt/llvm/include", depends_path = true, marker = "python_version <= '3.10'"},
+  {platforms = ["darwin"], arch = "x86_64", arg = "-I/opt/homebrew/opt/llvm/include", depends_path = true, marker = "python_version <= '3.10'"}
+]
+cythonize_kwargs = {annotate = true, nthreads = 4}
+define_macros = [
+  ["NPY_NO_DEPRECATED_API", "NPY_1_7_API_VERSION"]
+]
+directives = {language_level = 3, boundscheck = false}
+env = [
+  {env = "CC", arg = "c++", platforms = ["darwin", "linux"]},
+  {env = "CPP", arg = "c++", platforms = ["darwin", "linux"]},
+  {env = "CXX", arg = "c++", platforms = ["darwin", "linux"]}
+]
+extra_link_args = [
+  {platforms = ["darwin"], arch = "x86_64", arg = "-L/usr/local/opt/llvm/lib", depends_path = true, marker = "python_version <= '3.10'"},
+  {platforms = ["darwin"], arch = "x86_64", arg = "-L/opt/homebrew/opt/llvm/lib", depends_path = true, marker = "python_version <= '3.10'"}
+]
+include_numpy = true
+parallel = true
+src = "example_lib"
+
+[build.hooks.custom.options.files]
+aliases = {"example_lib._alias" = "example_lib.aliased"}
+exclude = [
+  {matches = "*/no_compile/*"},
+  {matches = "*_sample*"},
+  {matches = "*/windows", platforms = ["linux", "darwin", "freebsd"]},
+  {matches = "*/darwin", platforms = ["linux", "freebsd", "windows"]},
+  {matches = "*/linux", platforms = ["darwin", "freebsd", "windows"]},
+  {matches = "*/freebsd", platforms = ["linux", "darwin", "windows"]}
+]
+
+[build.hooks.custom.options.templates]
+global = {supported = ["int"]}
+index = [
+  {keyword = "global", matches = "*"},
+  {keyword = "templated_mac", matches = "templated.*.in", platforms = ["darwin"]},
+  {keyword = "templated_win", matches = "templated.*.in", platforms = ["windows"]}
+]
+templated_mac = {supported = ["int", "float"]}
+templated_win = {supported = ["int", "float", "complex"]}
+
+[build.targets.wheel]
+packages = ["example_lib"]
+
+[[envs.all.matrix]]
+python = ["3.8", "3.9", "3.10", "3.11"]
+
+[envs.default]
+dependencies = [
+  "coverage",
+  "pytest",
+  "beartype",
+  "numpy"
+]
+
+[envs.default.scripts]
+cov = [
+  "install",
+  "test-cov",
+  "cov-report"
+]
+cov-report = [
+  "- coverage combine",
+  "coverage report"
+]
+install = "python ../bootstrap.py"
+test = [
+  "install",
+  "pytest {args:tests}"
+]
+test-cov = "coverage run -m pytest {args:tests}"
+
+[envs.lint]
+dependencies = [
+  "black>=23.1.0",
+  "mypy>=1.0.0",
+  "ruff>=0.0.243"
+]
+detached = true
+
+[envs.lint.scripts]
+all = [
+  "style",
+  "typing"
+]
+fmt = [
+  "black {args:.}",
+  "ruff --fix {args:.}",
+  "style"
+]
+style = [
+  "ruff {args:.}",
+  "black --check --diff {args:.}"
+]
