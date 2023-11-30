@@ -10,6 +10,7 @@ All notable changes to this project will be documented in this file.
 - Trigger build
 - Depreciate `retain_intermediate_artifacts`
 - Macos linkage
+- Coverage
 
 ### Miscellaneous Tasks
 
