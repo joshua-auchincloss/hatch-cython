@@ -1,71 +1,67 @@
-version: "3"
+version: '3'
 
 tasks:
-  std-test:
-    dir: "{{.DIR}}"
-    env:
-      HATCH_CYTHON_DEVEL: 1
-    cmds:
-      - hatch --verbose build --clean
-      - hatch run test
+    std-test:
+        dir: '{{.DIR}}'
+        env:
+            HATCH_CYTHON_DEVEL: 1
+        cmds:
+        -   hatch --verbose build --clean
+        -   hatch run test
 
-  example:
-    dir: test_libraries/src_structure
-    env:
-      HATCH_CYTHON_DEVEL: 1
-    cmds:
-      - task: std-test
-        vars:
-          DIR: test_libraries/src_structure
+    example:
+        dir: test_libraries/src_structure
+        cmds:
+        -   task: std-test
+            vars:
+                DIR: test_libraries/src_structure
 
-  simple-structure:
-    dir: test_libraries/simple_structure
-    env:
-      HATCH_CYTHON_DEVEL: 1
-    cmds:
-      - rm -rf ./example_lib/*
-      - rm -rf ./tests/*
-      - echo "" > ./example_lib/.gitkeep
-      - echo "" > ./tests/.gitkeep
-      - cp -r ../src_structure/src/example_lib/* ./example_lib/
-      - cp -r ../src_structure/tests/* ./tests/
-      - task: std-test
-        vars:
-          DIR: test_libraries/simple_structure
-      - rm -rf ./example_lib/*
-      - rm -rf ./tests/*
+    simple-structure:
+        dir: test_libraries/simple_structure
+        cmds:
+        -   rm -rf ./example_lib/*
+        -   rm -rf ./tests/*
+        -   echo "" > ./example_lib/.gitkeep
+        -   echo "" > ./tests/.gitkeep
+        -   cp -r ../src_structure/src/example_lib/* ./example_lib/
+        -   cp -r ../src_structure/tests/* ./tests/
+        -   task: std-test
+            vars:
+                DIR: test_libraries/simple_structure
+        -   rm -rf ./example_lib/*
+        -   rm -rf ./tests/*
 
-  clean:
-    cmds:
-      - rm -rf dist
-      - rm -rf **/dist
-      - rm -rf .coverag*
-      - rm -rf __pycache__
-      - rm -rf **/__pycache__
-      - rm -rf ./test_libraries/src_structure/src/**/**/*.c
-      - rm -rf ./test_libraries/src_structure/src/**/**/*.so
-      - rm -rf ./test_libraries/src_structure/src/**/**/*.cpp
-      - rm -rf ./test_libraries/src_structure/src/**/**/*.html
-      - rm -rf ./**/*.so
-      - rm -rf ./**/*.html
-      - rm -rf .ruff_cache
-      - rm -rf **/.ruff_cache
-      - rm -rf .pytest_cache
-      - rm -rf **/.pytest_cache
+    clean:
+        cmds:
+        -   rm -rf dist
+        -   rm -rf **/dist
+        -   rm -rf .coverag*
+        -   rm -rf __pycache__
+        -   rm -rf **/__pycache__
+        -   rm -rf ./test_libraries/src_structure/src/**/**/*.c
+        -   rm -rf ./test_libraries/src_structure/src/**/**/*.so
+        -   rm -rf ./test_libraries/src_structure/src/**/**/*.cpp
+        -   rm -rf ./test_libraries/src_structure/src/**/**/*.html
+        -   rm -rf ./**/*.so
+        -   rm -rf ./**/*.html
+        -   rm -rf .ruff_cache
+        -   rm -rf **/.ruff_cache
+        -   rm -rf .pytest_cache
+        -   rm -rf **/.pytest_cache
 
-  lint:
-    cmds:
-      - black .
-      - isort .
-      - ruff src --fix
-      - ruff . --fix
+    lint:
+        cmds:
+        -   black .
+        -   isort .
+        -   ruff src --fix
+        -   ruff . --fix
 
-  precommit:
-    cmds:
-      - task lint
-      - pre-commit run --all-files
-      - git-cliff -o CHANGELOG.md
+    precommit:
+        cmds:
+        -   task lint
+        -   pre-commit run --all-files
+        -   git-cliff -o CHANGELOG.md
 
-  missed:
-    cmds:
-      - python3 -m http.server -d ./htmlcov
+    missed:
+        cmds:
+        -   python3 -m http.server -d ./htmlcov

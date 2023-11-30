@@ -1,17 +1,10 @@
 [build-system]
-requires = ["hatchling"]
 build-backend = "hatchling.build"
+requires = ["hatchling"]
 
 [project]
-name = "example"
-dynamic = ["version"]
-description = ''
-readme = "README.md"
-requires-python = ">=3.7"
-license = { file = "LICENSE.txt" }
-keywords = []
 authors = [
-  { name = "joshua-auchincloss", email = "joshua.auchincloss@proton.me" },
+  {name = "joshua-auchincloss", email = "joshua.auchincloss@proton.me"}
 ]
 classifiers = [
   "Development Status :: 4 - Beta",
@@ -21,27 +14,68 @@ classifiers = [
   "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: Implementation :: CPython",
-  "Programming Language :: Python :: Implementation :: PyPy",
+  "Programming Language :: Python :: Implementation :: PyPy"
 ]
 dependencies = [
-  "pytest",
+  "pytest"
 ]
+description = ''
+dynamic = ["version"]
+keywords = []
+license = {file = "LICENSE.txt"}
+name = "example"
+readme = "README.md"
+requires-python = ">=3.7"
 
 [project.urls]
 Documentation = "https://github.com/unknown/example#readme"
 Issues = "https://github.com/unknown/simple_structure/issues"
 Source = "https://github.com/unknown/example"
 
+[tool.black]
+line-length = 120
+skip-string-normalization = true
+target-version = ["py37"]
+
+[tool.coverage.paths]
+example = ["*/example_lib/*", "*/example_lib", "*/simple_structure/example_lib"]
+tests = ["tests", "*/simple_structure/tests"]
+
+[tool.coverage.report]
+exclude_lines = [
+  "no cov",
+  "if __name__ == .__main__.:",
+  "if TYPE_CHECKING:"
+]
+
+[tool.coverage.run]
+branch = true
+omit = [
+  "example_lib/__about__.py"
+]
+parallel = true
+source_pkgs = ["example_lib"]
+
 [tool.hatch.version]
 path = "example_lib/__about__.py"
 
-[tool.black]
-target-version = ["py37"]
-line-length = 120
-skip-string-normalization = true
-
 [tool.ruff]
-target-version = "py37"
+ignore = [
+  # Allow non-abstract empty methods in abstract base classes
+  "B027",
+  # Allow boolean positional values in function calls, like `dict.get(... True)`
+  "FBT003",
+  # Ignore checks for possible passwords
+  "S105",
+  "S106",
+  "S107",
+  # Ignore complexity
+  "C901",
+  "PLR0911",
+  "PLR0912",
+  "PLR0913",
+  "PLR0915"
+]
 line-length = 120
 select = [
   "A",
@@ -68,46 +102,18 @@ select = [
   "TID",
   "UP",
   "W",
-  "YTT",
+  "YTT"
 ]
-ignore = [
-  # Allow non-abstract empty methods in abstract base classes
-  "B027",
-  # Allow boolean positional values in function calls, like `dict.get(... True)`
-  "FBT003",
-  # Ignore checks for possible passwords
-  "S105", "S106", "S107",
-  # Ignore complexity
-  "C901", "PLR0911", "PLR0912", "PLR0913", "PLR0915",
-]
+target-version = "py37"
 unfixable = [
 ]
-
-[tool.ruff.isort]
-known-first-party = ["example", "example_lib"]
 
 [tool.ruff.flake8-tidy-imports]
 ban-relative-imports = "all"
 
+[tool.ruff.isort]
+known-first-party = ["example", "example_lib"]
+
 [tool.ruff.per-file-ignores]
 # Tests can use magic values, assertions, and relative imports
 "tests/**/*" = ["PLR2004", "S101", "TID252"]
-
-[tool.coverage.run]
-source_pkgs = ["example_lib"]
-branch = true
-parallel = true
-omit = [
-  "example_lib/__about__.py",
-]
-
-[tool.coverage.paths]
-example = ["*/example_lib/*", "*/example_lib", "*/simple_structure/example_lib"]
-tests = ["tests", "*/simple_structure/tests"]
-
-[tool.coverage.report]
-exclude_lines = [
-  "no cov",
-  "if __name__ == .__main__.:",
-  "if TYPE_CHECKING:",
-]

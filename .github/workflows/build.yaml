@@ -1,110 +1,112 @@
 name: build
 
 on:
-  push:
-    tags:
-      - v*
-    branches:
-      - main
-  pull_request:
-    branches:
-      - main
+    push:
+        tags:
+        -   v*
+        branches:
+        -   main
+    pull_request:
+        branches:
+        -   main
 
 permissions:
-  contents: read
+    contents: read
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
-  cancel-in-progress: true
+    group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
+    cancel-in-progress: true
 
 defaults:
-  run:
-    shell: bash
+    run:
+        shell: bash
 
 jobs:
-  Validate:
-    name: Python ${{ matrix.python-version }} on ${{ startsWith(matrix.os, 'macos-') && 'macOS' || startsWith(matrix.os, 'windows-') && 'Windows' || 'Linux' }}
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
-        python-version: ["3.8", "3.9", "3.10", "3.11"]
+    Validate:
+        name: Python ${{ matrix.python-version }} on ${{ startsWith(matrix.os, 'macos-') && 'macOS' || startsWith(matrix.os, 'windows-') && 'Windows' || 'Linux' }}
+        runs-on: ${{ matrix.os }}
+        strategy:
+            fail-fast: false
+            matrix:
+                os: [ubuntu-latest, windows-latest, macos-latest]
+                python-version: ['3.8', '3.9', '3.10', '3.11']
 
-    steps:
-      - uses: actions/checkout@v3
+        steps:
+        -   uses: actions/checkout@v3
 
-      # - name: Install
-      #   if: startsWith(matrix.os, 'macos-')
-      #   run: |
-      #     brew update
-      #     brew cleanup
-      #     rm -rf /usr/local/bin/2to3*
-      #     rm -rf /usr/local/bin/idle3*
-      #     rm -rf /usr/local/bin/pydoc3*
-      #     brew install libomp llvm
-      #     echo "
-      #     export PATH=\"/usr/local/opt/llvm/bin:\$PATH\"
-      #     export LDFLAGS=\"-L/usr/local/opt/llvm/lib\"
-      #     export CPPFLAGS=\"-I/usr/local/opt/llvm/include\"
-      #     export LD=ld.lld
-      #     export AR=llvm-ar
-      #     export RANLIB=llvm-ranlib
-      #     " >> $HOME/.bash_profile
+        -   name: Install llvm
+            if: startsWith(matrix.os, 'macos-')
+            run: |
+                brew cleanup
+                brew update -f
+                rm -rf /usr/local/bin/2to3*
+                rm -rf /usr/local/bin/idle3*
+                rm -rf /usr/local/bin/pydoc3*
+                rm -rf /usr/local/bin/python*
+                brew install libomp
+                brew install llvm
+                echo "
+                export PATH=\"/usr/local/opt/llvm/bin:\$PATH\"
+                export LDFLAGS=\"-L/usr/local/opt/llvm/lib\"
+                export CPPFLAGS=\"-I/usr/local/opt/llvm/include\"
+                export LD=ld.lld
+                export AR=llvm-ar
+                export RANLIB=llvm-ranlib
+                " >> $HOME/.bash_profile
 
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v4
-        with:
-          architecture: "x64"
-          python-version: ${{ matrix.python-version }}
+        -   name: Set up Python ${{ matrix.python-version }}
+            uses: actions/setup-python@v4
+            with:
+                architecture: x64
+                python-version: ${{ matrix.python-version }}
 
-      - name: Install Hatch
-        run: pip install --upgrade hatch
+        -   name: Install Hatch
+            run: pip install --upgrade hatch
 
-      - name: Run tests
-        run: hatch run cov
+        -   name: Run tests
+            run: hatch run cov
 
-      - name: Test src lib compilation
-        shell: bash
-        run: |
-          cd test_libraries/src_structure
-          echo "os: $RUNNER_OS"
-          hatch --verbose build --clean
-          hatch run test
+        -   name: Test src lib compilation
+            shell: bash
+            run: |
+                cd test_libraries/src_structure
+                echo "os: $RUNNER_OS"
+                hatch --verbose build --clean
+                hatch run test
 
-      - name: Test simple lib compilation
-        shell: bash
-        run: |
-          cd test_libraries/simple_structure
-          echo "os: $RUNNER_OS"
-          cp -r ../src_structure/src/example_lib/* ./example_lib/
-          cp -r ../src_structure/tests/* ./tests/
-          hatch --verbose build --clean
-          hatch run test
+        -   name: Test simple lib compilation
+            shell: bash
+            run: |
+                cd test_libraries/simple_structure
+                echo "os: $RUNNER_OS"
+                cp -r ../src_structure/src/example_lib/* ./example_lib/
+                cp -r ../src_structure/tests/* ./tests/
+                hatch --verbose build --clean
+                hatch run test
 
-  Build:
-    needs: [Validate]
-    runs-on: ubuntu-latest
-    if: startsWith(github.ref, 'refs/tags/')
-    environment:
-      name: pypi
-      url: https://pypi.org/p/hatch-cython
-    permissions:
-      id-token: write
-    steps:
-      - uses: actions/checkout@v3
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: "3.x"
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install hatch
-      - name: Build package
-        run: hatch build
-      - name: Publish package
-        uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-          user: __token__
-          password: ${{ secrets.PYPI_API_TOKEN }}
+    Build:
+        needs: [Validate]
+        runs-on: ubuntu-latest
+        if: startsWith(github.ref, 'refs/tags/')
+        environment:
+            name: pypi
+            url: https://pypi.org/p/hatch-cython
+        permissions:
+            id-token: write
+        steps:
+        -   uses: actions/checkout@v3
+        -   name: Set up Python
+            uses: actions/setup-python@v4
+            with:
+                python-version: 3.x
+        -   name: Install dependencies
+            run: |
+                python -m pip install --upgrade pip
+                pip install hatch
+        -   name: Build package
+            run: hatch build
+        -   name: Publish package
+            uses: pypa/gh-action-pypi-publish@release/v1
+            with:
+                user: __token__
+                password: ${{ secrets.PYPI_API_TOKEN }}

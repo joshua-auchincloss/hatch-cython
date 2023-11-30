@@ -12,6 +12,9 @@ All notable changes to this project will be documented in this file.
 - Macos linkage
 - Coverage
 - Brew links
+- Brew commands
+- Random mac errs
+- Random brew errs
 
 ### Miscellaneous Tasks
 
@@ -21,6 +24,8 @@ All notable changes to this project will be documented in this file.
 ### Testing
 
 - Different lib structures
+- Skip brew
+- Tests
 
 ### Merge
 

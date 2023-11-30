@@ -1,78 +1,78 @@
 name: test
 
 on:
-  push:
-    branches: [main, v*]
-  pull_request:
-    branches: [main, v*]
+    push:
+        branches: [main, v*]
+    pull_request:
+        branches: [main, v*]
 
 concurrency:
-  group: test-${{ github.head_ref }}
-  cancel-in-progress: true
+    group: test-${{ github.head_ref }}
+    cancel-in-progress: true
 
 env:
-  PYTHONUNBUFFERED: "1"
-  FORCE_COLOR: "1"
+    PYTHONUNBUFFERED: '1'
+    FORCE_COLOR: '1'
 
 jobs:
-  run:
-    name: Python ${{ matrix.python-version }} on ${{ startsWith(matrix.os, 'macos-') && 'macOS' || startsWith(matrix.os, 'windows-') && 'Windows' || 'Linux' }}
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
-        python-version: ["3.8", "3.9", "3.10", "3.11"]
+    run:
+        name: Python ${{ matrix.python-version }} on ${{ startsWith(matrix.os, 'macos-') && 'macOS' || startsWith(matrix.os, 'windows-') && 'Windows' || 'Linux' }}
+        runs-on: ${{ matrix.os }}
+        strategy:
+            fail-fast: false
+            matrix:
+                os: [ubuntu-latest, windows-latest, macos-latest]
+                python-version: ['3.8', '3.9', '3.10', '3.11']
 
-    steps:
-      - uses: actions/checkout@v3
+        steps:
+        -   uses: actions/checkout@v3
 
-      - name: Install llvm
-        if: startsWith(matrix.os, 'macos-')
-        run: |
-          brew cleanup
-          brew update -f
-          rm -rf /usr/local/bin/2to3*
-          rm -rf /usr/local/bin/idle3*
-          rm -rf /usr/local/bin/pydoc3*
-          rm -rf /usr/local/bin/python*
-          brew install libomp
-          brew install llvm
-          echo "
-          export PATH=\"/usr/local/opt/llvm/bin:\$PATH\"
-          export LDFLAGS=\"-L/usr/local/opt/llvm/lib\"
-          export CPPFLAGS=\"-I/usr/local/opt/llvm/include\"
-          export LD=ld.lld
-          export AR=llvm-ar
-          export RANLIB=llvm-ranlib
-          " >> $HOME/.bash_profile
+        -   name: Install llvm
+            if: startsWith(matrix.os, 'macos-')
+            run: |
+                brew cleanup
+                brew update -f
+                rm -rf /usr/local/bin/2to3*
+                rm -rf /usr/local/bin/idle3*
+                rm -rf /usr/local/bin/pydoc3*
+                rm -rf /usr/local/bin/python*
+                brew install libomp
+                brew install llvm
+                echo "
+                export PATH=\"/usr/local/opt/llvm/bin:\$PATH\"
+                export LDFLAGS=\"-L/usr/local/opt/llvm/lib\"
+                export CPPFLAGS=\"-I/usr/local/opt/llvm/include\"
+                export LD=ld.lld
+                export AR=llvm-ar
+                export RANLIB=llvm-ranlib
+                " >> $HOME/.bash_profile
 
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v4
-        with:
-          architecture: 'x64'
-          python-version: ${{ matrix.python-version }}
+        -   name: Set up Python ${{ matrix.python-version }}
+            uses: actions/setup-python@v4
+            with:
+                architecture: x64
+                python-version: ${{ matrix.python-version }}
 
-      - name: Install Hatch
-        run: pip install --upgrade hatch
+        -   name: Install Hatch
+            run: pip install --upgrade hatch
 
-      - name: Run tests
-        run: hatch run cov
+        -   name: Run tests
+            run: hatch run cov
 
-      - name: Test src lib compilation
-        shell: bash
-        run: |
-          cd test_libraries/src_structure
-          echo "os: $RUNNER_OS"
-          hatch --verbose build --clean
-          hatch run test
+        -   name: Test src lib compilation
+            shell: bash
+            run: |
+                cd test_libraries/src_structure
+                echo "os: $RUNNER_OS"
+                hatch --verbose build --clean
+                hatch run test
 
-      - name: Test simple lib compilation
-        shell: bash
-        run: |
-          cd test_libraries/simple_structure
-          echo "os: $RUNNER_OS"
-          cp -r ../src_structure/src/example_lib/* ./example_lib/
-          cp -r ../src_structure/tests/* ./tests/
-          hatch --verbose build --clean
-          hatch run test
+        -   name: Test simple lib compilation
+            shell: bash
+            run: |
+                cd test_libraries/simple_structure
+                echo "os: $RUNNER_OS"
+                cp -r ../src_structure/src/example_lib/* ./example_lib/
+                cp -r ../src_structure/tests/* ./tests/
+                hatch --verbose build --clean
+                hatch run test
