@@ -54,12 +54,22 @@ jobs:
       - name: Run tests
         run: hatch run cov
 
-      - name: Test Compile
+      - name: Test src lib compilation
         shell: bash
         run: |
-          cd example
+          cd test_libraries/src_structure
           echo "os: $RUNNER_OS"
-          hatch build
+          hatch --verbose build --clean
+          hatch run test
+
+      - name: Test simple lib compilation
+        shell: bash
+        run: |
+          cd test_libraries/simple_structure
+          echo "os: $RUNNER_OS"
+          cp -r ../src_structure/src/example_lib/* ./example_lib/
+          cp -r ../src_structure/tests/* ./tests/
+          hatch --verbose build --clean
           hatch run test
 
   Build:

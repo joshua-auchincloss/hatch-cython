@@ -159,10 +159,10 @@ aliases = {"abclib._somemod" = "abclib.somemod"}
 
 An example of this is included in:
 
-- [pyi stub file](./example/src/example_lib/templated.pyi.in)
-- [pyx cython source file](./example/src/example_lib/templated.pyx.in)
-- [pyi stub (rendered)](./example/src/example_lib/templated_maxosx_sample.pyi)
-- [pyx cython source (rendered)](./example/src/example_lib/templated_maxosx_sample.pyi)
+- [pyi stub file](./test_libraries/src_structure/src/example_lib/templated.pyi.in)
+- [pyx cython source file](./test_libraries/src_structure/src/example_lib/templated.pyx.in)
+- [pyi stub (rendered)](./test_libraries/src_structure/src/example_lib/templated_maxosx_sample.pyi)
+- [pyx cython source (rendered)](./test_libraries/src_structure/src/example_lib/templated_maxosx_sample.pyi)
 
 ### Template Arguments
 

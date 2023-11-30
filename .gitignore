@@ -12,3 +12,5 @@ dist/
 *.ipynb
 .vscode/settings.json
 .vscode/
+.ruff_cache
+.pytest_cache

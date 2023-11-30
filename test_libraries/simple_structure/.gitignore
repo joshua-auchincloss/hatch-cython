@@ -1,0 +1,4 @@
+example_lib/**
+tests/**
+!example_lib/.gitkeep
+!tests/.gitkeep

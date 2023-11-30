@@ -2,13 +2,11 @@
 ignore-vcs = true
 
 [build.targets.wheel]
-packages = ["src/example_lib"]
-
-# custom = cython in context of devel
+packages = ["example_lib"]
 
 
 [build.hooks.custom]
-path = "../src/hatch_cython/devel.py"
+path = "../../src/hatch_cython/devel.py"
 dependencies = [
   "Cython",
   "setuptools",
@@ -18,11 +16,12 @@ dependencies = [
   "typing_extensions; python_version < '3.10'"
 ]
 
+
 [build.hooks.custom.options]
 src = "example_lib"
 parallel = true
 include_numpy = true
-retain_intermediate_artifacts = true
+retain_intermediate_artifacts = false
 directives = { language_level = 3, boundscheck = false }
 compile_args = [
   { arg = "-v" },
@@ -72,9 +71,6 @@ exclude = [
 
 aliases = {"example_lib._alias" = "example_lib.aliased"}
 
-# end of cython
-
-
 [[envs.all.matrix]]
 python = ["3.8", "3.9", "3.10", "3.11"]
 
@@ -88,7 +84,6 @@ dependencies = [
 
 
 [envs.lint.scripts]
-typing = "mypy --install-types --non-interactive {args:src/funcclasses tests}"
 style = [
   "ruff {args:.}",
   "black --check --diff {args:.}",
@@ -112,7 +107,7 @@ dependencies = [
 ]
 
 [envs.default.scripts]
-install = "python bootstrap.py"
+install = "python ../bootstrap.py"
 test = [
   "install",
   "pytest {args:tests}"

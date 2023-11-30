@@ -304,11 +304,11 @@ class CythonBuildHook(BuildHookInterface):
 
     def initialize(self, _: str, build_data: dict):
         self.app.display_mini_header(self.PLUGIN_NAME)
-        self.app.display_debug("Options")
+        self.app.display_debug("options")
         self.app.display_debug(self.options.asdict(), level=1)
         self.app.display_debug("sdist")
         self.app.display_debug(self.sdist, level=1)
-        self.app.display_waiting("Pre-build artifacts")
+        self.app.display_waiting("pre-build artifacts")
 
         if len(self.grouped_included_files) != 0:
             self.build_ext()

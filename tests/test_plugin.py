@@ -20,27 +20,27 @@ def read(rel: str):
 
 
 @pytest.fixture
-def new_proj(tmp_path):
+def new_src_proj(tmp_path):
     project_dir = tmp_path / "app"
     project_dir.mkdir()
 
-    (project_dir / "pyproject.toml").write_text(read("example/pyproject.toml"))
-    (project_dir / "hatch.toml").write_text(read("example/hatch.toml"))
-    (project_dir / "README.md").write_text(read("example/README.md"))
-    (project_dir / "LICENSE.txt").write_text(read("example/LICENSE.txt"))
-    (project_dir / "bootstrap.py").write_text(read("example/bootstrap.py"))
-    shutil.copytree(join("example", "src"), (project_dir / "src"))
-    shutil.copytree(join("example", "tests"), (project_dir / "tests"))
+    (project_dir / "pyproject.toml").write_text(read("test_libraries/src_structure/pyproject.toml"))
+    (project_dir / "hatch.toml").write_text(read("test_libraries/src_structure/hatch.toml"))
+    (project_dir / "README.md").write_text(read("test_libraries/src_structure/README.md"))
+    (project_dir / "LICENSE.txt").write_text(read("test_libraries/src_structure/LICENSE.txt"))
+    (project_dir / "bootstrap.py").write_text(read("test_libraries/src_structure/bootstrap.py"))
+    shutil.copytree(join("test_libraries/src_structure", "src"), (project_dir / "src"))
+    shutil.copytree(join("test_libraries/src_structure", "tests"), (project_dir / "tests"))
     return project_dir
 
 
-def test_wheel_build_hook(new_proj):
+def test_wheel_build_hook(new_src_proj):
     hook = CythonBuildHook(
-        new_proj,
-        load(new_proj / "hatch.toml")["build"]["hooks"]["custom"],
+        new_src_proj,
+        load(new_src_proj / "hatch.toml")["build"]["hooks"]["custom"],
         {},
         {},
-        directory=new_proj,
+        directory=new_src_proj,
         target_name="wheel",
     )
 
@@ -71,7 +71,7 @@ def test_wheel_build_hook(new_proj):
         ]
     )
 
-    with override_dir(new_proj):
+    with override_dir(new_src_proj):
         hook.clean([])
         build_data = {
             "artifacts": [],
