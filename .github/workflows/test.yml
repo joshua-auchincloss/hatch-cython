@@ -30,9 +30,11 @@ jobs:
       - name: Install
         if: startsWith(matrix.os, 'macos-')
         run: |
+          brew update
           brew cleanup
           rm -rf /usr/local/bin/2to3*
           rm -rf /usr/local/bin/idle3*
+          rm -rf /usr/local/bin/pydoc3*
           brew install libomp llvm
           echo "
           export PATH=\"/usr/local/opt/llvm/bin:\$PATH\"
