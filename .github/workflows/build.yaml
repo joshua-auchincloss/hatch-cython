@@ -22,7 +22,7 @@ defaults:
         shell: bash
 
 jobs:
-    Validate:
+    validate:
         name: Python ${{ matrix.python-version }} on ${{ startsWith(matrix.os, 'macos-') && 'macOS' || startsWith(matrix.os, 'windows-') && 'Windows' || 'Linux' }}
         runs-on: ${{ matrix.os }}
         strategy:
@@ -84,29 +84,62 @@ jobs:
                 hatch --verbose build --clean
                 hatch run test
 
-    Build:
-        needs: [Validate]
+    sdist:
+        needs: [validate]
         runs-on: ubuntu-latest
-        if: startsWith(github.ref, 'refs/tags/')
-        environment:
-            name: pypi
-            url: https://pypi.org/p/hatch-cython
-        permissions:
-            id-token: write
         steps:
         -   uses: actions/checkout@v3
         -   name: Set up Python
             uses: actions/setup-python@v4
-            with:
-                python-version: 3.x
         -   name: Install dependencies
             run: |
                 python -m pip install --upgrade pip
                 pip install hatch
         -   name: Build package
-            run: hatch build
+            run: hatch build -t sdist
+        -   name: Upload sdist
+            uses: actions/upload-artifact@v3
+            with:
+                name: hatch-cython.tar.gz
+                path: ./dist/*.tar.gz
+
+    wheel:
+        needs: [validate]
+        runs-on: ${{ matrix.os }}
+        strategy:
+            matrix:
+                python-version: ['3.8', '3.9', '3.10', '3.11', '3.12']
+                os: [ubuntu-latest, windows-latest, macos-latest]
+        steps:
+        -   uses: actions/checkout@v3
+        -   name: Set up Python ${{ matrix.python-version }}
+            uses: actions/setup-python@v4
+            with:
+                architecture: x64
+                python-version: ${{ matrix.python-version }}
+        -   name: Install dependencies
+            run: |
+                python -m pip install --upgrade pip
+                pip install hatch
+        -   name: Build package
+            run: hatch build -t wheel
+        -   name: Upload wheel
+            uses: actions/upload-artifact@v3
+            with:
+                name: hatch-cython-${{ matrix.python-version }}-${{ matrix.os }}.whl
+                path: ./dist/*.whl
+
+    release:
+        needs: [sdist, wheel]
+        runs-on: ubuntu-latest
+        if: startsWith(github.ref, 'refs/tags/')
+        environment:
+            name: pypi
+            url: https://pypi.org/p/hatch-cython
+        steps:
+        -   name: Download all workflow run artifacts
+            uses: actions/download-artifact@v3
+            with:
+                path: ./dist
         -   name: Publish package
             uses: pypa/gh-action-pypi-publish@release/v1
-            with:
-                user: __token__
-                password: ${{ secrets.PYPI_API_TOKEN }}
