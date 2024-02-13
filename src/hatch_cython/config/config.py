@@ -168,11 +168,14 @@ class Config:
         im: Autoimport,
     ):
         mod = import_module(im.pkg)
-        calls = getattr(mod, im.include)
-        if not callable(calls):
-            msg = f"{im.pkg}.{im.include} is invalid"
-            raise ValueError(msg)
-        self.includes.append(calls())
+        self._post_import_attr(
+            cls,
+            im,
+            "include",
+            mod,
+            self.includes.extend,
+            self.includes.append,
+        )
         self._post_import_attr(
             cls,
             im,
