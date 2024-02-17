@@ -15,6 +15,8 @@ tasks:
         -   task: std-test
             vars:
                 DIR: test_libraries/src_structure
+        -   if [ "$(cat ./caller_outputs.json |  jaq .call)" -ne "true" ]; then exit 1; fi
+        -   if [ "$(cat ./caller_outputs.json |  jaq .includes)" -ne "true" ]; then exit 1; fi
 
     simple-structure:
         dir: test_libraries/simple_structure

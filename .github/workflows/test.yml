@@ -47,6 +47,16 @@ jobs:
                 export RANLIB=llvm-ranlib
                 " >> $HOME/.bash_profile
 
+        -   uses: hecrj/setup-rust-action@v2
+            with:
+                rust-version: stable
+
+        -   uses: cargo-bins/cargo-binstall@main
+
+        -   name: Install jaq
+            run: |
+                cargo binstall -y jaq
+
         -   name: Set up Python ${{ matrix.python-version }}
             uses: actions/setup-python@v4
             with:
@@ -66,6 +76,8 @@ jobs:
                 echo "os: $RUNNER_OS"
                 hatch --verbose build --clean
                 hatch run test
+                if [ "$(cat ./caller_outputs.json |  jaq .call)" -ne "true" ]; then exit 1; fi
+                if [ "$(cat ./caller_outputs.json |  jaq .includes)" -ne "true" ]; then exit 1; fi
 
         -   name: Test simple lib compilation
             shell: bash
