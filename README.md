@@ -25,41 +25,47 @@ The build hook name is `cython`.
 ```toml
 # [tool.hatch.build.hooks.cython]
 # or
+# (hatch.toml)
+# [build.targets.wheel.hooks.cython]
+# or
 [tool.hatch.build.targets.wheel.hooks.cython]
 dependencies = ["hatch-cython"]
 
 # [tool.hatch.build.hooks.cython.options]
 # or
+# (hatch.toml)
+# [build.targets.wheel.hooks.cython.options]
+# or
 [tool.hatch.build.targets.wheel.hooks.cython.options]
-<!-- include .h or .cpp directories -->
+# include .h or .cpp directories
 includes = []
-<!-- include numpy headers -->
+# include numpy headers
 include_numpy = false
 include_pyarrow = false
 
-<!-- include_{custom} -->
+# include_{custom}
 include_somelib = {
-    <!-- must be included in build-dependencies -->
+    # must be included in build-dependencies
     pkg = "somelib",
-    <!-- somelib.gets_include() -> str -->
+    # somelib.gets_include() -> str
     include = "gets_include",
-    <!-- somelib.gets_libraries() -> list[str] -->
+    # somelib.gets_libraries() -> list[str]
     libraries = "gets_libraries",
-    <!-- somelib.gets_library_dirs() -> list[str] -->
+    # somelib.gets_library_dirs() -> list[str]
     library_dirs = "gets_library_dirs",
-    <!-- somelib.some_setup_op() before build -->
+    # somelib.some_setup_op() before build
     required_call = "some_setup_op"
 }
 
 compile_args = [
-  <!-- single string -->
+  # single string
   "-v",
-  <!-- by platform -->
+  # by platform
   { platforms = ["linux", "darwin"], arg = "-Wcpp" },
-  <!-- by platform & arch -->
+  # by platform & arch
   { platforms = "darwin", arch = "x86_64", arg = "-arch x86_64" },
   { platforms = ["darwin"], arch = "arm64", arg = "-arch arm64" },
-  <!-- with pep508 markers -->
+  # with pep508 markers
   { platforms = ["darwin"], arch = "x86_64", arg = "-I/usr/local/opt/llvm/include", depends_path = true, marker = "python_version <= '3.10'"  },
 ]
 
@@ -85,10 +91,10 @@ compile_args = [
 ]
 includes = []
 include_numpy = false
-<!-- equivalent to include_pyarrow = true -->
+# equivalent to include_pyarrow = true
 include_somelib = { pkg = "pyarrow", include="get_include", libraries="get_libraries", library_dirs="get_library_dirs", required_call="create_library_symlinks" }
 define_macros = [
-    <!-- ["ABC"] -> ["ABC", "FOO"] | ["ABC", "DEF"] -->
+    # ["ABC"] -> ["ABC", "FOO"] | ["ABC", "DEF"]
     ["NPY_NO_DEPRECATED_API", "NPY_1_7_API_VERSION"],
 ]
 ```
@@ -195,9 +201,9 @@ index = [
 
 ]
 
-<!-- these are passed as arguments for templating -->
+# these are passed as arguments for templating
 
-<!-- 'global' is a special directive reserved & overriden by all other matched values -->
+# 'global' is a special directive reserved & overriden by all other matched values
 global = { supported = ["int"] }
 
 templated_mac = { supported = ["int", "float"] }
@@ -205,7 +211,7 @@ templated_mac_py38 = { supported = ["int", "float"] }
 
 templated_win = { supported = ["int", "float", "complex"] }
 
-<!-- assuming numpy is cimported in the template -->
+# assuming numpy is cimported in the template
 templated_win_x86_64 = { supported = ["int", "float", "np.double"]}
 ```
 

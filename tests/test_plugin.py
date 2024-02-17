@@ -23,12 +23,11 @@ def read(rel: str):
 def new_src_proj(tmp_path):
     project_dir = tmp_path / "app"
     project_dir.mkdir()
-
+    (project_dir / "bootstrap.py").write_text(read("test_libraries/bootstrap.py"))
     (project_dir / "pyproject.toml").write_text(read("test_libraries/src_structure/pyproject.toml"))
     (project_dir / "hatch.toml").write_text(read("test_libraries/src_structure/hatch.toml"))
     (project_dir / "README.md").write_text(read("test_libraries/src_structure/README.md"))
     (project_dir / "LICENSE.txt").write_text(read("test_libraries/src_structure/LICENSE.txt"))
-    (project_dir / "bootstrap.py").write_text(read("test_libraries/src_structure/bootstrap.py"))
     shutil.copytree(join("test_libraries/src_structure", "src"), (project_dir / "src"))
     shutil.copytree(join("test_libraries/src_structure", "tests"), (project_dir / "tests"))
     return project_dir
