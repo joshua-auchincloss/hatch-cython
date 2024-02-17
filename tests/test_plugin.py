@@ -1,6 +1,7 @@
 import shutil
 from os import getcwd, path
 from pathlib import Path  # noqa: F401
+from sys import path as syspath
 
 import pytest
 from toml import load
@@ -24,6 +25,7 @@ def new_src_proj(tmp_path):
     project_dir = tmp_path / "app"
     project_dir.mkdir()
     (project_dir / "bootstrap.py").write_text(read("test_libraries/bootstrap.py"))
+    (project_dir / "partial_test.py").write_text(read("test_libraries/src_structure/partial_test.py"))
     (project_dir / "pyproject.toml").write_text(read("test_libraries/src_structure/pyproject.toml"))
     (project_dir / "hatch.toml").write_text(read("test_libraries/src_structure/hatch.toml"))
     (project_dir / "README.md").write_text(read("test_libraries/src_structure/README.md"))
@@ -34,43 +36,44 @@ def new_src_proj(tmp_path):
 
 
 def test_wheel_build_hook(new_src_proj):
-    hook = CythonBuildHook(
-        new_src_proj,
-        load(new_src_proj / "hatch.toml")["build"]["hooks"]["custom"],
-        {},
-        {},
-        directory=new_src_proj,
-        target_name="wheel",
-    )
-
-    assert hook.is_src
-
-    with arch_platform("", "windows"):
-        assert hook.is_windows
-
-    with arch_platform("", "darwin"):
-        assert not hook.is_windows
-
-    with arch_platform("", "linux"):
-        assert not hook.is_windows
-
-    assert hook.dir_name == "example_lib"
-
-    proj = "./src/example_lib"
-    assert hook.project_dir == proj
-
-    assert sorted(hook.precompiled_globs) == sorted(
-        [
-            "./src/example_lib/*.py",
-            "./src/example_lib/**/*.py",
-            "./src/example_lib/*.pyx",
-            "./src/example_lib/**/*.pyx",
-            "./src/example_lib/*.pxd",
-            "./src/example_lib/**/*.pxd",
-        ]
-    )
-
     with override_dir(new_src_proj):
+        syspath.insert(0, str(new_src_proj))
+        hook = CythonBuildHook(
+            new_src_proj,
+            load(new_src_proj / "hatch.toml")["build"]["hooks"]["custom"],
+            {},
+            {},
+            directory=new_src_proj,
+            target_name="wheel",
+        )
+
+        assert hook.is_src
+
+        with arch_platform("", "windows"):
+            assert hook.is_windows
+
+        with arch_platform("", "darwin"):
+            assert not hook.is_windows
+
+        with arch_platform("", "linux"):
+            assert not hook.is_windows
+
+        assert hook.dir_name == "example_lib"
+
+        proj = "./src/example_lib"
+        assert hook.project_dir == proj
+
+        assert sorted(hook.precompiled_globs) == sorted(
+            [
+                "./src/example_lib/*.py",
+                "./src/example_lib/**/*.py",
+                "./src/example_lib/*.pyx",
+                "./src/example_lib/**/*.pyx",
+                "./src/example_lib/*.pxd",
+                "./src/example_lib/**/*.pxd",
+            ]
+        )
+
         hook.clean([])
         build_data = {
             "artifacts": [],
