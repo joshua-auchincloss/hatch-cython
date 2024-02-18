@@ -86,5 +86,7 @@ jobs:
                 echo "os: $RUNNER_OS"
                 cp -r ../src_structure/src/example_lib/* ./example_lib/
                 cp -r ../src_structure/tests/* ./tests/
+                rm ./tests/test_custom_includes.py
+                rm ./example_lib/custom_includes.*
                 hatch --verbose build --clean
                 hatch run test

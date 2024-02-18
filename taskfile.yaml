@@ -23,15 +23,17 @@ tasks:
         cmds:
         -   rm -rf ./example_lib/*
         -   rm -rf ./tests/*
-        -   echo "" > ./example_lib/.gitkeep
-        -   echo "" > ./tests/.gitkeep
         -   cp -r ../src_structure/src/example_lib/* ./example_lib/
         -   cp -r ../src_structure/tests/* ./tests/
+        -   rm ./tests/test_custom_includes.py
+        -   rm ./example_lib/custom_includes.*
         -   task: std-test
             vars:
                 DIR: test_libraries/simple_structure
         -   rm -rf ./example_lib/*
         -   rm -rf ./tests/*
+        -   echo "" > ./example_lib/.gitkeep
+        -   echo "" > ./tests/.gitkeep
 
     clean:
         cmds:
@@ -62,7 +64,6 @@ tasks:
         cmds:
         -   task lint
         -   pre-commit run --all-files
-        -   git-cliff -o CHANGELOG.md
 
     missed:
         cmds:

@@ -23,7 +23,7 @@ description = ''
 dynamic = ["version"]
 keywords = []
 license = {file = "LICENSE.txt"}
-name = "example"
+name = "example_lib"
 readme = "README.md"
 requires-python = ">=3.7"
 

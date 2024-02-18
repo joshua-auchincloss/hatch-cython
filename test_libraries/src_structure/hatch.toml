@@ -58,7 +58,7 @@ extra_link_args = [
     "darwin"
   ], arch = "x86_64", arg = "-L/opt/homebrew/opt/llvm/lib", depends_path = true, marker = "python_version <= '3.10'"}
 ]
-include_my_script_resolver = {pkg = "partial_test", include = "gets_includes", required_call = "must_call"}
+include_my_lib_resolver = {pkg = "scripts.custom_include", include = "gets_includes", required_call = "must_call"}
 include_numpy = true
 parallel = true
 src = "example_lib"

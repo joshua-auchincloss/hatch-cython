@@ -1,4 +1,5 @@
 import json
+from pathlib import Path
 
 CALLED_INCLUDES = False
 CALLED_MUST = False
@@ -26,4 +27,4 @@ def gets_includes():
     global CALLED_INCLUDES  # noqa: PLW0603
     CALLED_INCLUDES = True
     update()
-    return []
+    return [str(Path(__file__).parent.parent / "include")]
