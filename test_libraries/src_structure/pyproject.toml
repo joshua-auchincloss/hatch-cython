@@ -54,7 +54,7 @@ omit = [
   "src/example_lib/__about__.py"
 ]
 parallel = true
-source_pkgs = ["example_lib", "example"]
+source_pkgs = ["example_lib"]
 
 [tool.hatch.version]
 path = "src/example_lib/__about__.py"
