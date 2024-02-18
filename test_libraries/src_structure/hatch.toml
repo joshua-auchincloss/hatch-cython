@@ -104,7 +104,11 @@ index = [
 templated_mac = {supported = ["int", "float"]}
 templated_win = {supported = ["int", "float", "complex"]}
 
+[build.targets.sdist]
+include = ["scripts/", "include/"]
+
 [build.targets.wheel]
+include = ["scripts/", "include/"]
 packages = ["src/example_lib"]
 
 [[envs.all.matrix]]

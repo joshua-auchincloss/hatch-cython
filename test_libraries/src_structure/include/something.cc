@@ -1,8 +1,8 @@
-typedef long long int64_t;
+typedef long long int wide_int;
 
 namespace pyutil
 {
-    int64_t bwf(int64_t *val)
+    wide_int bwf(wide_int *val)
     {
         auto inter = ((*val) << 2);
         return inter + (*val);
