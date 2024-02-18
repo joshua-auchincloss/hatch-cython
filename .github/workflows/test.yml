@@ -27,6 +27,9 @@ jobs:
         steps:
         -   uses: actions/checkout@v3
 
+        -   name: Install Task
+            uses: arduino/setup-task@v2
+
         -   name: Install llvm
             if: startsWith(matrix.os, 'macos-')
             run: |
@@ -72,21 +75,9 @@ jobs:
         -   name: Test src lib compilation
             shell: bash
             run: |
-                cd test_libraries/src_structure
-                echo "os: $RUNNER_OS"
-                hatch --verbose build --clean
-                hatch run test
-                if [ "$(cat ./caller_outputs.json |  jaq .call)" -ne "true" ]; then exit 1; fi
-                if [ "$(cat ./caller_outputs.json |  jaq .includes)" -ne "true" ]; then exit 1; fi
+                task example
 
         -   name: Test simple lib compilation
             shell: bash
             run: |
-                cd test_libraries/simple_structure
-                echo "os: $RUNNER_OS"
-                cp -r ../src_structure/src/example_lib/* ./example_lib/
-                cp -r ../src_structure/tests/* ./tests/
-                rm ./tests/test_custom_includes.py
-                rm ./example_lib/custom_includes.*
-                hatch --verbose build --clean
-                hatch run test
+                task simple-structure

@@ -1,7 +1,7 @@
-ctypedef long long int64_t
+# distutils: language=c++
 
-cdef extern from "something.h" namespace "pyutil":
-    cdef int64_t bwf(int64_t *b)
+cdef extern from "something.cc" namespace "pyutil":
+    cdef long long bwf(long long *b)
 
-cpdef int64_t bwfpy(int64_t b):
+cpdef long long bwfpy(long long b):
     return bwf(&b)
