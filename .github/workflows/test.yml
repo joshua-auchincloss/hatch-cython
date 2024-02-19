@@ -4,7 +4,7 @@ on:
     push:
         branches: [v*]
     pull_request:
-        branches: [v*]
+        branches: [v*, main]
 
 concurrency:
     group: test-${{ github.head_ref }}

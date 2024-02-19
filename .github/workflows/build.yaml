@@ -6,15 +6,12 @@ on:
         -   v*
         branches:
         -   main
-    pull_request:
-        branches:
-        -   main
 
 permissions:
     contents: write
 
 concurrency:
-    group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
+    group: ${{ github.workflow }}-${{  github.sha }}
     cancel-in-progress: true
 
 defaults:
@@ -165,7 +162,6 @@ jobs:
                 path: ./dist
         -   name: Release
             uses: softprops/action-gh-release@v1
-            if: startsWith(github.ref, 'refs/tags/')
             with:
                 generate_release_notes: true
                 fail_on_unmatched_files: true
