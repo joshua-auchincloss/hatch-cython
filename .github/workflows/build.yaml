@@ -34,8 +34,13 @@ jobs:
         steps:
         -   uses: actions/checkout@v3
 
+        -   uses: actions/setup-go@v5
+            with:
+                go-version: stable
+
         -   name: Install Task
-            uses: arduino/setup-task@v2
+            run: |
+                go install github.com/go-task/task/v3/cmd/task@latest
 
         -   name: Install llvm
             if: startsWith(matrix.os, 'macos-')

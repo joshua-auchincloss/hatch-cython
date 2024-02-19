@@ -31,4 +31,4 @@ jobs:
                 set +e
                 git add CHANGELOG.md
                 git commit -m "chore: update changelog [ci skip]"
-                git push https://${{ secrets.GITHUB_TOKEN }}@github.com/joshua-auchincloss/hatch-cython.git main
+                git push https://${{ secrets.GITHUB_TOKEN }}@github.com/joshua-auchincloss/hatch-cython.git ci
