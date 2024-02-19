@@ -105,8 +105,8 @@ templated_mac = {supported = ["int", "float"]}
 templated_win = {supported = ["int", "float", "complex"]}
 
 [build.targets.custom.force-include]
-"include/" = "include/"
-"scripts/" = "scripts/"
+"include" = "include/"
+"scripts" = "scripts/"
 
 [build.targets.sdist]
 include = ["scripts/", "include/", "src/"]
@@ -115,14 +115,15 @@ include = ["scripts/", "include/", "src/"]
 packages = ["src/example_lib"]
 
 [build.targets.wheel.force-include]
-"include/" = "include/"
-"scripts/" = "scripts/"
+"include" = "include/"
+"scripts" = "scripts/"
 
 [[envs.all.matrix]]
 python = ["3.8", "3.9", "3.10", "3.11"]
 
 [envs.default]
 dependencies = ["coverage", "pytest", "beartype", "numpy"]
+skip-install = true
 
 [envs.default.scripts]
 cov = ["install", "test-cov", "cov-report"]
