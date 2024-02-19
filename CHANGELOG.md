@@ -8,6 +8,10 @@ All notable changes to this project will be documented in this file.
 
 - Build permissions ([#28](https://github.com/joshua-auchincloss/hatch-cython/issues/28))
 
+### Miscellaneous Tasks
+
+- V0.5.1 ([#33](https://github.com/joshua-auchincloss/hatch-cython/issues/33))
+
 ### Merge
 
 - #29 from build
