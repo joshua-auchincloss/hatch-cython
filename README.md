@@ -220,7 +220,7 @@ templated_win_x86_64 = { supported = ["int", "float", "np.double"]}
 ### Requirements
 
 - a c / c++ compiler
-- python 3.8-<=3.11
+- python 3.8-<=3.12
 - [git-cliff] (`pip install git-cliff`)
 - [tasks]
 
