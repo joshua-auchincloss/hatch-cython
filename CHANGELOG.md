@@ -7,10 +7,22 @@ All notable changes to this project will be documented in this file.
 ### Bug Fixes
 
 - Build permissions ([#28](https://github.com/joshua-auchincloss/hatch-cython/issues/28))
+- Ci
+- No auto changelog
+
+### Features
+
+- Gh releases
 
 ### Miscellaneous Tasks
 
 - V0.5.1 ([#33](https://github.com/joshua-auchincloss/hatch-cython/issues/33))
+- Changelog
+- #34 - ci
+- Pr #35 - ci
+- Add 3.12 for validation [ci skip]
+- Pr #36 - ci
+- Doc [ci skip]
 
 ### Merge
 
