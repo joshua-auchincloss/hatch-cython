@@ -5,7 +5,7 @@ class ValueDefn(object):  # noqa: UP004
     def __init__(self, value: Optional[int] = None):
         self.value = value if value else 0
 
-    def set(self, value):  # noqa: A003
+    def set(self, value):  # noqa: A003, RUF100
         v = self.value
         self.value = value
         if v:

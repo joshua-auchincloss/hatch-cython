@@ -27,6 +27,9 @@ jobs:
         steps:
         -   uses: actions/checkout@v3
 
+        -   name: Install Task
+            uses: arduino/setup-task@v2
+
         -   name: Install llvm
             if: startsWith(matrix.os, 'macos-')
             run: |
@@ -47,6 +50,16 @@ jobs:
                 export RANLIB=llvm-ranlib
                 " >> $HOME/.bash_profile
 
+        -   uses: hecrj/setup-rust-action@v2
+            with:
+                rust-version: stable
+
+        -   uses: cargo-bins/cargo-binstall@main
+
+        -   name: Install jaq
+            run: |
+                cargo binstall -y jaq
+
         -   name: Set up Python ${{ matrix.python-version }}
             uses: actions/setup-python@v4
             with:
@@ -62,17 +75,9 @@ jobs:
         -   name: Test src lib compilation
             shell: bash
             run: |
-                cd test_libraries/src_structure
-                echo "os: $RUNNER_OS"
-                hatch --verbose build --clean
-                hatch run test
+                task example
 
         -   name: Test simple lib compilation
             shell: bash
             run: |
-                cd test_libraries/simple_structure
-                echo "os: $RUNNER_OS"
-                cp -r ../src_structure/src/example_lib/* ./example_lib/
-                cp -r ../src_structure/tests/* ./tests/
-                hatch --verbose build --clean
-                hatch run test
+                task simple-structure

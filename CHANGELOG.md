@@ -6,6 +6,16 @@ All notable changes to this project will be documented in this file.
 
 ### Bug Fixes
 
+- Build permissions ([#28](https://github.com/joshua-auchincloss/hatch-cython/issues/28))
+
+### Merge
+
+- #29 from build
+
+## [0.5.0] - 2023-11-30
+
+### Bug Fixes
+
 - Version [ci skip]
 - Trigger build
 - Depreciate `retain_intermediate_artifacts`
@@ -15,6 +25,7 @@ All notable changes to this project will be documented in this file.
 - Brew commands
 - Random mac errs
 - Random brew errs
+- Build script, format
 
 ### Miscellaneous Tasks
 
@@ -30,6 +41,7 @@ All notable changes to this project will be documented in this file.
 ### Merge
 
 - Pr #24 from joshua-auchincloss/v0.4.0-patch
+- #26/v0.5.0
 
 ## [0.4.0] - 2023-09-14
 

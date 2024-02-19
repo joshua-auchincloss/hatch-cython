@@ -23,7 +23,7 @@ description = ''
 dynamic = ["version"]
 keywords = []
 license = {file = "LICENSE.txt"}
-name = "example"
+name = "example_lib"
 readme = "README.md"
 requires-python = ">=3.7"
 
@@ -54,7 +54,7 @@ omit = [
   "src/example_lib/__about__.py"
 ]
 parallel = true
-source_pkgs = ["example_lib", "example"]
+source_pkgs = ["example_lib"]
 
 [tool.hatch.version]
 path = "src/example_lib/__about__.py"
