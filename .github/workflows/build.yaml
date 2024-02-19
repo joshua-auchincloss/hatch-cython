@@ -2,11 +2,6 @@ name: build
 
 on:
     push:
-        tags:
-        -   v*
-        branches:
-        -   main
-    pull_request:
         branches:
         -   main
 
@@ -14,7 +9,7 @@ permissions:
     contents: write
 
 concurrency:
-    group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
+    group: ${{ github.workflow }}-${{ github.sha }}
     cancel-in-progress: true
 
 defaults:
@@ -142,7 +137,7 @@ jobs:
     release:
         needs: [sdist, wheel]
         runs-on: ubuntu-latest
-        if: startsWith(github.ref, 'refs/tags/')
+        if: startsWith(github.ref, 'refs/heads/main')
         environment:
             name: pypi
             url: https://pypi.org/p/hatch-cython
@@ -157,7 +152,7 @@ jobs:
     gh-release:
         needs: [sdist, wheel]
         runs-on: ubuntu-latest
-        if: startsWith(github.ref, 'refs/tags/')
+        if: startsWith(github.ref, 'refs/heads/main')
         steps:
         -   name: Download all workflow run artifacts
             uses: actions/download-artifact@v3
@@ -165,7 +160,6 @@ jobs:
                 path: ./dist
         -   name: Release
             uses: softprops/action-gh-release@v1
-            if: startsWith(github.ref, 'refs/tags/')
             with:
                 generate_release_notes: true
                 fail_on_unmatched_files: true
