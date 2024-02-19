@@ -30,7 +30,7 @@ jobs:
                 python-version: ['3.8', '3.9', '3.10', '3.11', '3.12']
 
         steps:
-        -   uses: actions/checkout@v3
+        -   uses: actions/checkout@v4
 
         -   uses: actions/setup-go@v5
             with:
@@ -96,7 +96,7 @@ jobs:
         needs: [validate]
         runs-on: ubuntu-latest
         steps:
-        -   uses: actions/checkout@v3
+        -   uses: actions/checkout@v4
         -   name: Set up Python
             uses: actions/setup-python@v4
         -   name: Install dependencies
@@ -106,9 +106,10 @@ jobs:
         -   name: Build package
             run: hatch build -t sdist
         -   name: Upload sdist
-            uses: actions/upload-artifact@v3
+            uses: actions/upload-artifact@v4
             with:
-                path: ./dist/*.tar.gz
+                name: hatch-cython-sdist
+                path: ./dist/
 
     wheel:
         needs: [validate]
@@ -118,7 +119,7 @@ jobs:
                 python-version: ['3.8', '3.9', '3.10', '3.11', '3.12']
                 os: [ubuntu-latest, windows-latest, macos-latest]
         steps:
-        -   uses: actions/checkout@v3
+        -   uses: actions/checkout@v4
         -   name: Set up Python ${{ matrix.python-version }}
             uses: actions/setup-python@v4
             with:
@@ -131,9 +132,10 @@ jobs:
         -   name: Build package
             run: hatch build -t wheel
         -   name: Upload wheel
-            uses: actions/upload-artifact@v3
+            uses: actions/upload-artifact@v4
             with:
-                path: ./dist/*.whl
+                name: wheel-${{ matrix.python-version }}-${{ matrix.os }}
+                path: ./dist/
 
     release:
         needs: [sdist, wheel]
@@ -144,16 +146,18 @@ jobs:
             url: https://pypi.org/p/hatch-cython
         steps:
         -   name: Download all workflow run artifacts
-            uses: actions/download-artifact@v3
+            uses: actions/download-artifact@v4
             with:
-                path: ./dist
+                path: dist/
+                merge-multiple: true
+        -   name: Display downloaded files
+            run: ls -R ./dist
         -   name: Release
             uses: softprops/action-gh-release@v1
             with:
                 generate_release_notes: true
+                fail_on_unmatched_files: true
                 files: |-
                     dist/*
-                    dist/*.whl
-                    dist/*.tar.gz
         -   name: Publish package
             uses: pypa/gh-action-pypi-publish@release/v1
