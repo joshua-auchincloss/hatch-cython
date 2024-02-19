@@ -27,5 +27,5 @@ jobs:
                 git config user.email 'github-actions[bot]@users.noreply.github.com'
                 set +e
                 git add CHANGELOG.md
-                git commit -m "Update changelog"
-                git push https://${{ secrets.GITHUB_TOKEN }}@github.com/joshua-auchincloss/hatch-cython.git main
+                git commit -m "chore: update changelog [ci skip]"
+                git push https://${{ secrets.GH_TOKEN }}@github.com/joshua-auchincloss/hatch-cython.git main
