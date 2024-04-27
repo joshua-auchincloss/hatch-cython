@@ -95,8 +95,16 @@ class CythonBuildHook(BuildHookInterface):
     def options_exclude(self):
         return [parse_user_glob(e.matches) for e in self.options.files.exclude if e.applies()]
 
+    @property
+    @memo
+    def options_include(self):
+        return [parse_user_glob(e.matches) for e in self.options.files.targets if e.applies()]
+
     def wanted(self, item: str):
-        return not any(re.match(e, self.normalize_glob(item), re.IGNORECASE) for e in self.options_exclude)
+        not_excluded = not any(re.match(e, self.normalize_glob(item), re.IGNORECASE) for e in self.options_exclude)
+        if self.options.files.explicit_targets:
+            return not_excluded and any(re.match(opt, item) for opt in self.options_include)
+        return not_excluded
 
     def filter_ensure_wanted(self, tgts: ListStr):
         return list(
@@ -108,17 +116,16 @@ class CythonBuildHook(BuildHookInterface):
 
     @property
     def included_files(self):
-        included = []
-        _normu = [self.normalize_glob(parse_user_glob(e.matches)) for e in self.options.files.exclude if e.applies()]
+        included = set()
         self.app.display_debug("user globs")
-        self.app.display_debug(_normu)
         for patt in self.precompiled_globs:
             globbed = glob(patt, recursive=True)
+            self.app.display_info(f"{patt} globbed {globbed!r}")
             if len(globbed) == 0:
                 continue
             matched = self.filter_ensure_wanted(globbed)
-            included.extend(matched)
-        return included
+            included = included.union(matched)
+        return list(included)
 
     @property
     def normalized_included_files(self):
@@ -250,6 +257,11 @@ class CythonBuildHook(BuildHookInterface):
         config = parse_from_dict(self)
         if config.compile_py:
             self.precompiled_extensions.append(".py")
+        if config.files.explicit_targets:
+            self.precompiled_extensions.append(".py")
+            self.precompiled_extensions.append(".c")
+            self.precompiled_extensions.append(".cc")
+            self.precompiled_extensions.append(".cpp")
         return config
 
     @property

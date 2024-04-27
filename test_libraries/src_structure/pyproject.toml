@@ -16,15 +16,12 @@ classifiers = [
   "Programming Language :: Python :: Implementation :: CPython",
   "Programming Language :: Python :: Implementation :: PyPy"
 ]
-dependencies = [
-  "pytest"
-]
+dependencies = ["pytest"]
 description = ''
 dynamic = ["version"]
 keywords = []
 license = {file = "LICENSE.txt"}
 name = "example_lib"
-readme = "README.md"
 requires-python = ">=3.7"
 
 [project.urls]
@@ -42,17 +39,11 @@ example = ["*/example_lib/*", "*/src/example_lib", "*/example/src/example_lib"]
 tests = ["tests", "*/example/tests"]
 
 [tool.coverage.report]
-exclude_lines = [
-  "no cov",
-  "if __name__ == .__main__.:",
-  "if TYPE_CHECKING:"
-]
+exclude_lines = ["no cov", "if __name__ == .__main__.:", "if TYPE_CHECKING:"]
 
 [tool.coverage.run]
 branch = true
-omit = [
-  "src/example_lib/__about__.py"
-]
+omit = ["src/example_lib/__about__.py"]
 parallel = true
 source_pkgs = ["example_lib"]
 
@@ -60,6 +51,10 @@ source_pkgs = ["example_lib"]
 path = "src/example_lib/__about__.py"
 
 [tool.ruff]
+line-length = 120
+target-version = "py37"
+
+[tool.ruff.lint]
 ignore = [
   # Allow non-abstract empty methods in abstract base classes
   "B027",
@@ -76,7 +71,6 @@ ignore = [
   "PLR0913",
   "PLR0915"
 ]
-line-length = 120
 select = [
   "A",
   "ARG",
@@ -104,16 +98,14 @@ select = [
   "W",
   "YTT"
 ]
-target-version = "py37"
-unfixable = [
-]
+unfixable = []
 
-[tool.ruff.flake8-tidy-imports]
+[tool.ruff.lint.flake8-tidy-imports]
 ban-relative-imports = "all"
 
-[tool.ruff.isort]
+[tool.ruff.lint.isort]
 known-first-party = ["example", "example_lib"]
 
-[tool.ruff.per-file-ignores]
+[tool.ruff.lint.per-file-ignores]
 # Tests can use magic values, assertions, and relative imports
 "tests/**/*" = ["PLR2004", "S101", "TID252"]

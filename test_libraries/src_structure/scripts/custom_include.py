@@ -10,7 +10,7 @@ def update():
         f.write(
             json.dumps(
                 {
-                    "call": True,
+                    "call": CALLED_MUST,
                     "includes": CALLED_INCLUDES,
                 }
             )

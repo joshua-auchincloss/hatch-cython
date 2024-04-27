@@ -13,42 +13,59 @@ classifiers = [
   "Programming Language :: Python :: 3.9",
   "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
   "Programming Language :: Python :: Implementation :: CPython",
   "Programming Language :: Python :: Implementation :: PyPy"
 ]
-dependencies = ["pytest"]
+dependencies = []
 description = ''
 dynamic = ["version"]
 keywords = []
 license = {file = "LICENSE.txt"}
-name = "example_lib"
-requires-python = ">=3.7"
+name = "example-only-included"
+requires-python = ">=3.8"
 
 [project.urls]
-Documentation = "https://github.com/unknown/example#readme"
-Issues = "https://github.com/unknown/simple_structure/issues"
-Source = "https://github.com/unknown/example"
-
-[tool.black]
-line-length = 120
-skip-string-normalization = true
-target-version = ["py37"]
+Documentation = "https://github.com/unknown/only-included#readme"
+Issues = "https://github.com/unknown/only-included/issues"
+Source = "https://github.com/unknown/only-included"
 
 [tool.coverage.paths]
-example = ["*/example_lib/*", "*/example_lib", "*/simple_structure/example_lib"]
-tests = ["tests", "*/simple_structure/tests"]
+example_only_included = [
+  "src/example_only_included",
+  "*/example-only-included/src/example_only_included"
+]
+tests = ["tests", "*/example-only-included/tests"]
 
 [tool.coverage.report]
 exclude_lines = ["no cov", "if __name__ == .__main__.:", "if TYPE_CHECKING:"]
 
 [tool.coverage.run]
 branch = true
-omit = ["example_lib/__about__.py"]
+omit = ["src/example_only_included/__about__.py"]
 parallel = true
-source_pkgs = ["example_lib"]
+source_pkgs = ["example_only_included", "tests"]
+
+[[tool.hatch.envs.all.matrix]]
+python = ["3.8", "3.9", "3.10", "3.11", "3.12"]
+
+[tool.hatch.envs.default]
+dependencies = ["coverage[toml]>=6.5", "pytest"]
+
+[tool.hatch.envs.default.scripts]
+cov = ["test-cov", "cov-report"]
+cov-report = ["- coverage combine", "coverage report"]
+test = "pytest {args:tests}"
+test-cov = "coverage run -m pytest {args:tests}"
+
+[tool.hatch.envs.types]
+dependencies = ["mypy>=1.0.0"]
+
+[tool.hatch.envs.types.scripts]
+check = "mypy --install-types --non-interactive {args:src/example_only_included tests}"
 
 [tool.hatch.version]
-path = "example_lib/__about__.py"
+path = "src/example_only_included/__about__.py"
 
 [tool.ruff]
 line-length = 120
