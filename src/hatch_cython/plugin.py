@@ -103,7 +103,7 @@ class CythonBuildHook(BuildHookInterface):
     def wanted(self, item: str):
         not_excluded = not any(re.match(e, self.normalize_glob(item), re.IGNORECASE) for e in self.options_exclude)
         if self.options.files.explicit_targets:
-            return not_excluded and any(re.match(opt, item) for opt in self.options_include)
+            return not_excluded and any(re.match(opt, self.normalize_glob(item)) for opt in self.options_include)
         return not_excluded
 
     def filter_ensure_wanted(self, tgts: ListStr):

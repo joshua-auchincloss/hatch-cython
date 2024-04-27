@@ -242,5 +242,5 @@ class Config:
     def validate_include_opts(self):
         for opt in self.includes:
             if not path.exists(opt):
-                msg = "%s does not exist" % opt
+                msg = f"{opt} does not exist"
                 raise ValueError(msg)

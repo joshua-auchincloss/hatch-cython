@@ -49,8 +49,7 @@ jobs:
                 rm -rf /usr/local/bin/idle3*
                 rm -rf /usr/local/bin/pydoc3*
                 rm -rf /usr/local/bin/python*
-                brew install libomp
-                brew install llvm
+                brew install libomp gettext llvm
                 echo "
                 export PATH=\"/usr/local/opt/llvm/bin:\$PATH\"
                 export LDFLAGS=\"-L/usr/local/opt/llvm/lib\"
@@ -91,6 +90,11 @@ jobs:
             shell: bash
             run: |
                 task simple-structure
+
+        -   name: Test build target directives
+            shell: bash
+            run: |
+                task only-included
 
     sdist:
         needs: [validate]
