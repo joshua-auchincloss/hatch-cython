@@ -35,7 +35,7 @@ def test_explicit_includes(new_explicit_proj):
             directory=new_explicit_proj,
             target_name="wheel",
         )
-        assert hook.included_files == ["./src/example_only_included/compile.py"]
+        assert hook.normalized_included_files == ["./src/example_only_included/compile.py"]
         assert hook.options.files.explicit_targets
 
     syspath.remove(str(new_explicit_proj))

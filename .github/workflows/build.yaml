@@ -32,14 +32,6 @@ jobs:
         steps:
         -   uses: actions/checkout@v4
 
-        -   uses: actions/setup-go@v5
-            with:
-                go-version: stable
-
-        -   name: Install Task
-            run: |
-                go install github.com/go-task/task/v3/cmd/task@latest
-
         -   name: Install llvm
             if: startsWith(matrix.os, 'macos-')
             run: |
@@ -50,6 +42,7 @@ jobs:
                 rm -rf /usr/local/bin/pydoc3*
                 rm -rf /usr/local/bin/python*
                 brew install libomp gettext llvm
+                brew link gettext --force
                 echo "
                 export PATH=\"/usr/local/opt/llvm/bin:\$PATH\"
                 export LDFLAGS=\"-L/usr/local/opt/llvm/lib\"
@@ -58,6 +51,14 @@ jobs:
                 export AR=llvm-ar
                 export RANLIB=llvm-ranlib
                 " >> $HOME/.bash_profile
+
+        -   uses: actions/setup-go@v5
+            with:
+                go-version: stable
+
+        -   name: Install Task
+            run: |
+                go install github.com/go-task/task/v3/cmd/task@latest
 
         -   uses: hecrj/setup-rust-action@v2
             with:

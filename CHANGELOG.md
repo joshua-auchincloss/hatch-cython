@@ -6,10 +6,22 @@ All notable changes to this project will be documented in this file.
 
 ### Bug Fixes
 
+- Implementation
+
+### Features
+
+- Explicit build targets (#46, #47)
+
+## [0.5.1] - 2024-02-19
+
+### Bug Fixes
+
 - Build permissions ([#28](https://github.com/joshua-auchincloss/hatch-cython/issues/28))
 - Ci
 - No auto changelog
 - Release ci [ci skip] ([#40](https://github.com/joshua-auchincloss/hatch-cython/issues/40))
+- Ci
+- Release
 
 ### Features
 
@@ -27,11 +39,18 @@ All notable changes to this project will be documented in this file.
 - Changelog
 - Pr #38 from dev
 - Tighten ci ([#39](https://github.com/joshua-auchincloss/hatch-cython/issues/39))
+- Changelog
+- V0.5.1
 
 ### Merge
 
 - #29 from build
 - Pr #37 from dev
+
+### Release
+
+- V0.5.1
+- V0.5.1
 
 ## [0.5.0] - 2023-11-30
 
