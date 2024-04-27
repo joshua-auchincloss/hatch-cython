@@ -41,6 +41,7 @@ jobs:
                 rm -rf /usr/local/bin/idle3*
                 rm -rf /usr/local/bin/pydoc3*
                 rm -rf /usr/local/bin/python*
+                brew uninstall gettext --force
                 brew install libomp gettext llvm
                 brew link gettext --force
                 echo "
