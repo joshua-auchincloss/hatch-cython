@@ -62,11 +62,12 @@ jobs:
             run: |
                 cargo binstall -y jaq
 
-        -   name: Set up Python ${{ matrix.python-version }}
-            uses: actions/setup-python@v5
+        -   uses: jdx/mise-action@v2
             with:
-                architecture: x64
-                python-version: ${{ matrix.python-version }}
+                install: true
+                cache: true
+                tool_versions: |
+                    python ${{ matrix.python-version }}
 
         -   name: Install Hatch
             run: pip install --upgrade hatch
