@@ -1,0 +1,45 @@
+[build]
+ignore-vcs = true
+
+[build.hooks.custom]
+dependencies = [
+  "Cython",
+  "setuptools",
+  "llvmlite",
+  "hatch",
+  "typing_extensions; python_version < '3.10'"
+]
+path = "../../src/hatch_cython/devel.py"
+
+[build.hooks.custom.options]
+src = "example_only_included"
+
+[build.hooks.custom.options.files]
+aliases = {"example_only_included.compile" = "example_only_included.did"}
+targets = ["*/compile.py"]
+
+[build.targets.wheel]
+macos-max-compat = false
+packages = ["example_only_included"]
+
+[[envs.all.matrix]]
+python = ["3.8", "3.9", "3.10", "3.11", "3.12"]
+
+[envs.default]
+dependencies = ["coverage", "pytest", "beartype", "numpy"]
+
+[envs.default.scripts]
+cov = ["install", "test-cov", "cov-report"]
+cov-report = ["- coverage combine", "coverage report"]
+install = "python ../bootstrap.py"
+test = ["install", "pytest {args:tests}"]
+test-cov = "coverage run -m pytest {args:tests}"
+
+[envs.lint]
+dependencies = ["black>=23.1.0", "mypy>=1.0.0", "ruff>=0.0.243"]
+detached = true
+
+[envs.lint.scripts]
+all = ["style", "typing"]
+fmt = ["black {args:.}", "ruff --fix {args:.}", "style"]
+style = ["ruff {args:.}", "black --check --diff {args:.}"]

@@ -16,15 +16,24 @@ def stale(src: str, dest: str):
 
 
 def memo(func: CallableT[P, T]) -> CallableT[P, T]:
-    value = None
-    ran = False
+    keyed = {}
 
     def wrapped(*args: P.args, **kwargs: P.kwargs) -> T:
-        nonlocal value, ran
-        if not ran:
-            value = func(*args, **kwargs)
-            ran = True
-        return value
+        nonlocal keyed
+
+        # if we have a class, memo will reserve objects between
+        # instances, so we need to key this by the id of the instance
+        # note: dont call hasattr here because hasattr is pretty much
+        # a try catch for property access - ergo we get infinite recursive
+        # calls if a property is memoed
+        if len(args) and func.__name__ in dir(args[0]):
+            idof = id(args[0])
+        else:
+            idof = None
+
+        if idof not in keyed:
+            keyed[idof] = func(*args, **kwargs)
+        return keyed[idof]
 
     return wrapped
 

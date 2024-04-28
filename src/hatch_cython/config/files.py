@@ -12,7 +12,13 @@ class OptExclude(PlatformBase):
 
 
 @dataclass
+class OptInclude(PlatformBase):
+    matches: str = field(default="*")
+
+
+@dataclass
 class FileArgs:
+    targets: ListT[UnionT[str, OptInclude]] = field(default_factory=list)
     exclude: ListT[UnionT[str, OptExclude]] = field(default_factory=list)
     aliases: DictT[str, str] = field(default_factory=dict)
 
@@ -25,6 +31,14 @@ class FileArgs:
             *[OptExclude(**d) for d in self.exclude if isinstance(d, dict)],
             *[OptExclude(matches=s) for s in self.exclude if isinstance(s, str)],
         ]
+        self.targets = [
+            *[OptInclude(**d) for d in self.targets if isinstance(d, dict)],
+            *[OptInclude(matches=s) for s in self.targets if isinstance(s, str)],
+        ]
+
+    @property
+    def explicit_targets(self):
+        return len(self.targets) > 0
 
     def matches_alias(self, other: str) -> UnionT[str, None]:
         matched = [re.match(v, other) for v in self.aliases.keys()]

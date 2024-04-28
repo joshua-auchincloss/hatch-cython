@@ -28,7 +28,6 @@ def new_src_proj(tmp_path):
     (project_dir / "bootstrap.py").write_text(read("test_libraries/bootstrap.py"))
     (project_dir / "pyproject.toml").write_text(read("test_libraries/src_structure/pyproject.toml"))
     (project_dir / "hatch.toml").write_text(read("test_libraries/src_structure/hatch.toml"))
-    (project_dir / "README.md").write_text(read("test_libraries/src_structure/README.md"))
     (project_dir / "LICENSE.txt").write_text(read("test_libraries/src_structure/LICENSE.txt"))
     shutil.copytree(join("test_libraries/src_structure", "src"), (project_dir / "src"))
     shutil.copytree(join("test_libraries/src_structure", "tests"), (project_dir / "tests"))
@@ -50,6 +49,8 @@ def test_wheel_build_hook(new_src_proj):
         )
 
         assert hook.is_src
+
+        assert not hook.options.files.explicit_targets
 
         with arch_platform("", "windows"):
             assert hook.is_windows
@@ -167,3 +168,5 @@ def test_wheel_build_hook(new_src_proj):
         assert not build_data.get("pure_python")
         assert sorted(hook.artifacts) == sorted(build_data.get("artifacts")) == sorted([f"/{f}" for f in rf])
         assert len(build_data.get("force_include")) == 12
+
+    syspath.remove(str(new_src_proj))

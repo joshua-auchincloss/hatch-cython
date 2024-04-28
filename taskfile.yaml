@@ -2,11 +2,12 @@ version: '3'
 
 tasks:
     std-test:
-        dir: '{{.DIR}}'
+        dir: '{{ .DIR }}'
         env:
             HATCH_CYTHON_DEVEL: 1
         cmds:
         -   hatch --verbose build --clean
+        -   if [ -d "/Users/runner" ]; then hatch env remove; fi
         -   hatch run test
 
     example:
@@ -17,6 +18,13 @@ tasks:
                 DIR: test_libraries/src_structure
         -   if [ "$(cat ./caller_outputs.json |  jaq .call)" -ne "true" ]; then exit 1; fi
         -   if [ "$(cat ./caller_outputs.json |  jaq .includes)" -ne "true" ]; then exit 1; fi
+
+    only-included:
+        dir: test_libraries/only_included
+        cmds:
+        -   task: std-test
+            vars:
+                DIR: test_libraries/only_included
 
     simple-structure:
         dir: test_libraries/simple_structure

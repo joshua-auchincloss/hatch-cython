@@ -34,12 +34,22 @@ def patch_path(arch: str, *extra: str):
 
 
 @contextmanager
+def patch_brew(prefix):
+    with patch("hatch_cython.config.defaults.brew_path", lambda: prefix):
+        yield
+
+
+@contextmanager
 def arch_platform(arch: str, platform: str):
     def aarchgetter():
         return arch
 
     def platformgetter():
         return platform
+
+    expect_brew = None
+    if platform == "darwin":
+        expect_brew = "/usr/local" if arch == "x86_64" else "/opt/homebrew"
 
     try:
         with patch("hatch_cython.utils.plat", platformgetter):
@@ -48,7 +58,8 @@ def arch_platform(arch: str, platform: str):
                     with patch("hatch_cython.plugin.plat", platformgetter):
                         with patch("hatch_cython.utils.aarch", aarchgetter):
                             with patch("hatch_cython.config.platform.aarch", aarchgetter):
-                                yield
+                                with patch_brew(expect_brew):
+                                    yield
     finally:
         print(f"Clean {arch}-{platform}")  # noqa: T201
         del aarchgetter, platformgetter

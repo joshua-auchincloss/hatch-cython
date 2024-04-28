@@ -21,12 +21,6 @@ compile_args = [
   ], arg = "-Wcpp"},
   {platforms = [
     "darwin"
-  ], arch = "x86_64", arg = "-arch x86_64"},
-  {platforms = [
-    "darwin"
-  ], arch = "arm64", arg = "-arch arm64"},
-  {platforms = [
-    "darwin"
   ], arch = "x86_64", arg = "-I/usr/local/opt/llvm/include", depends_path = true, marker = "python_version <= '3.10'"},
   {platforms = [
     "darwin"
@@ -112,6 +106,7 @@ templated_win = {supported = ["int", "float", "complex"]}
 include = ["scripts/", "include/", "src/"]
 
 [build.targets.wheel]
+macos-max-compat = false
 packages = ["src/example_lib"]
 
 [build.targets.wheel.force-include]
@@ -119,7 +114,7 @@ packages = ["src/example_lib"]
 "scripts" = "scripts/"
 
 [[envs.all.matrix]]
-python = ["3.8", "3.9", "3.10", "3.11"]
+python = ["3.8", "3.9", "3.10", "3.11", "3.12"]
 
 [envs.default]
 dependencies = ["coverage", "pytest", "beartype", "numpy"]
