@@ -78,7 +78,9 @@ jobs:
                 python-version: ${{ matrix.python-version }}
 
         -   name: Install Hatch
-            run: pip install --upgrade hatch
+            run: |
+                pip install --upgrade pip
+                pip install --upgrade hatch
 
         -   name: Run tests
             run: hatch run cov
