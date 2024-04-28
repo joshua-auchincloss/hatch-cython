@@ -230,6 +230,10 @@ templated_win = { supported = ["int", "float", "complex"] }
 templated_win_x86_64 = { supported = ["int", "float", "np.double"]}
 ```
 
+## Notes
+
+- MacOS users with brew installed will have `brew --prefix` libs and include paths added in compilation step. Code parsing is found [here](./src/hatch_cython/config/defaults.py#L11)
+
 ## Development
 
 ### Requirements

@@ -8,7 +8,7 @@ from hatch.utils.ci import running_in_ci
 from hatchling.builders.hooks.plugin.interface import BuildHookInterface
 
 from hatch_cython.config.autoimport import Autoimport
-from hatch_cython.config.defaults import get_default_compile, get_default_link
+from hatch_cython.config.defaults import brew_path, get_default_compile, get_default_link
 from hatch_cython.config.files import FileArgs
 from hatch_cython.config.flags import EnvFlags, parse_env_args
 from hatch_cython.config.includes import parse_includes
@@ -89,12 +89,25 @@ def parse_from_dict(cls: BuildHookInterface):
                 PlatformArgs(arg="/openmp", platforms="windows"),
                 PlatformArgs(arg="-fopenmp", platforms="linux"),
                 PlatformArgs(arg="-lomp", platforms="darwin", marker=LTPY311, apply_to_marker=running_in_ci),
-                PlatformArgs(
-                    arg="-L/usr/local/opt/llvm/lib/c++ -Wl,-rpath,/usr/local/opt/llvm/lib/c++",
-                    platforms=["darwin"],
-                    depends_path=True,
-                ),
             ]
+
+            brew = brew_path()
+            if brew:
+                link.extend(
+                    [
+                        PlatformArgs(
+                            arg=f"-L{brew}/opt/llvm/lib/c++ -Wl,-rpath,{brew}/llvm/lib/c++",
+                            platforms=["darwin"],
+                            depends_path=True,
+                        ),
+                        PlatformArgs(
+                            arg="-L/usr/local/opt/llvm/lib/c++ -Wl,-rpath,/usr/local/llvm/lib/c++",
+                            platforms=["darwin"],
+                            depends_path=True,
+                        ),
+                    ]
+                )
+
             cma = ({*cfg.compile_args}).union({*comp})
             cfg.compile_args = list(cma)
             seb = ({*cfg.extra_link_args}).union({*link})
@@ -231,7 +244,7 @@ class Config:
 
         # side effect
         list(map(flush, args.values()))
-        return flat
+        return list({*flat})
 
     def asdict(self):
         d = asdict(self)

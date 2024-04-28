@@ -34,10 +34,10 @@ jobs:
                 brew update -f
                 brew install libomp llvm
                 echo "
-                export PATH=\"/usr/local/opt/llvm/bin:\$PATH\"
+                export PATH=\"$(brew --prefix)/opt/llvm/bin:\$PATH\"
                 export DYLD_LIBRARY_PATH=\"$(brew --prefix)/lib:$DYLD_LIBRARY_PATH\"
-                export LDFLAGS=\"-L/usr/local/opt/llvm/lib\"
-                export CPPFLAGS=\"-I/usr/local/opt/llvm/include\"
+                export LDFLAGS=\"-L$(brew --prefix)/opt/llvm/lib\"
+                export CPPFLAGS=\"-I$(brew --prefix)/opt/llvm/include\"
                 export LD=ld.lld
                 export AR=llvm-ar
                 export RANLIB=llvm-ranlib
