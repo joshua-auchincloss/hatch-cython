@@ -23,7 +23,7 @@ def memo(func: CallableT[P, T]) -> CallableT[P, T]:
 
         # if we have a class, memo will reserve objects between
         # instances, so we need to key this by the id of the instance
-        # note: dont call  hasattr here because hasattr is pretty much
+        # note: dont call hasattr here because hasattr is pretty much
         # a try catch for property access - ergo we get infinite recursive
         # calls if a property is memoed
         if len(args) and func.__name__ in dir(args[0]):
