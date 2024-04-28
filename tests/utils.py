@@ -3,6 +3,8 @@ from contextlib import contextmanager
 from types import SimpleNamespace
 from unittest.mock import patch
 
+from hatch_cython.types import UnionT
+
 
 def true_if_eq(*vals):
     def inner(v: str, *extra):
@@ -40,7 +42,7 @@ def patch_brew(prefix):
 
 
 @contextmanager
-def arch_platform(arch: str, platform: str):
+def arch_platform(arch: str, platform: str, brew: UnionT[str, None] = True):
     def aarchgetter():
         return arch
 
@@ -53,13 +55,17 @@ def arch_platform(arch: str, platform: str):
 
     try:
         with patch("hatch_cython.utils.plat", platformgetter):
-            with patch("hatch_cython.utils.plat", platformgetter):
+            with patch("hatch_cython.config.defaults.plat", platformgetter):
                 with patch("hatch_cython.config.platform.plat", platformgetter):
                     with patch("hatch_cython.plugin.plat", platformgetter):
                         with patch("hatch_cython.utils.aarch", aarchgetter):
-                            with patch("hatch_cython.config.platform.aarch", aarchgetter):
-                                with patch_brew(expect_brew):
-                                    yield
+                            with patch("hatch_cython.config.defaults.aarch", aarchgetter):
+                                with patch("hatch_cython.config.platform.aarch", aarchgetter):
+                                    if brew:
+                                        with patch_brew(expect_brew):
+                                            yield
+                                    else:
+                                        yield
     finally:
         print(f"Clean {arch}-{platform}")  # noqa: T201
         del aarchgetter, platformgetter

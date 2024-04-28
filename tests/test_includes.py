@@ -14,7 +14,7 @@ def test_includes():
     }
     ok = parse_includes(
         "include_abc",
-        parse,
+        parse.copy(),
     )
     assert ok == Autoimport(**parse)
     ok = parse_includes(
@@ -22,6 +22,21 @@ def test_includes():
         "some_attr",
     )
     assert ok == Autoimport(pkg="abc", include="some_attr")
+
+
+def test_with_resolved():
+    parse = {
+        "include": "gets_include",
+        "libraries": "gets_libraries",
+        "library_dirs": "gets_library_dirs",
+        "required_call": "some_setup_op",
+    }
+    ok = parse_includes(
+        "include_abc",
+        parse.copy(),
+    )
+
+    assert ok == Autoimport(pkg="abc", **parse)
 
 
 def test_invalid():

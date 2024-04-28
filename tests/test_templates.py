@@ -47,3 +47,4 @@ def test_templates():
 def test_defaults():
     parsed = parse_template_kwds({})
     assert parsed == Templates(index=[])
+    assert repr(parsed) == "Templates(index=[], kwargs={})"
