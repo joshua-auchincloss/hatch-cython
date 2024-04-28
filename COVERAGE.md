@@ -4,7 +4,7 @@
 | src/hatch_cython/config/\_\_init\_\_.py |       2 |      0 |       0 |      0 |    100% |
 | src/hatch_cython/config/autoimport.py   |       9 |      0 |       2 |      0 |    100% |
 | src/hatch_cython/config/config.py       |     143 |      9 |      60 |      6 |     92% |
-| src/hatch_cython/config/defaults.py     |      30 |      5 |      12 |      2 |     79% |
+| src/hatch_cython/config/defaults.py     |      28 |      3 |      10 |      2 |     87% |
 | src/hatch_cython/config/files.py        |      35 |      1 |      16 |      2 |     94% |
 | src/hatch_cython/config/flags.py        |      70 |      1 |      24 |      0 |     99% |
 | src/hatch_cython/config/includes.py     |      15 |      1 |       8 |      1 |     91% |
@@ -17,4 +17,4 @@
 | src/hatch_cython/plugin.py              |     243 |     12 |     156 |     10 |     94% |
 | src/hatch_cython/temp.py                |      13 |      0 |       2 |      0 |    100% |
 | src/hatch_cython/utils.py               |      44 |      4 |      20 |      1 |     89% |
-| **TOTAL**                               | **780** | **42** | **371** | **30** | **93%** |
+| **TOTAL**                               | **778** | **40** | **369** | **30** | **94%** |
