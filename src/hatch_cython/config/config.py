@@ -44,23 +44,23 @@ def parse_from_dict(cls: BuildHookInterface):
 
     passed = given.copy()
     kwargs = {}
-    for kw, val in given.items():
-        if kw in __known__:
+    for key, val in given.items():
+        if key in __known__:
             parsed: any
-            if kw == "files":
+            if key == "files":
                 val: dict
                 parsed: FileArgs = FileArgs(**val)
-            elif kw == "define_macros":
+            elif key == "define_macros":
                 val: list
                 parsed: DefineMacros = parse_macros(val)
-            elif kw == "templates":
+            elif key == "templates":
                 val: dict
                 parsed: Templates = parse_template_kwds(val)
             else:
                 val: any
                 parsed: any = val
-            kwargs[kw] = parsed
-            passed.pop(kw)
+            kwargs[key] = parsed
+            passed.pop(key)
             continue
 
     compile_args = parse_platform_args(kwargs, "compile_args", get_default_compile)
@@ -68,19 +68,19 @@ def parse_from_dict(cls: BuildHookInterface):
     envflags = parse_env_args(kwargs)
     cfg = Config(**kwargs, compile_args=compile_args, extra_link_args=link_args, envflags=envflags)
 
-    for kw, val in passed.copy().items():
-        is_include = kw.startswith(INCLUDE)
-        if is_include and val:
+    for maybe_dep, spec in passed.copy().items():
+        is_include = maybe_dep.startswith(INCLUDE)
+        if is_include and spec:
             cfg.resolve_pkg(
                 cls,
-                parse_includes(kw, val),
+                parse_includes(maybe_dep, spec),
             )
-            passed.pop(kw)
+            passed.pop(maybe_dep)
             continue
         elif is_include:
-            passed.pop(kw)
+            passed.pop(maybe_dep)
             continue
-        elif kw == "parallel" and passed.get(kw):
+        elif maybe_dep == "parallel" and passed.get(maybe_dep):
             comp = [
                 PlatformArgs(arg="/openmp", platforms="windows"),
                 PlatformArgs(arg="-fopenmp", platforms=["linux"]),
@@ -88,11 +88,27 @@ def parse_from_dict(cls: BuildHookInterface):
             link = [
                 PlatformArgs(arg="/openmp", platforms="windows"),
                 PlatformArgs(arg="-fopenmp", platforms="linux"),
-                PlatformArgs(arg="-lomp", platforms="darwin", marker=LTPY311, apply_to_marker=running_in_ci),
+                PlatformArgs(
+                    arg="-lomp", platforms="darwin", arch=["x86_64"], marker=LTPY311, apply_to_marker=running_in_ci
+                ),
             ]
 
             brew = brew_path()
             if brew:
+                comp.extend(
+                    [
+                        PlatformArgs(
+                            arg=f"-I{brew}/opt/llvm/include",
+                            platforms=["darwin"],
+                            depends_path=True,
+                        ),
+                        PlatformArgs(
+                            arg=f"-I{brew}/opt/libomp/include",
+                            platforms=["darwin"],
+                            depends_path=True,
+                        ),
+                    ]
+                )
                 link.extend(
                     [
                         PlatformArgs(
@@ -101,7 +117,7 @@ def parse_from_dict(cls: BuildHookInterface):
                             depends_path=True,
                         ),
                         PlatformArgs(
-                            arg="-L/usr/local/opt/llvm/lib/c++ -Wl,-rpath,/usr/local/llvm/lib/c++",
+                            arg=f"-L{brew}/opt/libomp/lib -Wl,-rpath,{brew}/opt/libomp/lib",
                             platforms=["darwin"],
                             depends_path=True,
                         ),
@@ -112,7 +128,7 @@ def parse_from_dict(cls: BuildHookInterface):
             cfg.compile_args = list(cma)
             seb = ({*cfg.extra_link_args}).union({*link})
             cfg.extra_link_args = list(seb)
-            passed.pop(kw)
+            passed.pop(maybe_dep)
 
     cfg.compile_kwargs = passed
     return cfg

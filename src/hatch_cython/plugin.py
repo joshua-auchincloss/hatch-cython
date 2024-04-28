@@ -51,11 +51,11 @@ class CythonBuildHook(BuildHookInterface):
 
     def normalize_path(self, pattern: str):
         if self.is_windows:
-            return pattern.replace("/", "\\")
-        return pattern.replace("\\", "/")
+            return pattern.replace("/", os.pathsep)
+        return pattern.replace("\\", os.pathsep)
 
     def normalize_glob(self, pattern: str):
-        return pattern.replace("\\", "/")
+        return pattern.replace(os.pathsep, "/")
 
     @property
     @memo
