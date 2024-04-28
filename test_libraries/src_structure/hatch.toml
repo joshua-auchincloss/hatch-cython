@@ -106,6 +106,7 @@ templated_win = {supported = ["int", "float", "complex"]}
 include = ["scripts/", "include/", "src/"]
 
 [build.targets.wheel]
+macos-max-compat = false
 packages = ["src/example_lib"]
 
 [build.targets.wheel.force-include]

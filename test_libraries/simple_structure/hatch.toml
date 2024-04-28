@@ -97,6 +97,7 @@ templated_mac = {supported = ["int", "float"]}
 templated_win = {supported = ["int", "float", "complex"]}
 
 [build.targets.wheel]
+macos-max-compat = false
 packages = ["example_lib"]
 
 [[envs.all.matrix]]

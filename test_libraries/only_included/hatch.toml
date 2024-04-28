@@ -19,6 +19,7 @@ aliases = {"example_only_included.compile" = "example_only_included.did"}
 targets = ["*/compile.py"]
 
 [build.targets.wheel]
+macos-max-compat = false
 packages = ["example_only_included"]
 
 [[envs.all.matrix]]
