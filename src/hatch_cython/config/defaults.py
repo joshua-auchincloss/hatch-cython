@@ -7,6 +7,7 @@ from hatch_cython.utils import aarch, memo, plat
 BREW = "brew"
 
 
+# pragma: no cover
 @memo
 def brew_path():
     if plat() == "darwin":
@@ -19,6 +20,8 @@ def brew_path():
         if dec and dec != "":
             return dec
         return "/opt/homebrew" if aarch() == "arm64" else "/usr/local"
+    elif plat() in POSIX_CORE:
+        return "/usr/local"
 
 
 def get_default_link():

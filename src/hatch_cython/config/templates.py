@@ -94,6 +94,11 @@ class Templates:
         # raise ValueError(kwds, files, self.index)
         return kwds
 
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, Templates):
+            return False
+        return other.index == self.index and other.kwargs == self.kwargs
+
 
 def parse_template_kwds(clsvars: dict):
     try:

@@ -57,7 +57,13 @@ hatch_cython = ["src/hatch_cython", "*/hatch-cython/src/hatch_cython"]
 tests = ["tests", "*/hatch-cython/tests"]
 
 [tool.coverage.report]
-exclude_lines = ["no cov", "if __name__ == .__main__.:", "if TYPE_CHECKING:"]
+exclude_lines = [
+  "pragma: no cover",
+  "no cov",
+  "if __name__ == .__main__.:",
+  "if TYPE_CHECKING:"
+]
+skip_empty = true
 
 [tool.coverage.run]
 branch = true

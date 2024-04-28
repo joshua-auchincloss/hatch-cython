@@ -7,7 +7,7 @@ from hatch_cython.config import parse_from_dict
 from hatch_cython.config.defaults import brew_path
 from hatch_cython.utils import aarch, plat
 
-from .utils import arch_platform, import_module, patch_path, pyversion
+from .utils import arch_platform, import_module, patch_brew, patch_path, pyversion
 
 
 def test_brew_path():
@@ -17,6 +17,13 @@ def test_brew_path():
         assert brew_path() == "/opt/homebrew"
     else:
         assert brew_path() is None
+
+
+def test_config_with_brew():
+    with pyversion("3", "9"), arch_platform("arm64", "darwin"), patch_path("arm64"), patch_brew("/opt/homebrew"):
+        ok = parse_from_dict(SimpleNamespace(config={"options": {"parallel": True}}))
+        assert sorted(ok.compile_args_for_platform) == sorted(["-O2", "-I/opt/homebrew/include"])
+        assert ok.compile_links_for_platform == ["-L/opt/homebrew/lib"]
 
 
 def test_config_parser():

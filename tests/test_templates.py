@@ -1,4 +1,4 @@
-from hatch_cython.config.templates import parse_template_kwds
+from hatch_cython.config.templates import Templates, parse_template_kwds
 
 from .utils import arch_platform
 
@@ -42,3 +42,8 @@ def test_templates():
         "templated_win": {"supported": ["int", "float", "complex"]},
     }
     test(form2)
+
+
+def test_defaults():
+    parsed = parse_template_kwds({})
+    assert parsed == Templates(index=[])

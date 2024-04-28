@@ -233,6 +233,14 @@ templated_win_x86_64 = { supported = ["int", "float", "np.double"]}
 ## Notes
 
 - MacOS users with brew installed will have `brew --prefix` libs and include paths added in compilation step. Code parsing is found [here](./src/hatch_cython/config/defaults.py#L11)
+- Github Runners now run MacOS on m1 platforms. You may have ci issues if you are using MacOS m1 runners and you do not disable `macos-max-compat` in hatch. e.g.
+
+  ```toml
+  # hatch.toml
+
+  [build.targets.wheel]
+  macos-max-compat = false
+  ```
 
 ## Development
 
