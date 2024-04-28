@@ -52,7 +52,9 @@ def test_stale(new_tmp_dir):
         str(dest),
     )
 
-    src.write_text("now stale")
+    with src.open("w") as f:
+        f.write("now stale")
+
     assert stale(
         str(src),
         str(dest),

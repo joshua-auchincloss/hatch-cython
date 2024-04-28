@@ -54,20 +54,18 @@ def arch_platform(arch: str, platform: str, brew: UnionT[str, None] = True):
         expect_brew = "/usr/local" if arch == "x86_64" else "/opt/homebrew"
 
     try:
-        with (
-            patch("hatch_cython.utils.plat", platformgetter),
-            patch("hatch_cython.config.defaults.plat", platformgetter),
-            patch("hatch_cython.config.platform.plat", platformgetter),
-            patch("hatch_cython.plugin.plat", platformgetter),
-            patch("hatch_cython.utils.aarch", aarchgetter),
-            patch("hatch_cython.config.defaults.aarch", aarchgetter),
-            patch("hatch_cython.config.platform.aarch", aarchgetter),
-        ):
-            if brew:
-                with patch_brew(expect_brew):
-                    yield
-            else:
-                yield
+        with patch("hatch_cython.utils.plat", platformgetter):
+            with patch("hatch_cython.config.defaults.plat", platformgetter):
+                with patch("hatch_cython.config.platform.plat", platformgetter):
+                    with patch("hatch_cython.plugin.plat", platformgetter):
+                        with patch("hatch_cython.utils.aarch", aarchgetter):
+                            with patch("hatch_cython.config.defaults.aarch", aarchgetter):
+                                with patch("hatch_cython.config.platform.aarch", aarchgetter):
+                                    if brew:
+                                        with patch_brew(expect_brew):
+                                            yield
+                                    else:
+                                        yield
     finally:
         print(f"Clean {arch}-{platform}")  # noqa: T201
         del aarchgetter, platformgetter
