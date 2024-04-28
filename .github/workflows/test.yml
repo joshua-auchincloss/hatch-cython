@@ -35,11 +35,14 @@ jobs:
                 brew install libomp llvm
                 echo "
                 export PATH=\"/usr/local/opt/llvm/bin:\$PATH\"
+                export DYLD_LIBRARY_PATH=\"/opt/homebrew/lib:/usr/local/lib:$DYLD_LIBRARY_PATH\"
                 export LDFLAGS=\"-L/usr/local/opt/llvm/lib\"
                 export CPPFLAGS=\"-I/usr/local/opt/llvm/include\"
                 export LD=ld.lld
                 export AR=llvm-ar
                 export RANLIB=llvm-ranlib
+
+                echo $(find / -iname libintl.8.dylib)
                 " >> $HOME/.bash_profile
 
         -   uses: actions/setup-go@v5
