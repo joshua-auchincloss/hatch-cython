@@ -35,12 +35,13 @@ jobs:
         -   name: Install llvm
             if: startsWith(matrix.os, 'macos')
             run: |
-                brew cleanup
-                brew update -f
+                brew remove --ignore-dependencies python
                 rm -rf /usr/local/bin/2to3*
                 rm -rf /usr/local/bin/idle3*
                 rm -rf /usr/local/bin/pydoc3*
                 rm -rf /usr/local/bin/python*
+                brew cleanup
+                brew update -f
                 brew install libomp llvm
                 echo "
                 export PATH=\"$(brew --prefix)/opt/llvm/bin:\$PATH\"
