@@ -12,7 +12,7 @@ from hatch_cython.types import CallableT, P, T, UnionT
 def stale(src: str, dest: str):
     if not os.path.exists(src) or not os.path.exists(dest):
         return True
-    return (os.path.getmtime(src) > os.path.getmtime(dest)) or (os.path.getctime(src) > os.path.getctime(dest))
+    return (os.path.getmtime(src) >= os.path.getmtime(dest)) or (os.path.getctime(src) >= os.path.getctime(dest))
 
 
 def memo(func: CallableT[P, T]) -> CallableT[P, T]:

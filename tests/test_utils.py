@@ -1,3 +1,5 @@
+from time import sleep
+
 import pytest
 
 from src.hatch_cython.utils import memo, stale
@@ -47,6 +49,11 @@ def test_stale(new_tmp_dir):
     src.write_text("hello world")
     dest.write_text("hello world")
 
+    # mtime may not be within resolution to run tests consistently, so we need to wait for sys
+    # to reflect the modification times
+    # https://stackoverflow.com/questions/19059877/python-os-path-getmtime-time-not-changing
+    sleep(5)
+
     assert not stale(
         str(src),
         str(dest),
@@ -55,12 +62,17 @@ def test_stale(new_tmp_dir):
     with src.open("w") as f:
         f.write("now stale")
 
+    sleep(5)
+
     assert stale(
         str(src),
         str(dest),
     )
 
     dest.unlink()
+
+    sleep(5)
+
     assert stale(
         str(src),
         str(dest),
