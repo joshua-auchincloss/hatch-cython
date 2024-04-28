@@ -46,12 +46,16 @@ def new_tmp_dir(tmp_path):
 def test_stale(new_tmp_dir):
     src = new_tmp_dir / "test.txt"
     dest = new_tmp_dir / "dest.txt"
+
     src.write_text("hello world")
-    dest.write_text("hello world")
 
     # mtime may not be within resolution to run tests consistently, so we need to wait for sys
     # to reflect the modification times
     # https://stackoverflow.com/questions/19059877/python-os-path-getmtime-time-not-changing
+    sleep(5)
+
+    dest.write_text("hello world")
+
     sleep(5)
 
     assert not stale(
