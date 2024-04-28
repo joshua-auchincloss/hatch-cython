@@ -37,6 +37,10 @@ jobs:
             run: |
                 brew cleanup
                 brew update -f
+                rm -rf /usr/local/bin/2to3*
+                rm -rf /usr/local/bin/idle3*
+                rm -rf /usr/local/bin/pydoc3*
+                rm -rf /usr/local/bin/python*
                 brew install libomp llvm
                 echo "
                 export PATH=\"$(brew --prefix)/opt/llvm/bin:\$PATH\"
@@ -46,6 +50,7 @@ jobs:
                 export LD=ld.lld
                 export AR=llvm-ar
                 export RANLIB=llvm-ranlib
+
                 " >> $HOME/.bash_profile
 
         -   uses: actions/setup-go@v5
@@ -72,8 +77,7 @@ jobs:
                 python-version: ${{ matrix.python-version }}
 
         -   name: Install Hatch
-            run: |
-                pip install --upgrade hatch
+            run: pip install --upgrade hatch
 
         -   name: Run tests
             run: hatch run cov
