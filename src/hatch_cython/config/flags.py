@@ -1,10 +1,9 @@
 from dataclasses import dataclass, field
-from os import environ
+from os import environ, pathsep
 from typing import ClassVar
 
 from hatch_cython.config.platform import PlatformArgs, parse_to_plat
 from hatch_cython.types import CallableT, DictT
-from hatch_cython.utils import path_delim
 
 
 @dataclass
@@ -29,7 +28,7 @@ __flags__ = (
     EnvFlag(env="SHLIB_SUFFIX", merges=False),
     EnvFlag(env="AR", merges=False),
     EnvFlag(env="ARFLAGS", merges=True),
-    EnvFlag(env="PATH", merges=True, sep=path_delim()),
+    EnvFlag(env="PATH", merges=True, sep=pathsep),
 )
 
 

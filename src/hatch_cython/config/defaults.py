@@ -2,19 +2,17 @@ from subprocess import CalledProcessError, check_output
 
 from hatch_cython.config.platform import PlatformArgs
 from hatch_cython.constants import POSIX_CORE
-from hatch_cython.utils import aarch, memo, plat
+from hatch_cython.utils import aarch, plat
 
 BREW = "brew"
 
 
-# pragma: no cover
-@memo
 def brew_path():
     if plat() == "darwin":
         # no user input - S603 is false positive
         try:
             proc = check_output([BREW, "--prefix"])  # noqa: S603
-        except CalledProcessError:
+        except (CalledProcessError, FileNotFoundError):
             proc = None
         dec = proc.decode().replace("\n", "") if proc else None
         if dec and dec != "":

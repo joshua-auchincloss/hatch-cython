@@ -11,8 +11,9 @@ if vmaj >= (3, 10):
     TupleT = tuple
     DictT = dict
     ListT = list
+    Set = set
 else:
-    from typing import Callable, Dict, List, Tuple  # noqa: UP035
+    from typing import Callable, Dict, List, Set, Tuple  # noqa: UP035, F401
 
     from typing_extensions import ParamSpec
 

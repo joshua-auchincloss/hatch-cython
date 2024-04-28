@@ -1,5 +1,6 @@
 from textwrap import dedent
 from types import SimpleNamespace
+from unittest.mock import patch
 
 from toml import loads
 
@@ -17,6 +18,17 @@ def test_brew_path():
         assert brew_path() == "/opt/homebrew"
     else:
         assert brew_path() is None
+
+
+def test_brew_fails_safely():
+    with (
+        patch("hatch_cython.config.defaults.BREW", "some-cmd-that-doesnt-exist"),
+        patch("hatch_cython.utils.memo", lambda f: f),
+    ):
+        with arch_platform("x86_64", "darwin", brew=False):
+            assert brew_path() == "/usr/local"
+        with arch_platform("arm64", "darwin", brew=False):
+            assert brew_path() == "/opt/homebrew"
 
 
 def test_config_with_brew():

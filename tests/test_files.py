@@ -28,3 +28,17 @@ def test_fc_with_explicit_targets():
     fa = FileArgs(**cfg)
 
     assert fa.explicit_targets
+
+
+def test_fc_aliasing():
+    cfg = {
+        "targets": [],
+        "exclude": [],
+        "aliases": {
+            "somelib.abc.next": "somelib.abc.not_first",
+            "somelib.abc.alias": "somelib.abc.compiled",
+        },
+    }
+
+    fa = FileArgs(**cfg)
+    assert fa.matches_alias("somelib.abc.alias") == "somelib.abc.compiled"

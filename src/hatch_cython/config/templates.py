@@ -61,12 +61,7 @@ class Templates:
         self.kwargs = kwargs
 
     def __repr__(self) -> str:
-        return dedent(
-            f"""Templates(
-    index={self.index},
-    kwargs={self.kwargs}
-)"""
-        )
+        return dedent(f"""Templates(index={self.index!r}, kwargs={self.kwargs!r})""")
 
     def asdict(self):
         return {

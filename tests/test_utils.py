@@ -1,4 +1,6 @@
-from src.hatch_cython.utils import memo
+import pytest
+
+from src.hatch_cython.utils import memo, stale
 
 
 def test_memo():
@@ -30,3 +32,34 @@ def test_memo():
     assert tc2.do() == 44
 
     assert tc.ok_property == "OK"
+
+
+@pytest.fixture
+def new_tmp_dir(tmp_path):
+    project_dir = tmp_path / "app"
+    project_dir.mkdir()
+    return project_dir
+
+
+def test_stale(new_tmp_dir):
+    src = new_tmp_dir / "test.txt"
+    dest = new_tmp_dir / "dest.txt"
+    src.write_text("hello world")
+    dest.write_text("hello world")
+
+    assert not stale(
+        str(src),
+        str(dest),
+    )
+
+    src.write_text("now stale")
+    assert stale(
+        str(src),
+        str(dest),
+    )
+
+    dest.unlink()
+    assert stale(
+        str(src),
+        str(dest),
+    )
