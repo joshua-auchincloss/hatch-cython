@@ -14,7 +14,7 @@ def test_brew_path():
     if plat() == "darwin" and aarch() == "x86_64":
         assert brew_path() == "/usr/local"
     elif plat() == "darwin" and aarch() == "arm64":
-        assert brew_path() == "/usr/local"
+        assert brew_path() == "/opt/homebrew"
     else:
         assert brew_path() is None
 
