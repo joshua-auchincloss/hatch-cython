@@ -42,6 +42,7 @@ def test_config_parser():
     includes = []
     include_numpy = false
     include_pyarrow = false
+    include_all_compiled_src = false
 
     include_somelib = { pkg = "somelib", include = "gets_include", libraries = "gets_libraries", library_dirs = "gets_library_dirs", required_call = "some_setup_op" }
 
@@ -253,6 +254,7 @@ def test_config_parser():
     assert cfg.library_dirs == gets_library_dirs()
     assert gets_include() in cfg.includes
     assert cfg.compile_kwargs == {"abc_compile_kwarg": "test"}
+    assert not cfg.include_all_compiled_src
 
 
 def test_defaults():

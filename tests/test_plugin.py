@@ -3,6 +3,7 @@ from os import getcwd, path
 from pathlib import Path  # noqa: F401
 from sys import path as syspath
 from types import SimpleNamespace
+from typing import Optional
 
 import pytest
 from toml import load
@@ -36,12 +37,18 @@ def new_src_proj(tmp_path):
     return project_dir
 
 
-def test_wheel_build_hook(new_src_proj):
+@pytest.mark.parametrize("include_all_compiled_src", [None, True, False])
+def test_wheel_build_hook(new_src_proj, include_all_compiled_src: Optional[bool]):
     with override_dir(new_src_proj):
         syspath.insert(0, str(new_src_proj))
+        config = load(new_src_proj / "hatch.toml")["build"]["hooks"]["custom"]
+        if include_all_compiled_src is None:
+            pass
+        else:
+            config["options"]["include_all_compiled_src"] = include_all_compiled_src
         hook = CythonBuildHook(
             new_src_proj,
-            load(new_src_proj / "hatch.toml")["build"]["hooks"]["custom"],
+            config,
             {},
             SimpleNamespace(name="example_lib"),
             directory=new_src_proj,
@@ -49,6 +56,11 @@ def test_wheel_build_hook(new_src_proj):
         )
 
         assert hook.is_src
+
+        if include_all_compiled_src is None:
+            assert hook.options.include_all_compiled_src
+        else:
+            assert hook.options.include_all_compiled_src == include_all_compiled_src
 
         assert not hook.options.files.explicit_targets
 
@@ -81,6 +93,7 @@ def test_wheel_build_hook(new_src_proj):
         build_data = {
             "artifacts": [],
             "force_include": {},
+            "exclude": [],
         }
         hook.initialize("0.1.0", build_data)
 
@@ -97,6 +110,8 @@ def test_wheel_build_hook(new_src_proj):
                 "./src/example_lib/mod_a/some_defn.pxd",
                 "./src/example_lib/mod_a/some_defn.py",
                 "./src/example_lib/normal.py",
+                "./src/example_lib/normal_exclude_compiled_src.py",
+                "./src/example_lib/normal_include_compiled_src.py",
                 "./src/example_lib/templated.pyx",
                 "./src/example_lib/test.pyx",
             ]
@@ -115,6 +130,8 @@ def test_wheel_build_hook(new_src_proj):
             {"name": "example_lib.mod_a.deep_nest.creates", "files": ["./src/example_lib/mod_a/deep_nest/creates.pyx"]},
             {"name": "example_lib.mod_a.some_defn", "files": ["./src/example_lib/mod_a/some_defn.py"]},
             {"name": "example_lib.normal", "files": ["./src/example_lib/normal.py"]},
+            {"name": "example_lib.normal_exclude_compiled_src", "files": ["./src/example_lib/normal_exclude_compiled_src.py"]},
+            {"name": "example_lib.normal_include_compiled_src", "files": ["./src/example_lib/normal_include_compiled_src.py"]},
             {"name": f"example_lib.platform.{plat()}", "files": [f"./src/example_lib/platform/{plat()}.pyx"]},
             {"name": "example_lib.templated", "files": ["./src/example_lib/templated.pyx"]},
             {"name": "example_lib.test", "files": ["./src/example_lib/test.pyx"]},
@@ -152,6 +169,12 @@ def test_wheel_build_hook(new_src_proj):
                 "./src/example_lib/normal.*.pxd",
                 "./src/example_lib/normal.*.py",
                 "./src/example_lib/normal.*.pyx",
+                "./src/example_lib/normal_exclude_compiled_src.*.pxd",
+                "./src/example_lib/normal_exclude_compiled_src.*.py",
+                "./src/example_lib/normal_exclude_compiled_src.*.pyx",
+                "./src/example_lib/normal_include_compiled_src.*.pxd",
+                "./src/example_lib/normal_include_compiled_src.*.py",
+                "./src/example_lib/normal_include_compiled_src.*.pyx",
                 "./src/example_lib/templated.*.pxd",
                 "./src/example_lib/templated.*.py",
                 "./src/example_lib/templated.*.pyx",
@@ -167,6 +190,26 @@ def test_wheel_build_hook(new_src_proj):
         assert build_data.get("infer_tag")
         assert not build_data.get("pure_python")
         assert sorted(hook.artifacts) == sorted(build_data.get("artifacts")) == sorted([f"/{f}" for f in rf])
-        assert len(build_data.get("force_include")) == 12
+        assert len(build_data.get("force_include")) == 14
+        if include_all_compiled_src is None or include_all_compiled_src is True:
+            expected_exclude = ["./src/example_lib/normal_exclude_compiled_src.py"]
+        else:
+            expected_exclude = [
+                "./src/example_lib/__about__.py",
+                "./src/example_lib/__init__.py",
+                "./src/example_lib/_alias.pyx",
+                "./src/example_lib/custom_includes.pyx",
+                "./src/example_lib/mod_a/__init__.py",
+                "./src/example_lib/mod_a/adds.pyx",
+                f"./src/example_lib/platform/{plat()}.pyx",
+                "./src/example_lib/mod_a/deep_nest/creates.pyx",
+                "./src/example_lib/mod_a/some_defn.pxd",
+                "./src/example_lib/mod_a/some_defn.py",
+                "./src/example_lib/normal.py",
+                "./src/example_lib/normal_exclude_compiled_src.py",
+                "./src/example_lib/templated.pyx",
+                "./src/example_lib/test.pyx",
+            ]
+        assert sorted(build_data.get("exclude")) == sorted(expected_exclude)
 
     syspath.remove(str(new_src_proj))

@@ -88,6 +88,20 @@ cov-report = [
 test = "pytest {args:tests} -v"
 test-cov = "coverage run -m pytest -vv {args:tests}"
 
+[tool.hatch.envs.dev]
+python = "3.9"
+path = ".venv"
+skip-install = false
+extra-dependencies = [
+  "coverage[toml]>=6.5",
+  "pytest",
+  "toml",
+  "numpy",
+  "black",
+  "mypy",
+  "ruff"
+]
+
 [tool.hatch.envs.lint]
 dependencies = ["black", "mypy", "ruff"]
 detached = true

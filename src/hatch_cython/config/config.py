@@ -35,6 +35,7 @@ __known__ = frozenset(
         "compiled_sdist",
         "extra_link_args",
         "cythonize_kwargs",
+        "include_all_compiled_src"
     )
 )
 
@@ -151,6 +152,7 @@ class Config:
     envflags: EnvFlags = field(default_factory=EnvFlags)
     compile_py: bool = field(default=True)
     templates: Templates = field(default_factory=Templates)
+    include_all_compiled_src: bool = field(default=True)
 
     def __post_init__(self):
         self.directives = {**DIRECTIVES, **self.directives}

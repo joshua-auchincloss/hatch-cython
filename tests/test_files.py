@@ -42,3 +42,36 @@ def test_fc_aliasing():
 
     fa = FileArgs(**cfg)
     assert fa.matches_alias("somelib.abc.alias") == "somelib.abc.compiled"
+
+
+def test_fc_with_exclude_compiled_src():
+    cfg = {
+        "targets": [],
+        "exclude": [],
+        "aliases": {},
+        "exclude_compiled_src": [
+            "*/abc.py",
+            {"matches": "*/def.py"},
+        ],
+    }
+
+    fa = FileArgs(**cfg)
+
+    assert fa.exclude_compiled_src
+
+
+def test_fc_with_include_compiled_src():
+    cfg = {
+        "targets": [],
+        "exclude": [],
+        "aliases": {},
+        "exclude_compiled_src": [],
+        "include_compiled_src": [
+            "*/abc.py",
+            {"matches": "*/def.py"},
+        ],
+    }
+
+    fa = FileArgs(**cfg)
+
+    assert fa.include_compiled_src

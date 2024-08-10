@@ -15,3 +15,4 @@ dist/
 .vscode/
 .ruff_cache
 .pytest_cache
+.idea/

@@ -83,6 +83,14 @@ exclude = [
     "windows"
   ]}
 ]
+exclude_compiled_src = [
+  "./src/example_lib/normal_exclude_compiled_src.py",
+  "./src/example_lib/no_compile/",
+  "./src/example_lib/normal_include_compiled_src.py",
+]
+include_compiled_src = [
+  "./src/example_lib/normal_include_compiled_src.py"
+]
 
 [build.hooks.custom.options.templates]
 global = {supported = ["int"]}

@@ -1,5 +1,6 @@
 import re
 from dataclasses import dataclass, field
+from typing import Type
 
 from hatch_cython.config.platform import PlatformBase
 from hatch_cython.types import DictT, ListT, UnionT
@@ -16,28 +17,36 @@ class OptInclude(PlatformBase):
     matches: str = field(default="*")
 
 
+def _get_file_list(
+        cls: Type[UnionT[OptInclude, OptExclude]],
+        files: ListT[UnionT[str, OptInclude, OptExclude]]
+) -> ListT[str]:
+    return [
+        *[cls(**d) for d in files if isinstance(d, dict)],
+        *[cls(matches=s) for s in files if isinstance(s, str)],
+    ]
+
+
 @dataclass
 class FileArgs:
     targets: ListT[UnionT[str, OptInclude]] = field(default_factory=list)
     exclude: ListT[UnionT[str, OptExclude]] = field(default_factory=list)
     aliases: DictT[str, str] = field(default_factory=dict)
+    exclude_compiled_src: ListT[UnionT[str, OptExclude]] = field(default_factory=list)
+    include_compiled_src: ListT[UnionT[str, OptInclude]] = field(default_factory=list)
 
     def __post_init__(self):
         rep = {}
         for k, v in self.aliases.items():
             rep[parse_user_glob(k)] = v
         self.aliases = rep
-        self.exclude = [
-            *[OptExclude(**d) for d in self.exclude if isinstance(d, dict)],
-            *[OptExclude(matches=s) for s in self.exclude if isinstance(s, str)],
-        ]
-        self.targets = [
-            *[OptInclude(**d) for d in self.targets if isinstance(d, dict)],
-            *[OptInclude(matches=s) for s in self.targets if isinstance(s, str)],
-        ]
+        self.exclude = _get_file_list(OptExclude, self.exclude)
+        self.targets = _get_file_list(OptInclude, self.targets)
+        self.exclude_compiled_src = _get_file_list(OptExclude, self.exclude_compiled_src)
+        self.include_compiled_src = _get_file_list(OptInclude, self.include_compiled_src)
 
     @property
-    def explicit_targets(self):
+    def explicit_targets(self) -> bool:
         return len(self.targets) > 0
 
     def matches_alias(self, other: str) -> UnionT[str, None]:
