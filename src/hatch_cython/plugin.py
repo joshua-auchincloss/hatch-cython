@@ -125,7 +125,7 @@ class CythonBuildHook(BuildHookInterface):
         return not_excluded
 
     def wanted_to_exclude_compiled_src(self, item: str):
-        is_compiled = self.wanted(item)
+        is_compiled = item in self.precompiled  # self.wanted(item)
         if not self.options.include_all_compiled_src:
             is_excluded = True
         else:
