@@ -6,6 +6,7 @@ from types import SimpleNamespace
 from typing import Optional
 
 import pytest
+from hatchling.builders.wheel import WheelBuilderConfig
 from toml import load
 
 from hatch_cython.plugin import CythonBuildHook
@@ -41,15 +42,22 @@ def new_src_proj(tmp_path):
 def test_wheel_build_hook(new_src_proj, include_all_compiled_src: Optional[bool]):
     with override_dir(new_src_proj):
         syspath.insert(0, str(new_src_proj))
-        config = load(new_src_proj / "hatch.toml")["build"]["hooks"]["custom"]
+        build_config = load(new_src_proj / "hatch.toml")["build"]
+        cython_config = build_config["hooks"]["custom"]
         if include_all_compiled_src is None:
             pass
         else:
-            config["options"]["include_all_compiled_src"] = include_all_compiled_src
+            cython_config["options"]["include_all_compiled_src"] = include_all_compiled_src
         hook = CythonBuildHook(
             new_src_proj,
-            config,
-            {},
+            cython_config,
+            WheelBuilderConfig(
+                builder=None,
+                root="root",
+                plugin_name="cython",
+                build_config=build_config,
+                target_config=build_config["targets"]["wheel"],
+            ),
             SimpleNamespace(name="example_lib"),
             directory=new_src_proj,
             target_name="wheel",
@@ -209,6 +217,6 @@ def test_wheel_build_hook(new_src_proj, include_all_compiled_src: Optional[bool]
                 "./src/example_lib/templated.pyx",
                 "./src/example_lib/test.pyx",
             ]
-        assert sorted(build_data.get("exclude")) == sorted(expected_exclude)
+        assert sorted(hook.build_config.target_config["exclude"]) == sorted(expected_exclude)
 
     syspath.remove(str(new_src_proj))
