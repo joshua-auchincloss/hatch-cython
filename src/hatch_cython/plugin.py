@@ -234,7 +234,7 @@ class CythonBuildHook(BuildHookInterface):
         return (
             self.artifact_patterns(self.normalized_dist_globs)
             if not self.sdist
-            else self.artifact_patterns(self.intermediate)
+            else self.artifact_patterns(self.compiled)
         )
 
     @property
