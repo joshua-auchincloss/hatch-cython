@@ -1,3 +1,5 @@
+from typing import Any
+
 from hatchling.plugin import hookimpl
 
 from hatch_cython.plugin import CythonBuildHook
