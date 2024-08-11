@@ -387,6 +387,8 @@ class CythonBuildHook(BuildHookInterface):
         build_data["infer_tag"] = True
         build_data["artifacts"].extend(self.artifacts)
         build_data["force_include"].update(self.inclusion_map)
+        if "exclude" not in build_data and len(self.excluded) > 0:
+            build_data["exclude"] = []
         build_data["exclude"].extend(self.excluded)
         build_data["pure_python"] = False
 

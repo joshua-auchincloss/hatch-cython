@@ -93,7 +93,6 @@ def test_wheel_build_hook(new_src_proj, include_all_compiled_src: Optional[bool]
         build_data = {
             "artifacts": [],
             "force_include": {},
-            "exclude": [],
         }
         hook.initialize("0.1.0", build_data)
 
