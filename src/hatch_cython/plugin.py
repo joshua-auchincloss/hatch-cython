@@ -372,6 +372,7 @@ class CythonBuildHook(BuildHookInterface):
             self.app.display_success("Post-build artifacts")
 
     def initialize(self, version: str, build_data: dict):
+        print("INITIALIZE OVERRIDE")
         self.app.display_mini_header(self.PLUGIN_NAME)
         self.app.display_debug("options")
         self.app.display_debug(self.options.asdict(), level=1)
