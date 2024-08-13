@@ -130,7 +130,9 @@ class CythonBuildHook(BuildHookInterface):
         if self.options.files.explicit_targets:
             self.app.display_info(f"Hatch-cython: wanted {item} {self.normalize_glob(item)} {self.options_include}")
             is_target = any([re.match(opt, self.normalize_glob(item)) for opt in self.options_include])
+            self.app.display_info(f"Hatch-cython: wanted {item} return {not_excluded} and {is_target}")
             return not_excluded and is_target
+        self.app.display_info(f"Hatch-cython: wanted {item} return {not_excluded}")
         return not_excluded
 
     def wanted_to_exclude_compiled_src(self, item: str):
