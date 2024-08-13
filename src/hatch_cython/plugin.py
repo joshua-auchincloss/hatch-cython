@@ -126,7 +126,9 @@ class CythonBuildHook(BuildHookInterface):
 
     def wanted(self, item: str) -> bool:
         not_excluded = not any(re.match(e, self.normalize_glob(item), re.IGNORECASE) for e in self.options_exclude)
+        self.app.display_info(f"Hatch-cython: wanted {item} {not_excluded}")
         if self.options.files.explicit_targets:
+            self.app.display_info(f"Hatch-cython: wanted {item} {self.normalize_glob(item)} {self.options_include}")
             return not_excluded and any(re.match(opt, self.normalize_glob(item)) for opt in self.options_include)
         return not_excluded
 
