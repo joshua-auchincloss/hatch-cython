@@ -393,7 +393,7 @@ class CythonBuildHook(BuildHookInterface):
         build_data["infer_tag"] = True
         # TODO why not .so in here? but in force_include
         build_data["artifacts"].extend([remove_leading_dot(f) for f in self.artifacts])
-        build_data["force_include"].update([remove_leading_dot(f) for f in self.inclusion_map])
+        build_data["force_include"].update(self.inclusion_map)
         build_data["pure_python"] = False
         if len(self.excluded) > 0:
             if "exclude" not in build_data:
