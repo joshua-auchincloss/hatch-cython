@@ -392,6 +392,8 @@ class CythonBuildHook(BuildHookInterface):
             if "exclude" not in build_data:
                 self.build_config.target_config["exclude"] = []
             self.build_config.target_config["exclude"].extend(self.excluded)
+        self.app.display_debug(f"Build config: {self.build_config}")
+        self.app.display_debug(f"Target config: {self.build_config.target_config}")
 
         self.app.display_info("Extensions complete")
-        self.app.display_debug(build_data)
+        self.app.display_debug(f"Build data: {build_data}")
