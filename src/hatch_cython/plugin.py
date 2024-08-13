@@ -265,10 +265,14 @@ class CythonBuildHook(BuildHookInterface):
             *(f"{self.project_dir}/**/*{ext}" for ext in exts),
             *(f"{self.project_dir}/*{ext}" for ext in exts),
         ]
+        self.app.display_info(f"Hatch-cython: Globs {globs}")
         globbed = []
         for g in globs:
             globbed += list(map(normalize, glob(g, recursive=True)))
-        return list(filter(self.wanted, set(globbed)))
+        self.app.display_info(f"Hatch-cython: Globbed {globbed}")
+        globbed_wanted = list(filter(self.wanted, set(globbed)))
+        self.app.display_info(f"Hatch-cython: Globbed wanted {globbed_wanted}")
+        return globbed_wanted
 
     @property
     def precompiled(self):
