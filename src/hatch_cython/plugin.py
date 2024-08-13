@@ -388,14 +388,16 @@ class CythonBuildHook(BuildHookInterface):
         if self.sdist and not self.options.compiled_sdist:
             self.clean(None)
 
+        # removing dot from leading ./ from paths as local fix because hatch requires git style glob patterns
+        # same as did in hatch-mypy plugin
         build_data["infer_tag"] = True
-        build_data["artifacts"].extend(self.artifacts)
-        build_data["force_include"].update(self.inclusion_map)
+        # TODO why not .so in here? but in force_include
+        build_data["artifacts"].extend([remove_leading_dot(f) for f in self.artifacts])
+        build_data["force_include"].update([remove_leading_dot(f) for f in self.inclusion_map])
         build_data["pure_python"] = False
         if len(self.excluded) > 0:
             if "exclude" not in build_data:
                 self.build_config.target_config["exclude"] = []
-            # removing dot from leading ./ from paths as local fix because hatch requires git style glob patterns
             self.build_config.target_config["exclude"].extend(
                 [remove_leading_dot(f) for f in self.excluded]
             )
