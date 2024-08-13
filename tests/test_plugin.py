@@ -144,78 +144,49 @@ def test_wheel_build_hook(new_src_proj, include_all_compiled_src: Optional[bool]
             {"name": "example_lib.test", "files": ["./src/example_lib/test.pyx"]},
         ]
 
-        rf = sorted(
-            [
-                "./src/example_lib/__about__.*.pxd",
-                "./src/example_lib/__about__.*.py",
-                "./src/example_lib/__about__.*.pyx",
-                "./src/example_lib/__init__.*.pxd",
-                "./src/example_lib/__init__.*.py",
-                "./src/example_lib/__init__.*.pyx",
-                "./src/example_lib/_alias.*.pxd",
-                "./src/example_lib/_alias.*.py",
-                "./src/example_lib/_alias.*.pyx",
-                "./src/example_lib/custom_includes.*.pxd",
-                "./src/example_lib/custom_includes.*.py",
-                "./src/example_lib/custom_includes.*.pyx",
-                "./src/example_lib/mod_a/__init__.*.pxd",
-                "./src/example_lib/mod_a/__init__.*.py",
-                "./src/example_lib/mod_a/__init__.*.pyx",
-                "./src/example_lib/mod_a/adds.*.pxd",
-                "./src/example_lib/mod_a/adds.*.py",
-                "./src/example_lib/mod_a/adds.*.pyx",
-                "./src/example_lib/mod_a/deep_nest/creates.*.pxd",
-                "./src/example_lib/mod_a/deep_nest/creates.*.py",
-                "./src/example_lib/mod_a/deep_nest/creates.*.pyx",
-                "./src/example_lib/mod_a/some_defn.*.pxd",
-                "./src/example_lib/mod_a/some_defn.*.pxd",
-                "./src/example_lib/mod_a/some_defn.*.py",
-                "./src/example_lib/mod_a/some_defn.*.py",
-                "./src/example_lib/mod_a/some_defn.*.pyx",
-                "./src/example_lib/mod_a/some_defn.*.pyx",
-                "./src/example_lib/normal.*.pxd",
-                "./src/example_lib/normal.*.py",
-                "./src/example_lib/normal.*.pyx",
-                "./src/example_lib/normal_exclude_compiled_src.*.pxd",
-                "./src/example_lib/normal_exclude_compiled_src.*.py",
-                "./src/example_lib/normal_exclude_compiled_src.*.pyx",
-                "./src/example_lib/normal_include_compiled_src.*.pxd",
-                "./src/example_lib/normal_include_compiled_src.*.py",
-                "./src/example_lib/normal_include_compiled_src.*.pyx",
-                "./src/example_lib/templated.*.pxd",
-                "./src/example_lib/templated.*.py",
-                "./src/example_lib/templated.*.pyx",
-                f"./src/example_lib/platform/{plat()}.*.pxd",
-                f"./src/example_lib/platform/{plat()}.*.py",
-                f"./src/example_lib/platform/{plat()}.*.pyx",
-                "./src/example_lib/test.*.pxd",
-                "./src/example_lib/test.*.py",
-                "./src/example_lib/test.*.pyx",
-            ]
-        )
+        expected_files_without_ext = [
+            "./src/example_lib/__about__",
+            "./src/example_lib/__init__",
+            "./src/example_lib/_alias",
+            "./src/example_lib/custom_includes",
+            "./src/example_lib/mod_a/__init__",
+            "./src/example_lib/mod_a/adds",
+            "./src/example_lib/mod_a/deep_nest/creates",
+            "./src/example_lib/mod_a/some_defn",
+            "./src/example_lib/mod_a/some_defn",
+            "./src/example_lib/normal",
+            "./src/example_lib/normal_exclude_compiled_src",
+            "./src/example_lib/normal_include_compiled_src",
+            f"./src/example_lib/platform/{plat()}",
+            "./src/example_lib/templated",
+            "./src/example_lib/test",
+        ]
+        ext = [".py", ".pyx", ".pxd", ".so", ".pyd", ".dll"]
+        rf = sorted([f"{f}.*{e}" for f in expected_files_without_ext for e in ext])
         assert sorted(hook.normalized_dist_globs) == rf
+
         assert build_data.get("infer_tag")
         assert not build_data.get("pure_python")
         assert sorted(hook.artifacts) == sorted(build_data.get("artifacts")) == sorted([f"/{f}" for f in rf])
         assert len(build_data.get("force_include")) == 14
         if include_all_compiled_src is None or include_all_compiled_src is True:
-            expected_exclude = ["src/example_lib/normal_exclude_compiled_src.py"]
+            expected_exclude = ["/src/example_lib/normal_exclude_compiled_src.py"]
         else:
             expected_exclude = [
-                "src/example_lib/__about__.py",
-                "src/example_lib/__init__.py",
-                "src/example_lib/_alias.pyx",
-                "src/example_lib/custom_includes.pyx",
-                "src/example_lib/mod_a/__init__.py",
-                "src/example_lib/mod_a/adds.pyx",
-                f"src/example_lib/platform/{plat()}.pyx",
-                "src/example_lib/mod_a/deep_nest/creates.pyx",
-                "src/example_lib/mod_a/some_defn.pxd",
-                "src/example_lib/mod_a/some_defn.py",
-                "src/example_lib/normal.py",
-                "src/example_lib/normal_exclude_compiled_src.py",
-                "src/example_lib/templated.pyx",
-                "src/example_lib/test.pyx",
+                "/src/example_lib/__about__.py",
+                "/src/example_lib/__init__.py",
+                "/src/example_lib/_alias.pyx",
+                "/src/example_lib/custom_includes.pyx",
+                "/src/example_lib/mod_a/__init__.py",
+                "/src/example_lib/mod_a/adds.pyx",
+                f"/src/example_lib/platform/{plat()}.pyx",
+                "/src/example_lib/mod_a/deep_nest/creates.pyx",
+                "/src/example_lib/mod_a/some_defn.pxd",
+                "/src/example_lib/mod_a/some_defn.py",
+                "/src/example_lib/normal.py",
+                "/src/example_lib/normal_exclude_compiled_src.py",
+                "/src/example_lib/templated.pyx",
+                "/src/example_lib/test.pyx",
             ]
         assert sorted(hook.build_config.target_config["exclude"]) == sorted(expected_exclude)
 
