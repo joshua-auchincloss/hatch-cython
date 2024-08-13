@@ -199,23 +199,23 @@ def test_wheel_build_hook(new_src_proj, include_all_compiled_src: Optional[bool]
         assert sorted(hook.artifacts) == sorted(build_data.get("artifacts")) == sorted([f"/{f}" for f in rf])
         assert len(build_data.get("force_include")) == 14
         if include_all_compiled_src is None or include_all_compiled_src is True:
-            expected_exclude = ["./src/example_lib/normal_exclude_compiled_src.py"]
+            expected_exclude = ["src/example_lib/normal_exclude_compiled_src.py"]
         else:
             expected_exclude = [
-                "./src/example_lib/__about__.py",
-                "./src/example_lib/__init__.py",
-                "./src/example_lib/_alias.pyx",
-                "./src/example_lib/custom_includes.pyx",
-                "./src/example_lib/mod_a/__init__.py",
-                "./src/example_lib/mod_a/adds.pyx",
-                f"./src/example_lib/platform/{plat()}.pyx",
-                "./src/example_lib/mod_a/deep_nest/creates.pyx",
-                "./src/example_lib/mod_a/some_defn.pxd",
-                "./src/example_lib/mod_a/some_defn.py",
-                "./src/example_lib/normal.py",
-                "./src/example_lib/normal_exclude_compiled_src.py",
-                "./src/example_lib/templated.pyx",
-                "./src/example_lib/test.pyx",
+                "src/example_lib/__about__.py",
+                "src/example_lib/__init__.py",
+                "src/example_lib/_alias.pyx",
+                "src/example_lib/custom_includes.pyx",
+                "src/example_lib/mod_a/__init__.py",
+                "src/example_lib/mod_a/adds.pyx",
+                f"src/example_lib/platform/{plat()}.pyx",
+                "src/example_lib/mod_a/deep_nest/creates.pyx",
+                "src/example_lib/mod_a/some_defn.pxd",
+                "src/example_lib/mod_a/some_defn.py",
+                "src/example_lib/normal.py",
+                "src/example_lib/normal_exclude_compiled_src.py",
+                "src/example_lib/templated.pyx",
+                "src/example_lib/test.pyx",
             ]
         assert sorted(hook.build_config.target_config["exclude"]) == sorted(expected_exclude)
 
