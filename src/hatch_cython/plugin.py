@@ -125,11 +125,12 @@ class CythonBuildHook(BuildHookInterface):
         return [parse_user_glob(e.matches) for e in self.options.files.include_compiled_src if e.applies()]
 
     def wanted(self, item: str) -> bool:
-        not_excluded = not any(re.match(e, self.normalize_glob(item), re.IGNORECASE) for e in self.options_exclude)
+        not_excluded = not any([re.match(e, self.normalize_glob(item), re.IGNORECASE) for e in self.options_exclude])
         self.app.display_info(f"Hatch-cython: wanted {item} {not_excluded}")
         if self.options.files.explicit_targets:
             self.app.display_info(f"Hatch-cython: wanted {item} {self.normalize_glob(item)} {self.options_include}")
-            return not_excluded and any(re.match(opt, self.normalize_glob(item)) for opt in self.options_include)
+            is_target = any([re.match(opt, self.normalize_glob(item)) for opt in self.options_include])
+            return not_excluded and is_target
         return not_excluded
 
     def wanted_to_exclude_compiled_src(self, item: str):
