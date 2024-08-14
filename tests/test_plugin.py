@@ -6,7 +6,7 @@ from types import SimpleNamespace
 from typing import Optional
 
 import pytest
-from hatchling.builders.wheel import WheelBuilderConfig
+from hatchling.builders.wheel import WheelBuilderConfig, WheelBuilder
 from toml import load
 
 from hatch_cython.plugin import CythonBuildHook
@@ -41,7 +41,7 @@ def new_src_proj(tmp_path):
 @pytest.mark.parametrize("include_all_compiled_src", [None, True, False])
 def test_wheel_build_hook(new_src_proj, include_all_compiled_src: Optional[bool]):
     with override_dir(new_src_proj):
-        syspath.insert(0, str(new_src_proj))
+        syspath.insert(0, str())
         build_config = load(new_src_proj / "hatch.toml")["build"]
         cython_config = build_config["hooks"]["custom"]
         if include_all_compiled_src is None:
@@ -52,8 +52,8 @@ def test_wheel_build_hook(new_src_proj, include_all_compiled_src: Optional[bool]
             new_src_proj,
             cython_config,
             WheelBuilderConfig(
-                builder=None,
-                root="root",
+                builder=WheelBuilder(root=str(new_src_proj)),
+                root=str(new_src_proj),
                 plugin_name="cython",
                 build_config=build_config,
                 target_config=build_config["targets"]["wheel"],
@@ -83,17 +83,17 @@ def test_wheel_build_hook(new_src_proj, include_all_compiled_src: Optional[bool]
 
         assert hook.dir_name == "example_lib"
 
-        proj = "./src/example_lib"
+        proj = "src/example_lib"
         assert hook.project_dir == proj
 
         assert sorted(hook.precompiled_globs) == sorted(
             [
-                "./src/example_lib/*.py",
-                "./src/example_lib/**/*.py",
-                "./src/example_lib/*.pyx",
-                "./src/example_lib/**/*.pyx",
-                "./src/example_lib/*.pxd",
-                "./src/example_lib/**/*.pxd",
+                "src/example_lib/*.py",
+                "src/example_lib/**/*.py",
+                "src/example_lib/*.pyx",
+                "src/example_lib/**/*.pyx",
+                "src/example_lib/*.pxd",
+                "src/example_lib/**/*.pxd",
             ]
         )
 

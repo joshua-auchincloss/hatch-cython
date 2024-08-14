@@ -166,7 +166,7 @@ class CythonBuildHook(BuildHookInterface):
         return self.exclude_spec.match_file(relative_path)
 
     def path_is_wanted(self, relative_path: str) -> bool:
-        if self.options.files.explicit_targets:
+        if not self.options.files.explicit_targets:
             return not self.path_is_excluded(relative_path)
         return (self.path_is_included(relative_path) and
                 not self.path_is_excluded(relative_path))
@@ -194,8 +194,7 @@ class CythonBuildHook(BuildHookInterface):
     @memo
     def included_files(self):
         included_files = []
-        for included_file in self.build_config.builder.recurse_included_files():
-            relative_path = included_file.relative_path
+        for relative_path in set([f.relative_path for f in self.build_config.builder.recurse_included_files()]):  # + self.precompiled_globs):
             if (any(relative_path.endswith(ext) for ext in self.precompiled_extensions) and
                     self.path_is_wanted(relative_path)):
                 included_files.append(relative_path)
@@ -244,7 +243,7 @@ class CythonBuildHook(BuildHookInterface):
                     ok = False
                     self.app.display_warning(f"attempted to use .pxd file without .py file ({norm})")
             if self.is_src:
-                root = root.replace("./src/", "")
+                root = root.replace("src/", "")
             root = self.normalize_aliased_filelike(root.replace("/", "."))
             alias = self.options.files.matches_alias(root)
             self.app.display_debug(f"check alias {ok} {root} -> {norm} -> {alias}")
@@ -301,10 +300,13 @@ class CythonBuildHook(BuildHookInterface):
         extra = ""
         if except_extra:
             extra = ".*"
+        relative_path_patterns = []
         for included_file in self.included_files_without_extension:
             for ext in extensions:
-                for path in iglob(os.path.join(self.root, f"{included_file}{extra}{ext}")):
-                    found_files.append(path)
+                relative_path_patterns.append(f"{included_file}{extra}{ext}")
+        for pattern in relative_path_patterns:
+            for path in iglob(os.path.join(self.root, pattern)):
+                found_files.append(path)
         return found_files
 
     @property
@@ -378,7 +380,7 @@ class CythonBuildHook(BuildHookInterface):
             os.mkdir(temp_build_dir)
 
             self.app.display_info("Building c/c++ extensions...")
-            self.app.display_info(self.normalized_included_files)
+            self.app.display_info(str(self.normalized_included_files))
             setup_file = os.path.join(temp, "setup.py")
             with open(setup_file, "w") as f:
                 setup = setup_py(

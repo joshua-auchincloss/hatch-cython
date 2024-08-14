@@ -16,11 +16,11 @@ src = "example_only_included"
 
 [build.hooks.custom.options.files]
 aliases = {"example_only_included.compile" = "example_only_included.did"}
-targets = ["*/compile.py"]
+targets = ["**/compile.py"]
 
 [build.targets.wheel]
 macos-max-compat = false
-packages = ["example_only_included"]
+packages = ["src/example_only_included"]
 
 [[envs.all.matrix]]
 python = ["3.8", "3.9", "3.10", "3.11", "3.12"]

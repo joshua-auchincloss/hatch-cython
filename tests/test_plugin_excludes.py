@@ -3,6 +3,7 @@ from sys import path as syspath
 from types import SimpleNamespace
 
 import pytest
+from hatchling.builders.wheel import WheelBuilderConfig, WheelBuilder
 from toml import load
 
 from hatch_cython.plugin import CythonBuildHook
@@ -27,15 +28,23 @@ def new_explicit_proj(tmp_path):
 def test_explicit_includes(new_explicit_proj):
     with override_dir(new_explicit_proj):
         syspath.insert(0, str(new_explicit_proj))
+        build_config = load(new_explicit_proj / "hatch.toml")["build"]
+        cython_config = build_config["hooks"]["custom"]
         hook = CythonBuildHook(
             new_explicit_proj,
-            load(new_explicit_proj / "hatch.toml")["build"]["hooks"]["custom"],
-            {},
+            cython_config,
+            WheelBuilderConfig(
+                builder=WheelBuilder(root=str(new_explicit_proj)),
+                root=str(new_explicit_proj),
+                plugin_name="cython",
+                build_config=build_config,
+                target_config=build_config["targets"]["wheel"],
+            ),
             SimpleNamespace(name="example_only_included"),
             directory=new_explicit_proj,
             target_name="wheel",
         )
-        assert hook.normalized_included_files == ["./src/example_only_included/compile.py"]
+        assert hook.normalized_included_files == ["src/example_only_included/compile.py"]
         assert hook.options.files.explicit_targets
 
     syspath.remove(str(new_explicit_proj))
