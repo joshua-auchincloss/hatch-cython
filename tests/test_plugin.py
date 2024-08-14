@@ -163,11 +163,11 @@ def test_wheel_build_hook(new_src_proj, include_all_compiled_src: Optional[bool]
         ]
         ext = [".py", ".pyx", ".pxd", ".so", ".pyd", ".dll"]
         rf = sorted([f"{f}.*{e}" for f in expected_files_without_ext for e in ext])
-        assert sorted(hook.normalized_dist_globs) == rf
+        assert sorted(hook.normalized_artifact_globs) == rf
 
         assert build_data.get("infer_tag")
         assert not build_data.get("pure_python")
-        assert sorted(hook.artifacts) == sorted(build_data.get("artifacts")) == sorted([f"/{f}" for f in rf])
+        assert sorted(hook.artifact_patterns) == sorted(build_data.get("artifacts")) == sorted([f"/{f}" for f in rf])
         assert len(build_data.get("force_include")) == 14
         if include_all_compiled_src is None or include_all_compiled_src is True:
             expected_exclude = ["/src/example_lib/normal_exclude_compiled_src.py"]

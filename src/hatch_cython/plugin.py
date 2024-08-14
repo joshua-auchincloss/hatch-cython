@@ -3,13 +3,15 @@ import re
 import subprocess
 import sys
 from contextlib import contextmanager
-from glob import glob
+from glob import glob, iglob
 from tempfile import TemporaryDirectory
 
+import pathspec
 from Cython.Tempita import sub as render_template
 from hatchling.builders.hooks.plugin.interface import BuildHookInterface
+from pathspec import PathSpec
 
-from hatch_cython.config import parse_from_dict
+from hatch_cython.config import parse_from_dict, Config
 from hatch_cython.constants import (
     compiled_extensions,
     intermediate_extensions,
@@ -56,14 +58,14 @@ class CythonBuildHook(BuildHookInterface):
 
     @property
     @memo
-    def is_src(self):
+    def is_src(self) -> bool:
         return os.path.exists(os.path.join(self.root, "src"))
 
     @property
-    def is_windows(self):
+    def is_windows(self) -> bool:
         return plat() == "windows"
 
-    def normalize_path(self, pattern: str):
+    def normalize_path(self, pattern: str) -> str:
         if self.is_windows:
             return pattern.replace("/", "\\")
         return pattern.replace("\\", "/")
@@ -74,15 +76,16 @@ class CythonBuildHook(BuildHookInterface):
     @property
     @memo
     def dir_name(self):
+        """Namespace package or package name"""
         return self.options.src if self.options.src is not None else self.metadata.name
 
     @property
     @memo
     def project_dir(self):
         if self.is_src:
-            src = f"./src/{self.dir_name}"
+            src = f"src/{self.dir_name}"
         else:
-            src = f"./{self.dir_name}"
+            src = f"{self.dir_name}"
         return src
 
     def render_templates(self):
@@ -107,77 +110,118 @@ class CythonBuildHook(BuildHookInterface):
     @property
     @memo
     def options_exclude(self):
-        return [parse_user_glob(e.matches) for e in self.options.files.exclude if e.applies()]
+        return [e.matches for e in self.options.files.exclude if e.applies()]
 
     @property
     @memo
     def options_include(self):
-        return [parse_user_glob(e.matches) for e in self.options.files.targets if e.applies()]
+        return [e.matches for e in self.options.files.targets if e.applies()]
 
     @property
     @memo
     def options_exclude_compiled_src(self):
-        return [parse_user_glob(e.matches) for e in self.options.files.exclude_compiled_src if e.applies()]
+        return [e.matches for e in self.options.files.exclude_compiled_src if e.applies()]
 
     @property
     @memo
     def options_include_compiled_src(self):
-        return [parse_user_glob(e.matches) for e in self.options.files.include_compiled_src if e.applies()]
+        return [e.matches for e in self.options.files.include_compiled_src if e.applies()]
 
-    def wanted(self, item: str) -> bool:
-        not_excluded = not any([re.match(e, self.normalize_glob(item), re.IGNORECASE) for e in self.options_exclude])
-        self.app.display_info(f"Hatch-cython: wanted {item} {not_excluded}")
+    @property
+    @memo
+    def exclude_spec(self) -> PathSpec:
+        return PathSpec.from_lines(
+            pathspec.patterns.GitWildMatchPattern, self.options_exclude
+        )
+
+    @property
+    @memo
+    def include_spec(self) -> PathSpec:
+        return PathSpec.from_lines(
+            pathspec.patterns.GitWildMatchPattern, self.options_include
+        )
+
+    @property
+    @memo
+    def exclude_compiled_src_spec(self) -> PathSpec:
+        return PathSpec.from_lines(
+            pathspec.patterns.GitWildMatchPattern, self.options_exclude_compiled_src
+        )
+
+    @property
+    @memo
+    def include_compiled_src_spec(self) -> PathSpec:
+        return PathSpec.from_lines(
+            pathspec.patterns.GitWildMatchPattern, self.options_include_compiled_src
+        )
+
+    def path_is_included(self, relative_path: str) -> bool:
+        if self.include_spec is None:  # no cov
+            return True
+        return self.include_spec.match_file(relative_path)
+
+    def path_is_excluded(self, relative_path: str) -> bool:
+        if self.exclude_spec is None:  # no cov
+            return False
+        return self.exclude_spec.match_file(relative_path)
+
+    def path_is_wanted(self, relative_path: str) -> bool:
         if self.options.files.explicit_targets:
-            self.app.display_info(f"Hatch-cython: wanted {item} {self.normalize_glob(item)} {self.options_include}")
-            is_target = any([re.match(opt, self.normalize_glob(item)) for opt in self.options_include])
-            self.app.display_info(f"Hatch-cython: wanted {item} return {not_excluded} and {is_target}")
-            return not_excluded and is_target
-        self.app.display_info(f"Hatch-cython: wanted {item} return {not_excluded}")
-        return not_excluded
+            return not self.path_is_excluded(relative_path)
+        return (self.path_is_included(relative_path) and
+                not self.path_is_excluded(relative_path))
 
-    def wanted_to_exclude_compiled_src(self, item: str):
-        is_compiled = item in self.precompiled  # self.wanted(item)
+    def path_is_included_compiled_src(self, relative_path: str) -> bool:
+        if self.include_compiled_src_spec is None:
+            return True
+        return self.include_compiled_src_spec.match_file(relative_path)
+
+    def path_is_excluded_compiled_src(self, relative_path: str) -> bool:
+        if self.exclude_compiled_src_spec is None:
+            return False
+        return self.exclude_compiled_src_spec.match_file(relative_path)
+
+    def path_is_wanted_excluded_compiled_src(self, relative_path: str) -> bool:
+        is_compiled = self.path_is_wanted(relative_path)
         if not self.options.include_all_compiled_src:
             is_excluded = True
         else:
-            is_excluded = any(re.match(e, self.normalize_glob(item)) for e in self.options_exclude_compiled_src)
-        is_included = any(re.match(e, self.normalize_glob(item)) for e in self.options_include_compiled_src)
+            is_excluded = self.path_is_excluded_compiled_src(relative_path)
+        is_included = self.path_is_included_compiled_src(relative_path)
         return is_compiled and is_excluded and not is_included
 
     @property
+    @memo
     def included_files(self):
-        included = set()
-        self.app.display_debug("user globs")
-        for patt in self.precompiled_globs:
-            globbed = glob(patt, recursive=True)
-            self.app.display_info(f"{patt} globbed {globbed!r}")
-            if len(globbed) == 0:
-                continue
-            matched = filter_ensure_wanted(self.wanted, globbed)
-            included = included.union(matched)
-        return list(included)
+        included_files = []
+        for included_file in self.build_config.builder.recurse_included_files():
+            relative_path = included_file.relative_path
+            if (any(relative_path.endswith(ext) for ext in self.precompiled_extensions) and
+                    self.path_is_wanted(relative_path)):
+                included_files.append(relative_path)
+        return list(set(included_files))
 
     @property
+    @memo
     def excluded_compiled_src_files(self):
-        excluded = set()
-        for patt in self.precompiled_globs:
-            globbed = glob(patt, recursive=True)
-            if len(globbed) == 0:
-                continue
-            matched = filter_ensure_wanted(self.wanted_to_exclude_compiled_src, globbed)
-            excluded = excluded.union(matched)
-        return list(excluded)
+        excluded_compiled_src_files = []
+        for excluded_file in self.build_config.builder.recurse_included_files():
+            relative_path = excluded_file.relative_path
+            if (any(relative_path.endswith(ext) for ext in self.precompiled_extensions) and
+                    self.path_is_wanted_excluded_compiled_src(relative_path)):
+                excluded_compiled_src_files.append(relative_path)
+        return list(set(excluded_compiled_src_files))
 
     @property
     def normalized_included_files(self):
         """
         Produces files in posix format
         """
-        return list({self.normalize_glob(f) for f in self.included_files})
+        return [self.normalize_path(f) for f in self.included_files]
 
     @property
     def normalized_excluded_compiled_src_files(self):
-        return list(map(self.normalize_glob, self.excluded_compiled_src_files))
+        return [self.normalize_path(f) for f in self.excluded_compiled_src_files]
 
     def normalize_aliased_filelike(self, path: str):
         # sometimes we end up with a case where non src produces
@@ -226,30 +270,19 @@ class CythonBuildHook(BuildHookInterface):
         return artifact_globs
 
     @property
-    @memo
     def templated_globs(self):
-        return self._globs(self.templated_extensions)
+        return self._glob_files(list(self.templated_extensions), except_extra=False)
 
     @property
     @memo
-    def normalized_dist_globs(self):
+    def normalized_artifact_globs(self):
         return list(map(self.normalize_glob, self.artifact_globs))
 
-    def artifact_patterns(self, source: ListStr):
-        # Match the exact path starting at the project root
-        return [f"/{artifact_glob}" for artifact_glob in source]
-
-    def files_patterns(self, source: ListStr):
-        # Match the exact path starting at the project root
-        return [f"/{glob}" for glob in source]
-
     @property
-    def artifacts(self):
-        return (
-            self.artifact_patterns(self.normalized_dist_globs)
-            if not self.sdist
-            else self.artifact_patterns(self.intermediate)
-        )
+    def artifact_patterns(self):
+        # Match the exact path starting at the project root
+        to_distribute_globs = self.intermediate_files if self.sdist else self.normalized_artifact_globs
+        return [f"/{artifact_glob}" for artifact_glob in to_distribute_globs]
 
     @property
     def excluded(self):
@@ -263,59 +296,59 @@ class CythonBuildHook(BuildHookInterface):
         with TemporaryDirectory() as temp_dir:
             yield os.path.realpath(temp_dir)
 
-    def _globs(self, exts: ListStr, normalize: CallableT[[str], str] = None):
-        if normalize is None:
-            normalize = self.normalize_glob
-        globs = [
-            *(f"{self.project_dir}/**/*{ext}" for ext in exts),
-            *(f"{self.project_dir}/*{ext}" for ext in exts),
-        ]
-        self.app.display_info(f"Hatch-cython: Globs {globs}")
-        globbed = []
-        for g in globs:
-            globbed += list(map(normalize, glob(g, recursive=True)))
-        self.app.display_info(f"Hatch-cython: Globbed {globbed}")
-        globbed_wanted = list(filter(self.wanted, set(globbed)))
-        self.app.display_info(f"Hatch-cython: Globbed wanted {globbed_wanted}")
-        return globbed_wanted
+    def _glob_files(self, extensions: ListStr, except_extra: bool) -> ListStr:
+        found_files = []
+        extra = ""
+        if except_extra:
+            extra = ".*"
+        for included_file in self.included_files_without_extension:
+            for ext in extensions:
+                for path in iglob(os.path.join(self.root, f"{included_file}{extra}{ext}")):
+                    found_files.append(path)
+        return found_files
 
     @property
-    def precompiled(self):
-        return self._globs(self.precompiled_extensions, self.normalize_glob)
+    @memo
+    def included_files_without_extension(self) -> ListStr:
+        return [os.path.splitext(f)[0] for f in self.included_files]
 
     @property
-    def intermediate(self):
-        return self._globs(self.intermediate_extensions, self.normalize_path)
+    def precompiled_files(self):
+        return self._glob_files(list(self.precompiled_extensions), except_extra=False)
 
     @property
-    def compiled(self):
-        return self._globs(self.compiled_extensions, self.normalize_path)
+    def intermediate_files(self):
+        return self._glob_files(list(self.intermediate_extensions), except_extra=True)
 
     @property
-    def autogenerated(self):
+    def compiled_files(self):
+        return self._glob_files(list(self.compiled_extensions), except_extra=True)
+
+    @property
+    def autogenerated_files(self):
         return list(filter(os.path.exists, (s.replace(".in", "") for s in self.templated_globs)))
 
     @property
     def inclusion_map(self):
         include = {}
-        for compl in self.compiled:
+        for compl in self.compiled_files:
             include[compl] = compl
         self.app.display_debug("Derived inclusion map")
         self.app.display_debug(include)
         return include
 
-    def clean(self, versions: ListStr):
-        files_to_remove = self.autogenerated + self.intermediate + self.compiled
+    def clean(self, versions: ListStr) -> None:
+        files_to_remove = self.autogenerated_files + self.intermediate_files + self.compiled_files
         self.app.display_info(f"Hatch-cython: Removing {files_to_remove}")
         self.app.display_info(f"Hatch-cython: intermediate_extensions {self.intermediate_extensions}")
-        self.app.display_info(f"Hatch-cython: intermediate {self.intermediate}")
+        self.app.display_info(f"Hatch-cython: intermediate {self.intermediate_files}")
         for f in files_to_remove:
             f_as_abs = os.path.join(self.root, f)
             os.remove(f_as_abs)
 
     @property
     @memo
-    def options(self):
+    def options(self) -> Config:
         config = parse_from_dict(self)
         if config.compile_py:
             self.precompiled_extensions.add(".py")
@@ -327,11 +360,11 @@ class CythonBuildHook(BuildHookInterface):
         return config
 
     @property
-    def sdist(self):
+    def sdist(self) -> bool:
         return self.target_name == "sdist"
 
     @property
-    def wheel(self):
+    def wheel(self) -> bool:
         return self.target_name == "wheel"
 
     def build_ext(self):
@@ -403,7 +436,7 @@ class CythonBuildHook(BuildHookInterface):
         # removing dot from leading ./ from paths as local fix because hatch requires git style glob patterns
         # same as did in hatch-mypy plugin
         build_data["infer_tag"] = True
-        build_data["artifacts"].extend(self.artifacts)
+        build_data["artifacts"].extend(self.artifact_patterns)
         # compiled extensions are also in force_include so their paths can be modified
         build_data["force_include"].update(self.inclusion_map)
         build_data["pure_python"] = False
