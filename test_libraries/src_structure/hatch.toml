@@ -61,24 +61,24 @@ compiled_extensions_as_artifacts = true
 [build.hooks.custom.options.files]
 aliases = {"example_lib._alias" = "example_lib.aliased"}
 exclude = [
-  {matches = "*/no_compile/*"},
-  {matches = "*_sample*"},
-  {matches = "*/windows", platforms = [
+  {matches = "**/no_compile/**"},
+  {matches = "**/*_sample*"},
+  {matches = "**/windows*", platforms = [
     "linux",
     "darwin",
     "freebsd"
   ]},
-  {matches = "*/darwin", platforms = [
+  {matches = "**/darwin*", platforms = [
     "linux",
     "freebsd",
     "windows"
   ]},
-  {matches = "*/linux", platforms = [
+  {matches = "**/linux*", platforms = [
     "darwin",
     "freebsd",
     "windows"
   ]},
-  {matches = "*/freebsd", platforms = [
+  {matches = "**/freebsd*", platforms = [
     "linux",
     "darwin",
     "windows"
@@ -97,10 +97,10 @@ include_compiled_src = [
 global = {supported = ["int"]}
 index = [
   {keyword = "global", matches = "*"},
-  {keyword = "templated_mac", matches = "templated.*.in", platforms = [
+  {keyword = "templated_mac", matches = "**/templated.*.in", platforms = [
     "darwin"
   ]},
-  {keyword = "templated_win", matches = "templated.*.in", platforms = [
+  {keyword = "templated_win", matches = "**/templated.*.in", platforms = [
     "windows"
   ]}
 ]
