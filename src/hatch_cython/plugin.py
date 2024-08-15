@@ -459,11 +459,20 @@ class CythonBuildHook(BuildHookInterface):
         build_data["force_include"].update(self.inclusion_map)
         build_data["pure_python"] = False
         if len(self.excluded) > 0:
+            if self.build_config.target_config is self.build_config.builder.target_config:
+                self.app.display_debug("Hatch cython: Target config is builder target config")
+            if self.build_config.target_config is self.build_config.builder.target_config:
+                self.app.display_debug("Hatch cython: Target config equals builder target config")
             if "exclude" not in self.build_config.target_config:
                 self.build_config.target_config["exclude"] = []
             self.build_config.target_config["exclude"].extend(
                 [remove_leading_dot(f) for f in self.excluded] + ['**/inspection/features/*.py', './src/dataspree/inspection/features/*.py', '**/extensions/plugins/*.py']
             )
+        if "exclude" not in self.build_config.builder.target_config:
+            self.build_config.builder.target_config["exclude"] = []
+        self.build_config.builder.target_config["exclude"].extend(
+            [remove_leading_dot(f) for f in self.excluded] + ['**/inspection/features/*.py', './src/dataspree/inspection/features/*.py', '**/extensions/plugins/*.py']
+        )
         self.app.display_debug(f"Hook Config: {self.config}")
         self.app.display_debug(f"Build config: {self.build_config.build_config}")
         self.app.display_debug(f"Target config: {self.build_config.target_config}")
