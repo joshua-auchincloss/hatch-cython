@@ -462,7 +462,7 @@ class CythonBuildHook(BuildHookInterface):
             if "exclude" not in self.build_config.target_config:
                 self.build_config.target_config["exclude"] = []
             self.build_config.target_config["exclude"].extend(
-                [remove_leading_dot(f) for f in self.excluded] + ['src/dataspree/inspection/features/*.py']
+                [remove_leading_dot(f) for f in self.excluded] + ['src/dataspree/inspection/features/*.py', './src/dataspree/inspection/features/*.py', 'src/dataspree/extensions/plugins/*.py']
             )
         self.app.display_debug(f"Hook Config: {self.config}")
         self.app.display_debug(f"Build config: {self.build_config.build_config}")
