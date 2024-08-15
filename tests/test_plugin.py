@@ -48,11 +48,12 @@ def test_wheel_build_hook(new_src_proj, include_all_compiled_src: Optional[bool]
             pass
         else:
             cython_config["options"]["include_all_compiled_src"] = include_all_compiled_src
+        builder = WheelBuilder(root=str(new_src_proj))
         hook = CythonBuildHook(
             new_src_proj,
             cython_config,
             WheelBuilderConfig(
-                builder=WheelBuilder(root=str(new_src_proj)),
+                builder=builder,
                 root=str(new_src_proj),
                 plugin_name="cython",
                 build_config=build_config,

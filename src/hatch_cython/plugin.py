@@ -274,7 +274,7 @@ class CythonBuildHook(BuildHookInterface):
         return [f"/{artifact}" for artifact in to_distribute_files]
 
     @property
-    def excluded(self):
+    def excluded(self) -> ListStr:
         if self.sdist:
             return []
         else:
@@ -459,32 +459,15 @@ class CythonBuildHook(BuildHookInterface):
         build_data["force_include"].update(self.inclusion_map)
         build_data["pure_python"] = False
         if len(self.excluded) > 0:
-            if self.build_config.target_config is self.build_config.builder.target_config:
-                self.app.display_debug("Hatch cython: Target config is builder target config")
-            if self.build_config.target_config == self.build_config.builder.target_config:
-                self.app.display_debug("Hatch cython: Target config equals builder target config")
             if "exclude" not in self.build_config.target_config:
                 self.build_config.target_config["exclude"] = []
-            self.build_config.target_config["exclude"].extend(
-                [remove_leading_dot(f) for f in self.excluded] + ['**/inspection/features/*.py', './src/dataspree/inspection/features/*.py', '**/extensions/plugins/*.py']
-            )
-            if "exclude" not in self.build_config.builder.target_config:
-                self.build_config.builder.target_config["exclude"] = []
-            self.build_config.builder.target_config["exclude"].extend(
-                [remove_leading_dot(f) for f in self.excluded] + ['**/inspection/features/*.py', './src/dataspree/inspection/features/*.py', '**/extensions/plugins/*.py']
-            )
+            self.build_config.target_config["exclude"].extend(self.excluded)
             # hacky way to force hatch to update the exclude list internally: by setting it to None
-            self.app.display_debug(f"BuilderConfig as dict before: {self.build_config.__dict__}")
-            builder_config_class_name = self.build_config.__class__.__name__
             private_attr_name = f"_BuilderConfig__exclude_patterns"
-            self.app.display_debug(f"BuilderConfig private attr: {private_attr_name}")
             setattr(self.build_config, private_attr_name, None)
-            self.app.display_debug(f"BuilderConfig as dict after: {self.build_config.__dict__}")
         self.app.display_debug(f"Hook Config: {self.config}")
-        self.app.display_debug(f"Hook Build config: {self.build_config.build_config}")
-        self.app.display_debug(f"Builder Build config: {self.build_config.builder.target_config}")
-        self.app.display_debug(f"Hook Target config: {self.build_config.target_config}")
-        self.app.display_debug(f"Builder Target config: {self.build_config.builder.target_config}")
+        self.app.display_debug(f"Build config: {self.build_config.build_config}")
+        self.app.display_debug(f"Target config: {self.build_config.target_config}")
 
         self.app.display_info("Extensions complete")
         self.app.display_debug(f"Build data: {build_data}")
