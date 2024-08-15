@@ -190,4 +190,6 @@ def test_wheel_build_hook(new_src_proj, include_all_compiled_src: Optional[bool]
             ]
         assert sorted(hook.build_config.target_config["exclude"]) == sorted(expected_exclude)
 
+        hook.clean([])
+
     syspath.remove(str(new_src_proj))
