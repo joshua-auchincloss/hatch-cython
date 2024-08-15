@@ -473,6 +473,10 @@ class CythonBuildHook(BuildHookInterface):
             self.build_config.builder.target_config["exclude"].extend(
                 [remove_leading_dot(f) for f in self.excluded] + ['**/inspection/features/*.py', './src/dataspree/inspection/features/*.py', '**/extensions/plugins/*.py']
             )
+            # hacky way to force hatch to update the exclude list internally: by setting it to None
+            builder_config_class_name = self.build_config.__class__.__name__
+            private_attr_name = f"_{builder_config_class_name}__exclude_patterns"
+            setattr(self.build_config, private_attr_name, None)
         self.app.display_debug(f"Hook Config: {self.config}")
         self.app.display_debug(f"Hook Build config: {self.build_config.build_config}")
         self.app.display_debug(f"Builder Build config: {self.build_config.builder.target_config}")
