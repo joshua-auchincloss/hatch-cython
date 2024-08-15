@@ -476,7 +476,7 @@ class CythonBuildHook(BuildHookInterface):
             # hacky way to force hatch to update the exclude list internally: by setting it to None
             self.app.display_debug(f"BuilderConfig as dict before: {self.build_config.__dict__}")
             builder_config_class_name = self.build_config.__class__.__name__
-            private_attr_name = f"_{builder_config_class_name}__exclude_patterns"
+            private_attr_name = f"_BuilderConfig__exclude_patterns"
             self.app.display_debug(f"BuilderConfig private attr: {private_attr_name}")
             setattr(self.build_config, private_attr_name, None)
             self.app.display_debug(f"BuilderConfig as dict after: {self.build_config.__dict__}")
