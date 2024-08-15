@@ -12,8 +12,9 @@ In comparison to the original `hatch-cython`, this fork introduces the following
 - **options.include_all_compiled_src** (default=True): toggle for including or excluding all source files from the build target after they were precompiled by cython (cythonized).
 - **options.files.exclude_compiled_src**: excluding selected source files from the build target after they were precompiled by cython (cythonized). This option is applied after `options.include_all_compiled_src`.
 - **options.files.include_compiled_src**: including selected source files from the build target after they were precompiled by cython (cythonized). This option is applied after `options.files.exclude_compiled_src`.
-- **options.compiled_extensions_as_artifacts** (default=False): Adding compiled extension files (`.so`, `.pyd`, `.dll`) to the artifacts for the wheel build target. To keep backward compatibility, this option is disabled by default, but recommended to enable.
-- clean works now via absolute paths which fixes the issue with the clean command not working when the current working directory is not the project root.
+- **options.compiled_extensions_as_artifacts** (default=True): Adding compiled extension files (`.so`, `.pyd`, `.dll`) to the artifacts for the wheel build target. To keep backward compatibility, set this option to `false`.
+- Clean works now via absolute paths which fixes the issue with the clean command not working when the current working directory is not the project root.
+- All matches are now based on git-style glob patterns instead of using i mix of regex and glob patterns. This is more consistent with the rest of the hatch configuration.
 
 **Table of Contents**
 

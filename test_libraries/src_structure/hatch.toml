@@ -56,7 +56,6 @@ include_my_lib_resolver = {pkg = "scripts.custom_include", include = "gets_inclu
 include_numpy = true
 parallel = true
 src = "example_lib"
-compiled_extensions_as_artifacts = true
 
 [build.hooks.custom.options.files]
 aliases = {"example_lib._alias" = "example_lib.aliased"}

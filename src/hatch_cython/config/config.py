@@ -154,7 +154,7 @@ class Config:
     compile_py: bool = field(default=True)
     templates: Templates = field(default_factory=Templates)
     include_all_compiled_src: bool = field(default=True)
-    compiled_extensions_as_artifacts: bool = field(default=False)
+    compiled_extensions_as_artifacts: bool = field(default=True)
 
     def __post_init__(self):
         self.directives = {**DIRECTIVES, **self.directives}
