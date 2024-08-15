@@ -261,26 +261,12 @@ class CythonBuildHook(BuildHookInterface):
         return [ExtensionArg(name=key, files=list(files)) for key, files in grouped.items()]
 
     @property
-    @memo
-    def artifact_globs(self):
-        artifact_globs = []
-        extensions = self.precompiled_extensions
-        if self.options.compiled_extensions_as_artifacts:
-            extensions = extensions.union(self.compiled_extensions)
-        for included_file in self.normalized_included_files:
-            root, _ = os.path.splitext(included_file)
-            artifact_globs.extend(f"{root}.*{ext}" for ext in extensions)
-        return artifact_globs
-
-    @property
-    @memo
-    def normalized_artifact_globs(self):
-        return list(map(self.normalize_glob, self.artifact_globs))
-
-    @property
-    def artifact_patterns(self):
+    def artifacts(self):
         # Match the exact path starting at the project root
-        to_distribute_globs = list(self.intermediate_files.keys()) if self.sdist else self.normalized_artifact_globs
+        if self.sdist:
+            to_distribute_globs = list(self.intermediate_files.keys())
+        else:
+            to_distribute_globs = list(self.intermediate_files.keys()) + list(self.compiled_files.keys())
         return [f"/{artifact_glob}" for artifact_glob in to_distribute_globs]
 
     @property
@@ -463,10 +449,8 @@ class CythonBuildHook(BuildHookInterface):
         if self.sdist and not self.options.compiled_sdist:
             self.clean(None)
 
-        # removing dot from leading ./ from paths as local fix because hatch requires git style glob patterns
-        # same as did in hatch-mypy plugin
         build_data["infer_tag"] = True
-        build_data["artifacts"].extend(self.artifact_patterns)
+        build_data["artifacts"].extend(self.artifacts)
         # compiled extensions are also in force_include so their paths can be modified
         build_data["force_include"].update(self.inclusion_map)
         build_data["pure_python"] = False

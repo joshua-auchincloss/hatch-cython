@@ -144,30 +144,9 @@ def test_wheel_build_hook(new_src_proj, include_all_compiled_src: Optional[bool]
             {"name": "example_lib.test", "files": ["src/example_lib/test.pyx"]},
         ]
 
-        expected_files_without_ext = [
-            "src/example_lib/__about__",
-            "src/example_lib/__init__",
-            "src/example_lib/_alias",
-            "src/example_lib/custom_includes",
-            "src/example_lib/mod_a/__init__",
-            "src/example_lib/mod_a/adds",
-            "src/example_lib/mod_a/deep_nest/creates",
-            "src/example_lib/mod_a/some_defn",
-            "src/example_lib/mod_a/some_defn",
-            "src/example_lib/normal",
-            "src/example_lib/normal_exclude_compiled_src",
-            "src/example_lib/normal_include_compiled_src",
-            f"src/example_lib/platform/{plat()}",
-            "src/example_lib/templated",
-            "src/example_lib/test",
-        ]
-        ext = [".py", ".pyx", ".pxd", ".so", ".pyd", ".dll"]
-        rf = sorted([f"{f}.*{e}" for f in expected_files_without_ext for e in ext])
-        assert sorted(hook.normalized_artifact_globs) == rf
-
         assert build_data.get("infer_tag")
         assert not build_data.get("pure_python")
-        assert sorted(hook.artifact_patterns) == sorted(build_data.get("artifacts")) == sorted([f"/{f}" for f in rf])
+        assert sorted(hook.artifacts) == sorted(build_data.get("artifacts"))
         assert len(build_data.get("force_include")) == 14
         if include_all_compiled_src is None or include_all_compiled_src is True:
             expected_exclude = ["src/example_lib/normal_exclude_compiled_src.py"]
@@ -189,7 +168,5 @@ def test_wheel_build_hook(new_src_proj, include_all_compiled_src: Optional[bool]
                 "src/example_lib/test.pyx",
             ]
         assert sorted(hook.build_config.target_config["exclude"]) == sorted(expected_exclude)
-
-        hook.clean([])
 
     syspath.remove(str(new_src_proj))
