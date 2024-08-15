@@ -264,10 +264,14 @@ class CythonBuildHook(BuildHookInterface):
     def artifacts(self):
         # Match the exact path starting at the project root
         if self.sdist:
-            to_distribute_globs = list(self.intermediate_files.keys())
+            to_distribute_files = list(self.intermediate_files.keys())
         else:
-            to_distribute_globs = list(self.intermediate_files.keys()) + list(self.compiled_files.keys())
-        return [f"/{artifact_glob}" for artifact_glob in to_distribute_globs]
+            to_distribute_files = []
+            if self.options.compiled_extensions_as_artifacts:
+                to_distribute_files.extend(list(self.compiled_files.keys()))
+            if self.options.intermediate_extensions_as_artifacts:
+                to_distribute_files.extend(list(self.intermediate_files.keys()))
+        return [f"/{artifact}" for artifact in to_distribute_files]
 
     @property
     def excluded(self):
