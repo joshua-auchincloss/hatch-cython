@@ -59,7 +59,7 @@ class CythonBuildHook(BuildHookInterface):
     @property
     @memo
     def dir_name(self):
-        return self.options.src if self.options.src is not None else re.sub(r"[-_.]+", "-", self.metadata.name).lower()
+        return self.options.src if self.options.src is not None else self.metadata.name
 
     @property
     @memo
