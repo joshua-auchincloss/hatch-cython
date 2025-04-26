@@ -1,8 +1,8 @@
 from subprocess import CalledProcessError, check_output
 
-from hatch_cython.config.platform import PlatformArgs
-from hatch_cython.constants import POSIX_CORE
-from hatch_cython.utils import aarch, plat
+from hatch_cythonize.config.platform import PlatformArgs
+from hatch_cythonize.constants import POSIX_CORE
+from hatch_cythonize.utils import aarch, plat
 
 BREW = "brew"
 

@@ -2,8 +2,8 @@ from dataclasses import dataclass, field
 from os import environ, pathsep
 from typing import ClassVar
 
-from hatch_cython.config.platform import PlatformArgs, parse_to_plat
-from hatch_cython.types import CallableT, DictT
+from hatch_cythonize.config.platform import PlatformArgs, parse_to_plat
+from hatch_cythonize.types import CallableT, DictT
 
 
 @dataclass

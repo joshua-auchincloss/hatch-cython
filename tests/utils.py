@@ -3,7 +3,7 @@ from contextlib import contextmanager
 from types import SimpleNamespace
 from unittest.mock import patch
 
-from hatch_cython.types import UnionT
+from hatch_cythonize.types import UnionT
 
 
 def true_if_eq(*vals):
@@ -31,13 +31,13 @@ def patch_path(arch: str, *extra: str):
     def wrap(path):
         return h(path, *extra)
 
-    with patch("hatch_cython.config.config.path.exists", wrap):
+    with patch("hatch_cythonize.config.config.path.exists", wrap):
         yield
 
 
 @contextmanager
 def patch_brew(prefix):
-    with patch("hatch_cython.config.defaults.brew_path", lambda: prefix):
+    with patch("hatch_cythonize.config.defaults.brew_path", lambda: prefix):
         yield
 
 
@@ -54,13 +54,13 @@ def arch_platform(arch: str, platform: str, brew: UnionT[str, None] = True):
         expect_brew = "/usr/local" if arch == "x86_64" else "/opt/homebrew"
 
     try:
-        with patch("hatch_cython.utils.plat", platformgetter):
-            with patch("hatch_cython.config.defaults.plat", platformgetter):
-                with patch("hatch_cython.config.platform.plat", platformgetter):
-                    with patch("hatch_cython.plugin.plat", platformgetter):
-                        with patch("hatch_cython.utils.aarch", aarchgetter):
-                            with patch("hatch_cython.config.defaults.aarch", aarchgetter):
-                                with patch("hatch_cython.config.platform.aarch", aarchgetter):
+        with patch("hatch_cythonize.utils.plat", platformgetter):
+            with patch("hatch_cythonize.config.defaults.plat", platformgetter):
+                with patch("hatch_cythonize.config.platform.plat", platformgetter):
+                    with patch("hatch_cythonize.plugin.plat", platformgetter):
+                        with patch("hatch_cythonize.utils.aarch", aarchgetter):
+                            with patch("hatch_cythonize.config.defaults.aarch", aarchgetter):
+                                with patch("hatch_cythonize.config.platform.aarch", aarchgetter):
                                     if brew:
                                         with patch_brew(expect_brew):
                                             yield
@@ -94,7 +94,7 @@ def import_module(gets_include, gets_libraries=None, gets_library_dirs=None, som
 
     try:
         with patch(
-            "hatch_cython.config.config.import_module",
+            "hatch_cythonize.config.config.import_module",
             get_import,
         ):
             yield
@@ -122,7 +122,7 @@ def override_env(d: dict):
             new[k] = v
         os.environ.update(new)
         with patch(
-            "hatch_cython.config.flags.environ",
+            "hatch_cythonize.config.flags.environ",
             new,
         ):
             yield

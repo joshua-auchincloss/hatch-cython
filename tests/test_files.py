@@ -1,4 +1,4 @@
-from hatch_cython.config.files import FileArgs
+from hatch_cythonize.config.files import FileArgs
 
 
 def test_file_config():

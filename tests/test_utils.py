@@ -2,7 +2,7 @@ from time import sleep
 
 import pytest
 
-from src.hatch_cython.utils import memo, stale
+from src.hatch_cythonize.utils import memo, stale
 
 
 def test_memo():

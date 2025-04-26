@@ -1,6 +1,6 @@
 from pytest import raises
 
-from hatch_cython.config.platform import PlatformArgs, parse_platform_args, parse_to_plat
+from hatch_cythonize.config.platform import PlatformArgs, parse_platform_args, parse_to_plat
 
 
 def test_platform():

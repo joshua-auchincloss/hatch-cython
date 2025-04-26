@@ -1,4 +1,4 @@
-from hatch_cython.config.templates import Templates, parse_template_kwds
+from hatch_cythonize.config.templates import Templates, parse_template_kwds
 
 from .utils import arch_platform
 

@@ -1,6 +1,6 @@
 from pytest import raises
 
-from hatch_cython.config.macros import parse_macros
+from hatch_cythonize.config.macros import parse_macros
 
 
 def test_macros():

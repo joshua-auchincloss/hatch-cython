@@ -4,9 +4,9 @@ from os import path
 
 from packaging.markers import Marker
 
-from hatch_cython.constants import ANON
-from hatch_cython.types import CallableT, ListStr, ListT, UnionT
-from hatch_cython.utils import aarch, plat
+from hatch_cythonize.constants import ANON
+from hatch_cythonize.types import CallableT, ListStr, ListT, UnionT
+from hatch_cythonize.utils import aarch, plat
 
 
 @dataclass

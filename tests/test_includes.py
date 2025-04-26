@@ -1,7 +1,7 @@
 from pytest import raises
 
-from hatch_cython.config.autoimport import Autoimport
-from hatch_cython.config.includes import parse_includes
+from hatch_cythonize.config.autoimport import Autoimport
+from hatch_cythonize.config.includes import parse_includes
 
 
 def test_includes():

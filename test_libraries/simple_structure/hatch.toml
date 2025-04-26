@@ -10,7 +10,7 @@ dependencies = [
   "hatch",
   "typing_extensions; python_version < '3.10'"
 ]
-path = "../../src/hatch_cython/devel.py"
+path = "../../src/hatch_cythonize/devel.py"
 
 [build.hooks.custom.options]
 compile_args = [

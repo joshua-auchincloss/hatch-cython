@@ -20,7 +20,7 @@ header = """
 All notable changes to this project will be documented in this file.\n
 """
 postprocessors = [
-  {pattern = '<REPO>', replace = "https://github.com/joshua-auchincloss/hatch-cython"}
+  {pattern = '<REPO>', replace = "https://github.com/elonzh/hatch-cythonize"}
 ]
 trim = true
 

@@ -1,6 +1,6 @@
 from hatchling.plugin import hookimpl
 
-from hatch_cython.plugin import CythonBuildHook
+from hatch_cythonize.plugin import CythonBuildHook
 
 
 @hookimpl

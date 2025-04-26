@@ -1,4 +1,4 @@
-from hatch_cython.types import CallableT, DictT, ListT, P, TupleT, UnionT
+from hatch_cythonize.types import CallableT, DictT, ListT, P, TupleT, UnionT
 
 
 # basic test to assert we can use subscriptable generics

@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2023-present joshua-auchincloss <joshua.auchincloss@proton.me>
+# SPDX-FileCopyrightText: 2023-present elonzh <elonzh@outlook.com>
 #
 # SPDX-License-Identifier: MIT
 from os import getcwd, name
@@ -15,5 +15,5 @@ else:
 
 path.append(str(p))
 
-from hatch_cython.__about__ import __version__  # noqa: E402
-from hatch_cython.devel import CythonBuildHook, src  # noqa: E402
+from hatch_cythonize.__about__ import __version__  # noqa: E402
+from hatch_cythonize.devel import CythonBuildHook, src  # noqa: E402

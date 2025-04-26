@@ -5,19 +5,18 @@ from importlib import import_module
 from os import path
 from typing import Optional
 
-from hatch.utils.ci import running_in_ci
 from hatchling.builders.hooks.plugin.interface import BuildHookInterface
 
-from hatch_cython.config.autoimport import Autoimport
-from hatch_cython.config.defaults import brew_path, get_default_compile, get_default_link
-from hatch_cython.config.files import FileArgs
-from hatch_cython.config.flags import EnvFlags, parse_env_args
-from hatch_cython.config.includes import parse_includes
-from hatch_cython.config.macros import DefineMacros, parse_macros
-from hatch_cython.config.platform import ListedArgs, PlatformArgs, parse_platform_args
-from hatch_cython.config.templates import Templates, parse_template_kwds
-from hatch_cython.constants import DIRECTIVES, EXIST_TRIM, INCLUDE, LTPY311, MUST_UNIQUE
-from hatch_cython.types import CallableT, ListStr
+from hatch_cythonize.config.autoimport import Autoimport
+from hatch_cythonize.config.defaults import brew_path, get_default_compile, get_default_link
+from hatch_cythonize.config.files import FileArgs
+from hatch_cythonize.config.flags import EnvFlags, parse_env_args
+from hatch_cythonize.config.includes import parse_includes
+from hatch_cythonize.config.macros import DefineMacros, parse_macros
+from hatch_cythonize.config.platform import ListedArgs, PlatformArgs, parse_platform_args
+from hatch_cythonize.config.templates import Templates, parse_template_kwds
+from hatch_cythonize.constants import DIRECTIVES, EXIST_TRIM, INCLUDE, LTPY311, MUST_UNIQUE
+from hatch_cythonize.types import CallableT, ListStr
 
 # fields tracked by this plugin
 __known__ = frozenset(

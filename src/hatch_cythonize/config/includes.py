@@ -1,5 +1,5 @@
-from hatch_cython.config.autoimport import Autoimport, __packages__
-from hatch_cython.constants import INCLUDE
+from hatch_cythonize.config.autoimport import Autoimport, __packages__
+from hatch_cythonize.constants import INCLUDE
 
 
 def parse_includes(kw: str, val: str):

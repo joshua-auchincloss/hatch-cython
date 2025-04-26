@@ -3,7 +3,7 @@ from types import SimpleNamespace
 
 import toml
 
-from hatch_cython.config import parse_from_dict
+from hatch_cythonize.config import parse_from_dict
 
 from .utils import arch_platform, override_env
 

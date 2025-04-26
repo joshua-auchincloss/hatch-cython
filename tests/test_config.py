@@ -4,9 +4,9 @@ from unittest.mock import patch
 
 from toml import loads
 
-from hatch_cython.config import parse_from_dict
-from hatch_cython.config.defaults import brew_path
-from hatch_cython.utils import aarch, plat
+from hatch_cythonize.config import parse_from_dict
+from hatch_cythonize.config.defaults import brew_path
+from hatch_cythonize.utils import aarch, plat
 
 from .utils import arch_platform, import_module, patch_brew, patch_path, pyversion
 
@@ -21,8 +21,8 @@ def test_brew_path():
 
 
 def test_brew_fails_safely():
-    with patch("hatch_cython.config.defaults.BREW", "some-cmd-that-doesnt-exist"):
-        with patch("hatch_cython.utils.memo", lambda f: f):
+    with patch("hatch_cythonize.config.defaults.BREW", "some-cmd-that-doesnt-exist"):
+        with patch("hatch_cythonize.utils.memo", lambda f: f):
             with arch_platform("x86_64", "darwin", brew=False):
                 assert brew_path() == "/usr/local"
             with arch_platform("arm64", "darwin", brew=False):

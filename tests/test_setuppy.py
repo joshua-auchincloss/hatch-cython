@@ -3,8 +3,8 @@ from collections.abc import Generator
 from textwrap import dedent
 from unittest.mock import patch
 
-from hatch_cython.config import Config, PlatformArgs
-from hatch_cython.plugin import setup_py
+from hatch_cythonize.config import Config, PlatformArgs
+from hatch_cythonize.plugin import setup_py
 
 from .utils import arch_platform, true_if_eq
 
@@ -56,7 +56,7 @@ def test_setup_py():
         {"name": "abc.def", "files": ["./abc/def.pyx"]},
         {"name": "abc.depb", "files": ["./abc/depb.py"]},
     ]
-    with patch("hatch_cython.config.config.path.exists", true_if_eq()):
+    with patch("hatch_cythonize.config.config.path.exists", true_if_eq()):
         with arch_platform("x86_64", ""):
             setup1 = setup_py(
                 *defs,
@@ -82,7 +82,7 @@ def test_solo_ext_type_validations():
         extra_link_args=[PlatformArgs(arg="-I/etc/abc/linka.h")],
     )
 
-    with patch("hatch_cython.config.config.path.exists", true_if_eq()):
+    with patch("hatch_cythonize.config.config.path.exists", true_if_eq()):
         with arch_platform("x86_64", ""):
             setup = setup_py(
                 {"name": "abc.def", "files": ["./abc/def.pyx"]},

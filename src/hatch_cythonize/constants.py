@@ -1,4 +1,4 @@
-from hatch_cython.types import CorePlatforms, ListT, Set
+from hatch_cythonize.types import CorePlatforms, ListT, Set
 
 NORM_GLOB = r"([^\s]*)"
 UAST = "${U_AST}"

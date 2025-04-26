@@ -4,10 +4,10 @@ from textwrap import dedent
 
 from hatchling.builders.hooks.plugin.interface import BuildHookInterface
 
-from hatch_cython.config.platform import PlatformBase
-from hatch_cython.constants import NORM_GLOB
-from hatch_cython.types import ListStr, ListT, UnionT
-from hatch_cython.utils import parse_user_glob
+from hatch_cythonize.config.platform import PlatformBase
+from hatch_cythonize.constants import NORM_GLOB
+from hatch_cythonize.types import ListStr, ListT, UnionT
+from hatch_cythonize.utils import parse_user_glob
 
 
 def idx_search_mod(s: str):

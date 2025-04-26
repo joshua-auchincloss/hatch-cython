@@ -1,5 +1,5 @@
 # DO NOT EDIT.
-# Autoformatted by hatch-cython.
+# Autoformatted by hatch-cythonize.
 # Version: 0.3.0
 # Cython: 3.0.2
 # Platform: darwin

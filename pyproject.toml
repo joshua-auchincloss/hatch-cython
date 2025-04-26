@@ -4,7 +4,7 @@ requires = ["hatchling"]
 
 [project]
 authors = [
-  {name = "joshua-auchincloss", email = "joshua.auchincloss@proton.me"}
+  {name = "elonzh", email = "elonzh@outlook.com"}
 ]
 classifiers = [
   "Development Status :: 4 - Beta",
@@ -31,20 +31,20 @@ description = 'Cython build hooks for hatch'
 dynamic = ["version"]
 keywords = []
 license = "MIT"
-name = "hatch-cython"
+name = "hatch-cythonize"
 readme = "README.md"
 requires-python = ">=3.8"
 
 [project.entry-points.hatch]
-cython = "hatch_cython.hooks"
+cython = "hatch_cythonize.hooks"
 
 [project.optional-dependencies]
 test = ["coverage[toml]", "pytest", "pytest-cov", "toml", "numpy"]
 
 [project.urls]
-Documentation = "https://github.com/joshua-auchincloss/hatch-cython#readme"
-Issues = "https://github.com/joshua-auchincloss/hatch-cython/issues"
-Source = "https://github.com/joshua-auchincloss/hatch-cython"
+Documentation = "https://github.com/elonzh/hatch-cythonize#readme"
+Issues = "https://github.com/elonzh/hatch-cythonize/issues"
+Source = "https://github.com/elonzh/hatch-cythonize"
 
 [tool.black]
 line-length = 120
@@ -52,8 +52,8 @@ skip-string-normalization = true
 target-version = ["py310"]
 
 [tool.coverage.paths]
-hatch_cython = ["src/hatch_cython", "*/hatch-cython/src/hatch_cython"]
-tests = ["tests", "*/hatch-cython/tests"]
+hatch_cythonize = ["src/hatch_cythonize", "*/hatch-cythonize/src/hatch_cythonize"]
+tests = ["tests", "*/hatch-cythonize/tests"]
 
 [tool.coverage.report]
 exclude_lines = [
@@ -66,9 +66,9 @@ skip_empty = true
 
 [tool.coverage.run]
 branch = true
-omit = ["src/hatch_cython/__about__.py", "src/hatch_cython/types.py"]
+omit = ["src/hatch_cythonize/__about__.py", "src/hatch_cythonize/types.py"]
 parallel = true
-source_pkgs = ["hatch_cython"]
+source_pkgs = ["hatch_cythonize"]
 
 [[tool.hatch.envs.all.matrix]]
 python = ["3.10", "3.11"]
@@ -95,10 +95,10 @@ detached = true
 all = ["style", "typing"]
 fmt = ["black {args:.}", "ruff --fix {args:.}", "style"]
 style = ["ruff {args:.}", "black --check --diff {args:.}"]
-typing = "mypy --install-types --non-interactive {args:src/hatch_cython tests}"
+typing = "mypy --install-types --non-interactive {args:src/hatch_cythonize tests}"
 
 [tool.hatch.version]
-path = "src/hatch_cython/__about__.py"
+path = "src/hatch_cythonize/__about__.py"
 
 [tool.ruff]
 line-length = 120
@@ -152,7 +152,7 @@ unfixable = []
 ban-relative-imports = "all"
 
 [tool.ruff.lint.isort]
-known-first-party = ["hatch_cython"]
+known-first-party = ["hatch_cythonize"]
 
 [tool.ruff.lint.per-file-ignores]
 "**/__init__.py" = ["F401"]

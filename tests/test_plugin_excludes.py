@@ -5,7 +5,7 @@ from types import SimpleNamespace
 import pytest
 from toml import load
 
-from hatch_cython.plugin import CythonBuildHook
+from hatch_cythonize.plugin import CythonBuildHook
 
 from .test_plugin import join, read
 from .utils import override_dir

@@ -1,4 +1,4 @@
-from hatch_cython.types import ListT, TupleT, UnionT
+from hatch_cythonize.types import ListT, TupleT, UnionT
 
 DefineMacros = ListT[TupleT[str, UnionT[str, None]]]
 

@@ -1,8 +1,8 @@
 from typing import TypedDict
 
-from hatch_cython.config import Config
-from hatch_cython.types import ListStr, ListT
-from hatch_cython.utils import options_kws
+from hatch_cythonize.config import Config
+from hatch_cythonize.types import ListStr, ListT
+from hatch_cythonize.utils import options_kws
 
 
 class ExtensionArg(TypedDict):

@@ -7,8 +7,8 @@ from types import SimpleNamespace
 import pytest
 from toml import load
 
-from hatch_cython.plugin import CythonBuildHook
-from hatch_cython.utils import plat
+from hatch_cythonize.plugin import CythonBuildHook
+from hatch_cythonize.utils import plat
 
 from .utils import arch_platform, override_dir
 

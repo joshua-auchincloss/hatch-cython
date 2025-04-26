@@ -1,12 +1,15 @@
-# hatch-cython
+# hatch-cythonize
 
 |         |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
 | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| CI/CD   | [![Build](https://github.com/joshua-auchincloss/hatch-cython/actions/workflows/build.yaml/badge.svg)](https://github.com/joshua-auchincloss/hatch-cython/actions) [![Tests](https://github.com/joshua-auchincloss/hatch-cython/actions/workflows/test.yml/badge.svg)](https://github.com/joshua-auchincloss/hatch-cython/actions)[![codecov](https://codecov.io/gh/joshua-auchincloss/hatch-cython/graph/badge.svg?token=T12ACNLFWV)](https://codecov.io/gh/joshua-auchincloss/hatch-cython) |
-| Package | [![PyPI - Version](https://img.shields.io/pypi/v/hatch-cython.svg?logo=pypi&label=PyPI&logoColor=silver)](https://pypi.org/project/hatch-cython/) [![PyPI - Downloads](https://img.shields.io/pypi/dm/hatch-cython.svg?color=blue&label=Downloads&logo=pypi&logoColor=silver)](https://pypi.org/project/hatch-cython/) [![PyPI - Python Version](https://img.shields.io/pypi/pyversions/hatch-cython.svg?logo=python&label=Python&logoColor=silver)](https://pypi.org/project/hatch-cython/) |
+| CI/CD   | [![Build](https://github.com/elonzh/hatch-cythonize/actions/workflows/build.yaml/badge.svg)](https://github.com/elonzh/hatch-cythonize/actions) [![Tests](https://github.com/elonzh/hatch-cythonize/actions/workflows/test.yml/badge.svg)](https://github.com/elonzh/hatch-cythonize/actions)[![codecov](https://codecov.io/gh/elonzh/hatch-cythonize/graph/badge.svg?token=T12ACNLFWV)](https://codecov.io/gh/elonzh/hatch-cythonize) |
+| Package | [![PyPI - Version](https://img.shields.io/pypi/v/hatch-cythonize.svg?logo=pypi&label=PyPI&logoColor=silver)](https://pypi.org/project/hatch-cythonize/) [![PyPI - Downloads](https://img.shields.io/pypi/dm/hatch-cythonize.svg?color=blue&label=Downloads&logo=pypi&logoColor=silver)](https://pypi.org/project/hatch-cythonize/) [![PyPI - Python Version](https://img.shields.io/pypi/pyversions/hatch-cythonize.svg?logo=python&label=Python&logoColor=silver)](https://pypi.org/project/hatch-cythonize/) |
 | Meta    | [![Hatch project](https://img.shields.io/badge/%F0%9F%A5%9A-Hatch-4051b5.svg)](https://github.com/pypa/hatch) [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)                                                                                                                                                                                                                   |
 
 ---
+
+> This is a fork of the nice [hatch-cython](https://github.com/joshua-auchincloss/hatch-cython) project,
+> aimed at providing continued maintenance and updates since the original is currently inactive.
 
 **Table of Contents**
 
@@ -29,7 +32,7 @@ The build hook name is `cython`.
 # [build.targets.wheel.hooks.cython]
 # or
 [tool.hatch.build.targets.wheel.hooks.cython]
-dependencies = ["hatch-cython"]
+dependencies = ["hatch-cythonize"]
 
 # [tool.hatch.build.hooks.cython.options]
 # or
@@ -80,7 +83,7 @@ compile_kwargs = { }
 # [build.hooks.cython]
 # or
 [build.targets.wheel.hooks.cython]
-dependencies = ["hatch-cython"]
+dependencies = ["hatch-cythonize"]
 
 # [build.hooks.cython.options]
 # or
@@ -142,7 +145,7 @@ aliases = {"abclib._filewithoutsuffix" = "abclib.importalias"}
 
 ### Explicit Build Targets
 
-If explicit targets are required (i.e. `hatch-cython` _only_ builds the files specified), use `options.files.targets`. Specifying this option will implicly enable `compile_py`, in addition to checking all `c`, `cpp`, and `cc` files against the specified inclusions.
+If explicit targets are required (i.e. `hatch-cythonize` _only_ builds the files specified), use `options.files.targets`. Specifying this option will implicly enable `compile_py`, in addition to checking all `c`, `cpp`, and `cc` files against the specified inclusions.
 
 ```toml
 [build.targets.wheel.hooks.cython.options.files]
@@ -157,7 +160,7 @@ targets = [
 
 ## sdist
 
-Sdist archives may be generated normally. `hatch` must be defined as the `build-system` build-backend in `pyproject.toml`. As such, hatch will automatically install `hatch-cython`, and perform the specified e.g. platform-specific adjustments to the compile-time arguments. This allows the full build-process to be respected, and generated following specifications of the developer._Note_: If `hatch-cython` is specified to run outside of a wheel-step processes, the extension module is skipped. As such, the `.c` & `.cpp`, as well as templated files, may be generated and stored in the sdist should you wish. However, there is currently little purpose to this, as the extension will likely have differed compile arguments.
+Sdist archives may be generated normally. `hatch` must be defined as the `build-system` build-backend in `pyproject.toml`. As such, hatch will automatically install `hatch-cythonize`, and perform the specified e.g. platform-specific adjustments to the compile-time arguments. This allows the full build-process to be respected, and generated following specifications of the developer._Note_: If `hatch-cythonize` is specified to run outside of a wheel-step processes, the extension module is skipped. As such, the `.c` & `.cpp`, as well as templated files, may be generated and stored in the sdist should you wish. However, there is currently little purpose to this, as the extension will likely have differed compile arguments.
 
 ## Templating
 
@@ -232,7 +235,7 @@ templated_win_x86_64 = { supported = ["int", "float", "np.double"]}
 
 ## Notes
 
-- MacOS users with brew installed will have `brew --prefix` libs and include paths added in compilation step. Code parsing is found [here](./src/hatch_cython/config/defaults.py#L11)
+- MacOS users with brew installed will have `brew --prefix` libs and include paths added in compilation step. Code parsing is found [here](./src/hatch_cythonize/config/defaults.py#L11)
 - Github Runners now run MacOS on m1 platforms. You may have ci issues if you are using MacOS m1 runners and you do not disable `macos-max-compat` in hatch. e.g.
 
   ```toml
@@ -264,7 +267,7 @@ templated_win_x86_64 = { supported = ["int", "float", "np.double"]}
 
 ## License
 
-`hatch-cython` is distributed under the terms of the [MIT](https://spdx.org/licenses/MIT.html) license.
+`hatch-cythonize` is distributed under the terms of the [MIT](https://spdx.org/licenses/MIT.html) license.
 
 [extensions]: (https://docs.python.org/3/distutils/apiref.html#distutils.core.Extension)
 [compiler-directives]: (https://cython.readthedocs.io/en/latest/src/userguide/source_files_and_compilation.html#compiler-directives)

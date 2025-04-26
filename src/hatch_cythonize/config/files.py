@@ -1,9 +1,9 @@
 import re
 from dataclasses import dataclass, field
 
-from hatch_cython.config.platform import PlatformBase
-from hatch_cython.types import DictT, ListT, UnionT
-from hatch_cython.utils import parse_user_glob
+from hatch_cythonize.config.platform import PlatformBase
+from hatch_cythonize.types import DictT, ListT, UnionT
+from hatch_cythonize.utils import parse_user_glob
 
 
 @dataclass

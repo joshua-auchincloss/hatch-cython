@@ -4,7 +4,7 @@ tasks:
     std-test:
         dir: '{{ .DIR }}'
         env:
-            HATCH_CYTHON_DEVEL: 1
+            HATCH_CYTHONIZE_DEVEL: 1
         cmds:
         -   hatch --verbose build --clean
         -   if [ -d "/Users/runner" ]; then hatch env remove; fi

@@ -4,7 +4,7 @@ requires = ["hatchling"]
 
 [project]
 authors = [
-  {name = "joshua-auchincloss", email = "joshua.auchincloss@proton.me"}
+  {name = "elonzh", email = "elonzh@outlook.com"}
 ]
 classifiers = [
   "Development Status :: 4 - Beta",
