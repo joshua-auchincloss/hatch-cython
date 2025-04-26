@@ -1,3 +1,4 @@
+import os
 from collections.abc import Generator
 from dataclasses import asdict, dataclass, field
 from importlib import import_module
@@ -273,3 +274,7 @@ class Config:
             if not path.exists(opt):
                 msg = f"{opt} does not exist"
                 raise ValueError(msg)
+
+
+def running_in_ci() -> bool:
+    return any(os.environ.get(env_var) in {"true", "1"} for env_var in ("CI", "GITHUB_ACTIONS"))
