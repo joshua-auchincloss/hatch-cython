@@ -1,78 +1,78 @@
 version: '3'
 
 tasks:
-    std-test:
-        dir: '{{ .DIR }}'
-        env:
-            HATCH_CYTHON_DEVEL: 1
-        cmds:
-        -   hatch --verbose build --clean
-        -   if [ -d "/Users/runner" ]; then hatch env remove; fi
-        -   hatch run test
+  std-test:
+    dir: '{{ .DIR }}'
+    env:
+      HATCH_CYTHON_DEVEL: 1
+    cmds:
+    - hatch --verbose build --clean
+    - if [ -d "/Users/runner" ]; then hatch env remove; fi
+    - hatch run test
 
-    example:
-        dir: test_libraries/src_structure
-        cmds:
-        -   task: std-test
-            vars:
-                DIR: test_libraries/src_structure
-        -   if [ "$(cat ./caller_outputs.json |  jaq .call)" -ne "true" ]; then exit 1; fi
-        -   if [ "$(cat ./caller_outputs.json |  jaq .includes)" -ne "true" ]; then exit 1; fi
+  example:
+    dir: test_libraries/src_structure
+    cmds:
+    - task: std-test
+      vars:
+        DIR: test_libraries/src_structure
+    - if [ "$(cat ./caller_outputs.json |  jaq .call)" -ne "true" ]; then exit 1; fi
+    - if [ "$(cat ./caller_outputs.json |  jaq .includes)" -ne "true" ]; then exit 1; fi
 
-    only-included:
-        dir: test_libraries/only_included
-        cmds:
-        -   task: std-test
-            vars:
-                DIR: test_libraries/only_included
+  only-included:
+    dir: test_libraries/only_included
+    cmds:
+    - task: std-test
+      vars:
+        DIR: test_libraries/only_included
 
-    simple-structure:
-        dir: test_libraries/simple_structure
-        cmds:
-        -   rm -rf ./example_lib/*
-        -   rm -rf ./tests/*
-        -   cp -r ../src_structure/src/example_lib/* ./example_lib/
-        -   cp -r ../src_structure/tests/* ./tests/
-        -   rm ./tests/test_custom_includes.py
-        -   rm ./example_lib/custom_includes.*
-        -   task: std-test
-            vars:
-                DIR: test_libraries/simple_structure
-        -   rm -rf ./example_lib/*
-        -   rm -rf ./tests/*
-        -   echo "" > ./example_lib/.gitkeep
-        -   echo "" > ./tests/.gitkeep
+  simple-structure:
+    dir: test_libraries/simple_structure
+    cmds:
+    - rm -rf ./example_lib/*
+    - rm -rf ./tests/*
+    - cp -r ../src_structure/src/example_lib/* ./example_lib/
+    - cp -r ../src_structure/tests/* ./tests/
+    - rm ./tests/test_custom_includes.py
+    - rm ./example_lib/custom_includes.*
+    - task: std-test
+      vars:
+        DIR: test_libraries/simple_structure
+    - rm -rf ./example_lib/*
+    - rm -rf ./tests/*
+    - echo "" > ./example_lib/.gitkeep
+    - echo "" > ./tests/.gitkeep
 
-    clean:
-        cmds:
-        -   rm -rf dist
-        -   rm -rf **/dist
-        -   rm -rf .coverag*
-        -   rm -rf __pycache__
-        -   rm -rf **/__pycache__
-        -   rm -rf ./test_libraries/src_structure/src/**/**/*.c
-        -   rm -rf ./test_libraries/src_structure/src/**/**/*.so
-        -   rm -rf ./test_libraries/src_structure/src/**/**/*.cpp
-        -   rm -rf ./test_libraries/src_structure/src/**/**/*.html
-        -   rm -rf ./**/*.so
-        -   rm -rf ./**/*.html
-        -   rm -rf .ruff_cache
-        -   rm -rf **/.ruff_cache
-        -   rm -rf .pytest_cache
-        -   rm -rf **/.pytest_cache
+  clean:
+    cmds:
+    - rm -rf dist
+    - rm -rf **/dist
+    - rm -rf .coverag*
+    - rm -rf __pycache__
+    - rm -rf **/__pycache__
+    - rm -rf ./test_libraries/src_structure/src/**/**/*.c
+    - rm -rf ./test_libraries/src_structure/src/**/**/*.so
+    - rm -rf ./test_libraries/src_structure/src/**/**/*.cpp
+    - rm -rf ./test_libraries/src_structure/src/**/**/*.html
+    - rm -rf ./**/*.so
+    - rm -rf ./**/*.html
+    - rm -rf .ruff_cache
+    - rm -rf **/.ruff_cache
+    - rm -rf .pytest_cache
+    - rm -rf **/.pytest_cache
 
-    lint:
-        cmds:
-        -   black .
-        -   isort .
-        -   ruff src --fix
-        -   ruff . --fix
+  lint:
+    cmds:
+    - black .
+    - isort .
+    - ruff src --fix
+    - ruff . --fix
 
-    precommit:
-        cmds:
-        -   task lint
-        -   pre-commit run --all-files
+  precommit:
+    cmds:
+    - task lint
+    - pre-commit run --all-files
 
-    missed:
-        cmds:
-        -   python3 -m http.server -d ./htmlcov
+  missed:
+    cmds:
+    - python3 -m http.server -d ./htmlcov
