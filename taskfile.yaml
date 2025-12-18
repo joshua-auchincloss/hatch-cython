@@ -33,8 +33,8 @@ tasks:
     - rm -rf ./example_lib
     - mkdir -p ./tests
     - mkdir -p ./example_lib
-    - cp -r -no-dereference ../src_structure/src/example_lib ./example_lib || cp -r ../src_structure/src/example_lib/. ./example_lib
-    - cp -r -no-dereference ../src_structure/tests ./tests || cp -r ../src_structure/tests/. ./tests
+    - cp -r --no-dereference ../src_structure/src/example_lib ./example_lib || cp -r ../src_structure/src/example_lib/. ./example_lib
+    - cp -r --no-dereference ../src_structure/tests ./tests || cp -r ../src_structure/tests/. ./tests
     - rm -f ./tests/test_custom_includes.py
     - rm -f ./example_lib/custom_includes.*
     - task: std-test
