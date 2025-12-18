@@ -1,0 +1,4 @@
+[tools]
+"aqua:go-task/task" = "latest"
+prek = "latest"
+python = "3.13"

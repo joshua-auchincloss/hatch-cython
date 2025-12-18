@@ -71,7 +71,7 @@ parallel = true
 source_pkgs = ["hatch_cython"]
 
 [[tool.hatch.envs.all.matrix]]
-python = ["3.10", "3.11"]
+python = ["3.11", "3.12", "3.13"]
 
 [tool.hatch.envs.default]
 dependencies = ["coverage[toml]>=6.5", "pytest", "toml", "numpy"]
