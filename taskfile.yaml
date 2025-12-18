@@ -31,12 +31,12 @@ tasks:
     cmds:
     - rm -rf ./tests
     - rm -rf ./example_lib
-    - mkdir -p ./tests || echo "exists"
-    - mkdir -p ./example_lib || echo "exists"
-    - cp -r ../src_structure/src/example_lib/* ./example_lib/
-    - cp -r ../src_structure/tests/* ./tests/
-    - rm ./tests/test_custom_includes.py
-    - rm ./example_lib/custom_includes.*
+    - mkdir -p ./tests
+    - mkdir -p ./example_lib
+    - cp -rT ../src_structure/src/example_lib ./example_lib || cp -r ../src_structure/src/example_lib/. ./example_lib
+    - cp -rT ../src_structure/tests ./tests || cp -r ../src_structure/tests/. ./tests
+    - rm -f ./tests/test_custom_includes.py
+    - rm -f ./example_lib/custom_includes.*
     - task: std-test
       vars:
         DIR: test_libraries/simple_structure
