@@ -15,7 +15,7 @@ from hatch_cython.config.macros import DefineMacros, parse_macros
 from hatch_cython.config.platform import ListedArgs, PlatformArgs, parse_platform_args
 from hatch_cython.config.templates import Templates, parse_template_kwds
 from hatch_cython.constants import DIRECTIVES, EXIST_TRIM, INCLUDE, LTPY311, MUST_UNIQUE
-from hatch_cython.types import CallableT, ListStr
+from hatch_cython.types import CallableT, ListStr, UnionT
 
 # fields tracked by this plugin
 __known__ = frozenset(
@@ -135,7 +135,7 @@ def parse_from_dict(cls: BuildHookInterface):
 
 @dataclass
 class Config:
-    src: str | None = field(default=None)
+    src: UnionT[str, None] = field(default=None)
     files: FileArgs = field(default_factory=FileArgs)
     includes: ListStr = field(default_factory=list)
     define_macros: DefineMacros = field(default_factory=list)
