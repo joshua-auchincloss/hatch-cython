@@ -1,3 +1,4 @@
+import locale
 import os
 import re
 import subprocess
@@ -311,7 +312,8 @@ class CythonBuildHook(BuildHookInterface):
                 stderr=subprocess.STDOUT,
                 env=self.options.envflags.env,
             )
-            stdout = process.stdout.decode("utf-8")
+            encoding = locale.getpreferredencoding()
+            stdout = process.stdout.decode(encoding, errors="replace")
             if process.returncode:
                 self.app.display_error(f"cythonize exited non null status {process.returncode}")
                 self.app.display_error(stdout)
