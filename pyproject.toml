@@ -85,8 +85,8 @@ cov-report = [
   "coverage html",
   "coverage report"
 ]
-test = "pytest {args:tests} -v"
-test-cov = "coverage run -m pytest -vv {args:tests}"
+test = "pytest --junitxml=junit.xml -o junit_family=legacy {args:tests} -v"
+test-cov = "coverage run -m pytest --junitxml=junit.xml -o junit_family=legacy -vv {args:tests}"
 
 [tool.hatch.envs.lint]
 dependencies = ["black", "mypy", "ruff"]
