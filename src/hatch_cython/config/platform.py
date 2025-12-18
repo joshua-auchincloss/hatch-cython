@@ -77,7 +77,9 @@ class PlatformArgs(PlatformBase):
 
 
 def parse_to_plat(cls, arg, args: UnionT[list, dict], key: UnionT[int, str], require_argform: bool, **kwargs):
-    if isinstance(arg, dict):
+    if isinstance(arg, cls):
+        pass
+    elif isinstance(arg, dict):
         args[key] = cls(**arg, **kwargs)
     elif require_argform:
         msg = f"arg {key} is invalid. must be of type ({{ flag = ... , platform = '*' }}) given {arg} ({type(arg)})"

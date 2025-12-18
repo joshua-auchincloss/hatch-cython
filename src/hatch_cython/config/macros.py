@@ -15,7 +15,8 @@ def parse_macros(define: ListT[ListT[str]]) -> DefineMacros:
     Returns:
         DefineMacros: list[tuple[str,str|None]]
     """
-    for i, inst in enumerate(define):
+    for i, value in enumerate(define):
+        inst = list(value) if isinstance(value, tuple) else value
         size = len(inst)
         if not (isinstance(inst, list) and size in (1, 2) and all(isinstance(v, str) or v is None for v in inst)):
             msg = "".join(

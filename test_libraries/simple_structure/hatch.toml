@@ -104,7 +104,7 @@ packages = ["example_lib"]
 python = ["3.8", "3.9", "3.10", "3.11", "3.12"]
 
 [envs.default]
-dependencies = ["coverage", "pytest", "beartype", "numpy"]
+dependencies = ["coverage", "pytest", "beartype", "numpy", "Cython"]
 
 [envs.default.scripts]
 cov = ["install", "test-cov", "cov-report"]
