@@ -26,7 +26,7 @@ def memo(func: CallableT[P, T]) -> CallableT[P, T]:
         # note: dont call hasattr here because hasattr is pretty much
         # a try catch for property access - ergo we get infinite recursive
         # calls if a property is memoed
-        if len(args) and func.__name__ in dir(args[0]):
+        if len(args) != 0 and func.__name__ in dir(args[0]):
             idof = id(args[0])
         else:
             idof = None
