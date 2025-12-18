@@ -10,8 +10,9 @@
 
 **Table of Contents**
 
-- [Installation](#installation)
 - [Usage](#usage)
+- [Installation](#installation)
+  - [Build System Requirements for Library Includes](#build-system-requirements-for-library-includes)
 - [Configuration Options](#configuration-options)
   - [Platform-Specific Arguments](#platform-specific-arguments)
   - [Files](#files)
@@ -21,6 +22,11 @@
 - [Notes](#notes)
 - [Development](#development)
 - [License](#license)
+
+
+## Usage
+
+The build hook plugin name is `cython`. It can be configured either globally (applies to all build targets) or specifically for the wheel target.
 
 ## Installation
 
@@ -34,9 +40,46 @@ build-backend = "hatchling.build"
 
 > **Important**: `Cython` and `setuptools` must be included in `build-system.requires` because the build hook imports Cython modules at load time, before hook-specific dependencies are resolved.
 
-## Usage
+### Build System Requirements for Library Includes
 
-The build hook plugin name is `cython`. It can be configured either globally (applies to all build targets) or specifically for the wheel target.
+When using `include_numpy`, `include_pyarrow`, `include_pythran`, or custom `include_{package}` options, **those packages must also be added to `build-system.requires`**. This is because hatch-cython imports these packages at hook initialization to resolve their include paths.
+
+| Option                  | Required in `build-system.requires` |
+| ----------------------- | ----------------------------------- |
+| `include_numpy = true`  | `"numpy"`                           |
+| `include_pyarrow = true`| `"pyarrow"`                         |
+| `include_pythran = true`| `"pythran"`                         |
+| `include_{pkg} = {...}` | The package specified in `pkg`      |
+
+**Example with NumPy:**
+
+```toml
+[build-system]
+requires = ["hatchling", "hatch-cython", "Cython", "setuptools", "numpy"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel.hooks.cython]
+dependencies = ["hatch-cython"]
+
+[tool.hatch.build.targets.wheel.hooks.cython.options]
+include_numpy = true
+define_macros = [["NPY_NO_DEPRECATED_API", "NPY_1_7_API_VERSION"]]
+```
+
+**Example with PyArrow:**
+
+```toml
+[build-system]
+requires = ["hatchling", "hatch-cython", "Cython", "setuptools", "pyarrow"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel.hooks.cython]
+dependencies = ["hatch-cython"]
+
+[tool.hatch.build.targets.wheel.hooks.cython.options]
+include_pyarrow = true
+```
+
 
 ### Hook Configuration Locations
 

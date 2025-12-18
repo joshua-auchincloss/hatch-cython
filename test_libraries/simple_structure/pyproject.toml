@@ -1,6 +1,6 @@
 [build-system]
 build-backend = "hatchling.build"
-requires = ["hatchling", "Cython", "setuptools"]
+requires = ["hatchling", "Cython", "setuptools", "numpy"]
 
 [project]
 authors = [

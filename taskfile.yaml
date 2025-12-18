@@ -31,6 +31,10 @@ tasks:
     cmds:
     - rm -rf ./example_lib/*
     - rm -rf ./tests/*
+    - |
+      [[ ! -d "./tests" ]] && mkdir -p ./tests/
+    - |
+      [[ ! -d "./example_lib" ]] && mkdir -p ./example_lib/
     - cp -r ../src_structure/src/example_lib/* ./example_lib/
     - cp -r ../src_structure/tests/* ./tests/
     - rm ./tests/test_custom_includes.py
@@ -42,6 +46,12 @@ tasks:
     - rm -rf ./tests/*
     - echo "" > ./example_lib/.gitkeep
     - echo "" > ./tests/.gitkeep
+
+  all-examples:
+    cmds:
+    - task: example
+    - task: only-included
+    - task: simple-structure
 
   clean:
     cmds:
