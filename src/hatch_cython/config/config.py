@@ -3,7 +3,6 @@ from collections.abc import Generator
 from dataclasses import asdict, dataclass, field
 from importlib import import_module
 from os import path
-from typing import Optional
 
 from hatchling.builders.hooks.plugin.interface import BuildHookInterface
 
@@ -16,7 +15,7 @@ from hatch_cython.config.macros import DefineMacros, parse_macros
 from hatch_cython.config.platform import ListedArgs, PlatformArgs, parse_platform_args
 from hatch_cython.config.templates import Templates, parse_template_kwds
 from hatch_cython.constants import DIRECTIVES, EXIST_TRIM, INCLUDE, LTPY311, MUST_UNIQUE
-from hatch_cython.types import CallableT, ListStr
+from hatch_cython.types import CallableT, ListStr, UnionT
 
 # fields tracked by this plugin
 __known__ = frozenset(
@@ -136,7 +135,7 @@ def parse_from_dict(cls: BuildHookInterface):
 
 @dataclass
 class Config:
-    src: Optional[str] = field(default=None)  # noqa: UP007
+    src: UnionT[str, None] = field(default=None)
     files: FileArgs = field(default_factory=FileArgs)
     includes: ListStr = field(default_factory=list)
     define_macros: DefineMacros = field(default_factory=list)
@@ -181,7 +180,7 @@ class Config:
 
                 if isinstance(libraries, str):
                     append(libraries)
-                elif isinstance(libraries, (list, Generator)):  # noqa: UP038
+                elif isinstance(libraries, (list, Generator)):
                     extend(libraries)
                 elif isinstance(libraries, dict):
                     extend(libraries.values())
@@ -234,7 +233,7 @@ class Config:
         def with_argvalue(arg: str):
             # be careful with e.g. -Ox flags
             matched = list(filter(lambda s: arg.startswith(s), MUST_UNIQUE))
-            if len(matched):
+            if len(matched) != 0:
                 m = matched[0]
                 args[m] = arg.split(" ")
             else:

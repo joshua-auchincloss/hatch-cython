@@ -1,0 +1,6 @@
+[tools]
+"aqua:go-task/task" = "latest"
+"aqua:orhun/git-cliff" = "latest"
+jaq = "latest"
+prek = "latest"
+python = "3.13"

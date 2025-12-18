@@ -296,8 +296,8 @@ class CythonBuildHook(BuildHookInterface):
 
             self.options.validate_include_opts()
 
-            process = subprocess.run(  # noqa: PLW1510
-                [  # noqa: S603
+            process = subprocess.run(  # noqa: PLW1510, S603
+                [
                     sys.executable,
                     setup_file,
                     "build_ext",

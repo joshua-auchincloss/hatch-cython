@@ -1,171 +1,171 @@
 name: build
 
 on:
-    push:
-        tags:
-        -   v*
-        branches:
-        -   main
+  push:
+    tags:
+    - v*
+    branches:
+    - main
 
 permissions:
-    contents: write
-    id-token: write
+  contents: write
+  id-token: write
 
 concurrency:
-    group: ${{ github.workflow }}-${{  github.sha }}
-    cancel-in-progress: true
+  group: ${{ github.workflow }}-${{  github.sha }}
+  cancel-in-progress: true
 
 defaults:
-    run:
-        shell: bash
+  run:
+    shell: bash
 
 jobs:
-    validate:
-        name: Python ${{ matrix.python-version }} on ${{ startsWith(matrix.os, 'macos-') && 'macOS' || startsWith(matrix.os, 'windows-') && 'Windows' || 'Linux' }}
-        runs-on: ${{ matrix.os }}
-        strategy:
-            fail-fast: false
-            matrix:
-                os: [ubuntu-latest, windows-latest, macos-latest]
-                python-version: ['3.8', '3.9', '3.10', '3.11', '3.12']
+  validate:
+    name: Python ${{ matrix.python-version }} on ${{ startsWith(matrix.os, 'macos-') && 'macOS' || startsWith(matrix.os, 'windows-') && 'Windows' || 'Linux' }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        python-version: ['3.8', '3.9', '3.10', '3.11', '3.12']
 
-        steps:
-        -   uses: actions/checkout@v4
+    steps:
+    - uses: actions/checkout@v4
 
-        -   name: Install llvm
-            if: startsWith(matrix.os, 'macos')
-            run: |
-                brew remove --ignore-dependencies python
-                rm -rf /usr/local/bin/2to3*
-                rm -rf /usr/local/bin/idle3*
-                rm -rf /usr/local/bin/pydoc3*
-                rm -rf /usr/local/bin/python*
-                brew cleanup
-                brew update -f
-                brew install libomp llvm
-                echo "
-                export PATH=\"$(brew --prefix)/opt/llvm/bin:\$PATH\"
-                export DYLD_LIBRARY_PATH=\"$(brew --prefix)/lib:$DYLD_LIBRARY_PATH\"
-                export LDFLAGS=\"-L$(brew --prefix)/opt/llvm/lib\"
-                export CPPFLAGS=\"-I$(brew --prefix)/opt/llvm/include\"
-                export LD=ld.lld
-                export AR=llvm-ar
-                export RANLIB=llvm-ranlib
+    - name: Install llvm
+      if: startsWith(matrix.os, 'macos')
+      run: |
+        brew remove --ignore-dependencies python
+        rm -rf /usr/local/bin/2to3*
+        rm -rf /usr/local/bin/idle3*
+        rm -rf /usr/local/bin/pydoc3*
+        rm -rf /usr/local/bin/python*
+        brew cleanup
+        brew update -f
+        brew install libomp llvm
+        echo "
+        export PATH=\"$(brew --prefix)/opt/llvm/bin:\$PATH\"
+        export DYLD_LIBRARY_PATH=\"$(brew --prefix)/lib:$DYLD_LIBRARY_PATH\"
+        export LDFLAGS=\"-L$(brew --prefix)/opt/llvm/lib\"
+        export CPPFLAGS=\"-I$(brew --prefix)/opt/llvm/include\"
+        export LD=ld.lld
+        export AR=llvm-ar
+        export RANLIB=llvm-ranlib
 
-                " >> $HOME/.bash_profile
+        " >> $HOME/.bash_profile
 
-        -   uses: actions/setup-go@v5
-            with:
-                go-version: stable
+    - uses: actions/setup-go@v5
+      with:
+        go-version: stable
 
-        -   name: Install Task
-            run: |
-                go install github.com/go-task/task/v3/cmd/task@latest
+    - name: Install Task
+      run: |
+        go install github.com/go-task/task/v3/cmd/task@latest
 
-        -   uses: hecrj/setup-rust-action@v2
-            with:
-                rust-version: stable
+    - uses: hecrj/setup-rust-action@v2
+      with:
+        rust-version: stable
 
-        -   uses: cargo-bins/cargo-binstall@main
+    - uses: cargo-bins/cargo-binstall@main
 
-        -   name: Install jaq
-            run: |
-                cargo binstall -y jaq
+    - name: Install jaq
+      run: |
+        cargo binstall -y jaq
 
-        -   name: Set up Python ${{ matrix.python-version }}
-            uses: actions/setup-python@v5
-            with:
-                python-version: ${{ matrix.python-version }}
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version }}
 
-        -   name: Install Hatch
-            run: |
-                pip install --upgrade pip
-                pip install --upgrade hatch
+    - name: Install Hatch
+      run: |
+        pip install --upgrade pip
+        pip install --upgrade hatch
 
-        -   name: Run tests
-            run: hatch run cov
+    - name: Run tests
+      run: hatch run cov
 
-        -   name: Test src lib compilation
-            shell: bash
-            run: |
-                task example
+    - name: Test src lib compilation
+      shell: bash
+      run: |
+        task example
 
-        -   name: Test simple lib compilation
-            shell: bash
-            run: |
-                task simple-structure
+    - name: Test simple lib compilation
+      shell: bash
+      run: |
+        task simple-structure
 
-        -   name: Test build target directives
-            shell: bash
-            run: |
-                task only-included
+    - name: Test build target directives
+      shell: bash
+      run: |
+        task only-included
 
-    sdist:
-        needs: [validate]
-        runs-on: ubuntu-latest
-        steps:
-        -   uses: actions/checkout@v4
-        -   name: Set up Python
-            uses: actions/setup-python@v5
-        -   name: Install dependencies
-            run: |
-                python -m pip install --upgrade pip
-                pip install hatch
-        -   name: Build package
-            run: hatch build -t sdist
-        -   name: Upload sdist
-            uses: actions/upload-artifact@v4
-            with:
-                name: hatch-cython-sdist
-                path: ./dist/
+  sdist:
+    needs: [validate]
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Python
+      uses: actions/setup-python@v5
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install hatch
+    - name: Build package
+      run: hatch build -t sdist
+    - name: Upload sdist
+      uses: actions/upload-artifact@v7
+      with:
+        name: hatch-cython-sdist
+        path: ./dist/
 
-    wheel:
-        needs: [validate]
-        runs-on: ${{ matrix.os }}
-        strategy:
-            matrix:
-                python-version: ['3.8', '3.9', '3.10', '3.11', '3.12']
-                os: [ubuntu-latest, windows-latest, macos-latest]
-        steps:
-        -   uses: actions/checkout@v4
-        -   name: Set up Python ${{ matrix.python-version }}
-            uses: actions/setup-python@v5
-            with:
-                python-version: ${{ matrix.python-version }}
-        -   name: Install dependencies
-            run: |
-                python -m pip install --upgrade pip
-                pip install hatch
-        -   name: Build package
-            run: hatch build -t wheel
-        -   name: Upload wheel
-            uses: actions/upload-artifact@v4
-            with:
-                name: wheel-${{ matrix.python-version }}-${{ matrix.os }}
-                path: ./dist/
+  wheel:
+    needs: [validate]
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        python-version: ['3.8', '3.9', '3.10', '3.11', '3.12', '3.13']
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install hatch
+    - name: Build package
+      run: hatch build -t wheel
+    - name: Upload wheel
+      uses: actions/upload-artifact@v7
+      with:
+        name: wheel-${{ matrix.python-version }}-${{ matrix.os }}
+        path: ./dist/
 
-    release:
-        needs: [sdist, wheel]
-        runs-on: ubuntu-latest
-        if: startsWith(github.ref, 'refs/tags/')
-        environment:
-            name: pypi
-            url: https://pypi.org/p/hatch-cython
-        steps:
-        -   name: Download all workflow run artifacts
-            uses: actions/download-artifact@v4
-            with:
-                path: dist/
-                merge-multiple: true
-        -   name: Display downloaded files
-            run: ls -R ./dist
-        -   name: Release
-            uses: softprops/action-gh-release@v2
-            with:
-                generate_release_notes: true
-                fail_on_unmatched_files: true
-                prerelease: ${{ contains(github.ref, 'rc') }}
-                files: |-
-                    dist/*
-        -   name: Publish package
-            uses: pypa/gh-action-pypi-publish@release/v1
+  release:
+    needs: [sdist, wheel]
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+    environment:
+      name: pypi
+      url: https://pypi.org/p/hatch-cython
+    steps:
+    - name: Download all workflow run artifacts
+      uses: actions/download-artifact@v7
+      with:
+        path: dist/
+        merge-multiple: true
+    - name: Display downloaded files
+      run: ls -R ./dist
+    - name: Release
+      uses: softprops/action-gh-release@v2
+      with:
+        generate_release_notes: true
+        fail_on_unmatched_files: true
+        prerelease: ${{ contains(github.ref, 'rc') }}
+        files: |-
+          dist/*
+    - name: Publish package
+      uses: pypa/gh-action-pypi-publish@release/v1

@@ -1,20 +1,26 @@
 name: Coverage
 on: [push, pull_request]
 jobs:
-    cov:
-        runs-on: ubuntu-latest
-        steps:
-        -   name: Checkout
-            uses: actions/checkout@v4
-        -   name: Set up Python 3.11
-            uses: actions/setup-python@v5
-            with:
-                python-version: '3.11'
-        -   name: Install dependencies
-            run: pip install '.[test]'
-        -   name: Run tests and collect coverage
-            run: pytest --cov --ignore=test_libraries
-        -   name: Upload coverage to Codecov
-            uses: codecov/codecov-action@v3
-            env:
-                CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+  cov:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+    - name: Install dependencies
+      run: pip install '.[test]'
+    - name: Run tests and collect coverage
+      run: pytest --cov --junitxml=junit.xml -o junit_family=legacy --ignore=test_libraries
+    - name: Upload coverage to Codecov
+      if: ${{ !cancelled() }}
+      uses: codecov/codecov-action@v5
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+    - name: Upload test results to Codecov
+      if: ${{ !cancelled() }}
+      uses: codecov/test-results-action@v1
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}

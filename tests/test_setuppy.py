@@ -95,7 +95,7 @@ def test_solo_ext_type_validations():
         if ln.startswith(exteq):
             tested = True
             ext = ast.literal_eval(ln.replace(exteq, "").strip())
-            assert isinstance(ext, (list, tuple, Generator))  # noqa: UP038
+            assert isinstance(ext, (list, tuple, Generator))
             for ex in ext:
                 assert isinstance(ex, dict)
                 assert isinstance(ex.get("name"), str)
