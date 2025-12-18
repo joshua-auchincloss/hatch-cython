@@ -38,7 +38,7 @@ class IndexItem(PlatformBase):
         return False
 
 
-class Templates:
+class Templates:  # noqa: PLW1641
     index: ListT[IndexItem]
     kwargs: dict
 
