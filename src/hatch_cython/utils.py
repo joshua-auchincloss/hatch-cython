@@ -1,6 +1,7 @@
 import os
 import platform
 from textwrap import dedent
+from weakref import WeakKeyDictionary
 
 from Cython import __version__ as __cythonversion__
 
@@ -16,24 +17,18 @@ def stale(src: str, dest: str):
 
 
 def memo(func: CallableT[P, T]) -> CallableT[P, T]:
-    keyed = {}
+    # Use WeakKeyDictionary for instances to avoid memory leaks
+    # and use a separate dict/list for static/module functions
+    instance_keyed = WeakKeyDictionary()
+    static_keyed = {}
 
     def wrapped(*args: P.args, **kwargs: P.kwargs) -> T:
-        nonlocal keyed
-
-        # if we have a class, memo will reserve objects between
-        # instances, so we need to key this by the id of the instance
-        # note: dont call hasattr here because hasattr is pretty much
-        # a try catch for property access - ergo we get infinite recursive
-        # calls if a property is memoed
-        if len(args) != 0 and func.__name__ in dir(args[0]):
-            idof = id(args[0])
-        else:
-            idof = None
-
-        if idof not in keyed:
-            keyed[idof] = func(*args, **kwargs)
-        return keyed[idof]
+        is_method = len(args) != 0 and func.__name__ in dir(args[0])
+        key = args[0] if is_method else None
+        cache = instance_keyed if is_method else static_keyed
+        if key not in cache:
+            cache[key] = func(*args, **kwargs)
+        return cache[key]
 
     return wrapped
 

@@ -9,6 +9,8 @@ from tempfile import TemporaryDirectory
 
 from Cython.Tempita import sub as render_template
 from hatchling.builders.hooks.plugin.interface import BuildHookInterface
+from hatchling.builders.macos import process_macos_plat_tag
+from packaging.tags import sys_tags
 
 from hatch_cython.config import parse_from_dict
 from hatch_cython.constants import (
@@ -339,10 +341,50 @@ class CythonBuildHook(BuildHookInterface):
         if self.sdist and not self.options.compiled_sdist:
             self.clean(None)
 
-        build_data["infer_tag"] = True
+        abi3_tag = self._limited_api_tag()
+        if abi3_tag is None:
+            build_data["infer_tag"] = True
+        else:
+            build_data["infer_tag"] = False
+            build_data["tag"] = abi3_tag
         build_data["artifacts"].extend(self.artifacts)
         build_data["force_include"].update(self.inclusion_map)
         build_data["pure_python"] = False
 
         self.app.display_info("Extensions complete")
         self.app.display_debug(build_data)
+
+    def _limited_api_tag(self):
+        py_limited_api = self.options.compile_kwargs.get("py_limited_api")
+        if not py_limited_api:
+            return None
+
+        minimum = None
+        macro_length = 2
+        for macro in self.options.define_macros:
+            if not macro:
+                continue
+            if macro[0] != "Py_LIMITED_API" or len(macro) < macro_length:
+                continue
+
+            version_str = macro[1]
+            if version_str:
+                try:
+                    version = int(version_str, 16)
+                except ValueError:
+                    continue
+                minimum = (version >> 24) & 0xFF, (version >> 16) & 0xFF
+                break
+
+        if minimum is None:
+            minimum = (sys.version_info.major, sys.version_info.minor)
+
+        # Logic is taken from hatchling.builders.wheel.WheelBuilder.get_best_matching_tag
+        tag = next(iter(t for t in sys_tags() if "manylinux" not in t.platform and "musllinux" not in t.platform))
+        platform = tag.platform
+
+        if sys.platform == "darwin":
+            platform = process_macos_plat_tag(platform, compat=self.config.get("macos_max_compat", False))
+
+        major, minor = minimum
+        return f"cp{major}{minor}-abi3-{platform}"
