@@ -16,6 +16,35 @@ def setup_py(
     sdist: bool,
 ):
     code = """
+import os
+import sys
+
+if sys.platform == "win32":
+    compiler_override = os.environ.get("CC") or os.environ.get("CXX")
+    if compiler_override:
+        for mod_name in ("distutils.compilers.C.msvc", "setuptools._distutils.compilers.C.msvc"):
+            try:
+                mod = __import__(mod_name, fromlist=["Compiler", "_find_exe"])
+                orig_init = mod.Compiler.initialize
+                _find_exe = getattr(mod, "_find_exe", None)
+
+                def patched_init(self, plat_name=None, _orig=orig_init, _cc=compiler_override, _find=_find_exe):
+                    _orig(self, plat_name)
+                    if _find and hasattr(self, "_paths"):
+                        paths = self._paths.split(os.pathsep)
+                        exe = _cc if _cc.lower().endswith(".exe") else f"{{_cc}}.exe"
+                        found = _find(exe, paths)
+                        if found != exe or os.path.isfile(_cc):
+                            self.cc = found
+                        else:
+                            self.cc = _cc
+                    else:
+                        self.cc = _cc
+
+                mod.Compiler.initialize = patched_init
+            except (ImportError, AttributeError):
+                pass
+
 from setuptools import Extension, setup
 from Cython.Build import cythonize
 
